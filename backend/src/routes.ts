@@ -27,17 +27,46 @@ router.get("/", (req: Request, res: Response) => {
 router.post("/user/register", registerUser);
 router.post("/user/login", loginUser);
 
+// create
+/**
+ * @swagger
+ * /attractions:
+ *   post:
+ *     tags:
+ *       - Attraction Routes
+ *     summary: Create a new ATTRACTION
+ *     description: Creates a new ATTRACTION in the database. Requires authentication.
+ *     
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             $ref: '#/components/schemas/Attraction'
+ *     responses:
+ *       201:
+ *         description: ATTRACTION created successfully
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/Attraction'
+ *       400:
+ *         description: Bad request - Invalid input
+ *       401:
+ *         description: Unauthorized - Invalid or missing token
+ *       500:
+ *         description: Server error
+ */
+router.post("/attractions", createAttraction);
+router.get("/attractions", getAllAttractions);
+router.get("/attractions/:id", getAttractionById);
 
-router.post("/products", verifyToken, createAttraction);
-router.get("/products", getAllAttractions);
-router.get("/products/:id", getAttractionById);
+
+router.post("/attractions/query", getAttractionsByQueryGeneric);
+router.get("/attractions/:key/:value", verifyToken, getAttractionsByQuery);
 
 
-router.post("/products/query", getAttractionsByQueryGeneric);
-router.get("/products/:key/:value", verifyToken, getAttractionsByQuery);
-
-
-router.put("/products/:id", updateAttractionById);
-router.delete("/products/:id", deleteAttractionById);
+router.put("/attractions/:id", updateAttractionById);
+router.delete("/attractions/:id", deleteAttractionById);
 
 export default router;
