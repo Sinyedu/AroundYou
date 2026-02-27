@@ -84,10 +84,12 @@ export async function loginUser(req: Request, res: Response): Promise<void> {
         return;
       }
 
-      const userId: string = user.id;
+     const userId: string = user.userID;
       const token: string = jwt.sign(
         {
-          name: user.name,
+          firstName: user.firstName,
+          lastName: user.lastName,
+          userName: user.userName,
           email: user.email,
           id: userId,
         },
@@ -111,7 +113,7 @@ export async function loginUser(req: Request, res: Response): Promise<void> {
 }
 
 /**
- * Middlewarw to verify the JWT token and protect routes
+ * Middleware to verify the JWT token and protect routes
  * @param req
  * @param res
  * @param next
@@ -142,7 +144,9 @@ export async function verifyToken(
  */
 export function validateUserRegistration(data: User): ValidationResult {
   const schema = Joi.object({
-    name: Joi.string().min(3).max(255).required(),
+    firstName: Joi.string().min(2).max(255).required(),
+    lastName: Joi.string().min(2).max(255).required(),
+    userName: Joi.string().min(2).max(255).required(),
     email: Joi.string().email().min(5).max(255).required(),
     password: Joi.string().min(6).max(30).required(),
   });
