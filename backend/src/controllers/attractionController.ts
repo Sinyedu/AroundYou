@@ -1,8 +1,11 @@
 import { Request, Response } from "express";
 import { UserModel } from "../models/userModel";
 import { AttractionModel } from "../models/attractionModel";
-import { connect, disconnect } from "../repository/database";
-import { buildDynamicQuery } from "./dynamicueryBuilder";
+import {
+  connectionToDatabase,
+  disconnectFromDatabase,
+} from "../repository/database";
+import { buildDynamicQuery } from "./dynamicQueryBuilder";
 
 // CRUD YEAH
 
@@ -11,11 +14,14 @@ import { buildDynamicQuery } from "./dynamicueryBuilder";
  * @param req
  * @param res
  */
-export async function createAttraction(req: Request, res: Response): Promise<void> {
+export async function createAttraction(
+  req: Request,
+  res: Response,
+): Promise<void> {
   const data = req.body;
 
   try {
-    await connect();
+    await connectionToDatabase();
 
     const attraction = new AttractionModel(data);
     const result = await attraction.save();
@@ -24,9 +30,11 @@ export async function createAttraction(req: Request, res: Response): Promise<voi
   } catch (err) {
     console.error("Error creating attraction:", err); // Add this line
 
-    res.status(500).json("An error occurred while creating the attraction." + err);
+    res
+      .status(500)
+      .json("An error occurred while creating the attraction." + err);
   } finally {
-    await disconnect();
+    await disconnectFromDatabase();
   }
 }
 
@@ -35,9 +43,12 @@ export async function createAttraction(req: Request, res: Response): Promise<voi
  * @param req
  * @param res
  */
-export async function getAllAttractions(req: Request, res: Response): Promise<void> {
+export async function getAllAttractions(
+  req: Request,
+  res: Response,
+): Promise<void> {
   try {
-    await connect();
+    await connectionToDatabase();
 
     const result = await AttractionModel.find({});
 
@@ -45,7 +56,7 @@ export async function getAllAttractions(req: Request, res: Response): Promise<vo
   } catch (err) {
     res.status(500).json("error retrieving the attractions." + err);
   } finally {
-    await disconnect();
+    await disconnectFromDatabase();
   }
 }
 
@@ -54,17 +65,20 @@ export async function getAllAttractions(req: Request, res: Response): Promise<vo
  * @param req
  * @param res
  */
-export async function getAttractionById(req: Request, res: Response): Promise<void> {
+export async function getAttractionById(
+  req: Request,
+  res: Response,
+): Promise<void> {
   try {
-    await connect();
+    await connectionToDatabase();
 
     const id = req.params.id;
     const result = await AttractionModel.findById({ _id: id });
     res.status(200).json(result);
   } catch (err) {
-    res.status(500).json("error retrieving product by id." + err);
+    res.status(500).json("error retrieving attraction by id." + err);
   } finally {
-    await disconnect();
+    await disconnectFromDatabase();
   }
 }
 
@@ -80,7 +94,7 @@ export async function updateAttractionById(
   const id = req.params.id;
 
   try {
-    await connect();
+    await connectionToDatabase();
 
     const result = await AttractionModel.findByIdAndUpdate(id, req.body);
     if (!result) {
@@ -91,7 +105,7 @@ export async function updateAttractionById(
   } catch (err) {
     res.status(500).json("error updating the attraction by id." + err);
   } finally {
-    await disconnect();
+    await disconnectFromDatabase();
   }
 }
 
@@ -107,7 +121,7 @@ export async function deleteAttractionById(
   const id = req.params.id;
 
   try {
-    await connect();
+    await connectionToDatabase();
 
     const result = await AttractionModel.findByIdAndDelete(id);
     if (!result) {
@@ -118,7 +132,7 @@ export async function deleteAttractionById(
   } catch (err) {
     res.status(500).json("error deleting the attraction by id." + err);
   } finally {
-    await disconnect();
+    await disconnectFromDatabase();
   }
 }
 
@@ -132,12 +146,11 @@ export async function getAttractionsByQuery(
   res: Response,
 ): Promise<void> {
   try {
-    await connect();
+    await connectionToDatabase();
 
     // api/products/key/value
-
-    const key: any = req.params.key;
-    const value: any = req.params.value;
+    const key = req.params.key as string;
+    const value = req.params.value as string;
 
     const result = await AttractionModel.find({
       [key]: { $regex: value, $options: "i" },
@@ -147,7 +160,7 @@ export async function getAttractionsByQuery(
   } catch (err) {
     res.status(500).json("error retrieving attraction by query." + err);
   } finally {
-    await disconnect();
+    await disconnectFromDatabase();
   }
 }
 
@@ -161,7 +174,7 @@ export async function getAttractionsByQueryGeneric(
   res: Response,
 ): Promise<void> {
   try {
-    await connect();
+    await connectionToDatabase();
 
     // api/products/query
 
@@ -175,6 +188,6 @@ export async function getAttractionsByQueryGeneric(
   } catch (err) {
     res.status(500).json("error retrieving attraction by query." + err);
   } finally {
-    await disconnect();
+    await disconnectFromDatabase();
   }
 }

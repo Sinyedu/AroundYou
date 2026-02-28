@@ -8,18 +8,11 @@ import {
   getAttractionsByQuery,
   getAttractionsByQueryGeneric,
 } from "./controllers/attractionController";
-import {
-  createEvent,
-  getAllEvents,
-} from "./controllers/eventController";
-import {
-  loginUser,
-  registerUser,
-  verifyToken,
-} from "./controllers/authController";
+import { createEvent, getAllEvents } from "./controllers/eventController";
+import { loginUser, registerUser } from "./controllers/authController";
+import { verifyToken } from "./middleware/verifyUserToken";
 
 const router: Router = Router();
-
 
 router.get("/", (req: Request, res: Response) => {
   // connect
@@ -119,7 +112,7 @@ router.post("/user/login", loginUser);
  *       - Attraction Routes
  *     summary: Create a new ATTRACTION
  *     description: Creates a new ATTRACTION in the database. Requires authentication.
- *     
+ *
  *     requestBody:
  *       required: true
  *       content:
@@ -151,7 +144,7 @@ router.post("/attractions", createAttraction);
  *       - Event Routes
  *     summary: Create a new EVENT
  *     description: Creates a new EVENT in the database. Requires authentication.
- *     
+ *
  *     requestBody:
  *       required: true
  *       content:
@@ -218,14 +211,12 @@ router.get("/attractions", getAllAttractions);
  *       500:
  *         description: Server error
  */
-router.get("/events", getAllEvents); 
+router.get("/events", getAllEvents);
 
 router.get("/attractions/:id", getAttractionById);
 
-
 router.post("/attractions/query", getAttractionsByQueryGeneric);
 router.get("/attractions/:key/:value", verifyToken, getAttractionsByQuery);
-
 
 router.put("/attractions/:id", updateAttractionById);
 router.delete("/attractions/:id", deleteAttractionById);

@@ -5,10 +5,13 @@ import jwt from "jsonwebtoken";
 import bcrypt from "bcrypt";
 import Joi, { ValidationResult } from "joi";
 
-//Product imports
+//User imports
 import { UserModel } from "../models/userModel";
 import { User } from "../interfaces/user";
-import { connect, disconnect } from "../repository/database";
+import {
+  connectionToDatabase,
+  disconnectFromDatabase,
+} from "../repository/database";
 
 /**
  * Registers a new user in the database
@@ -23,7 +26,7 @@ export async function registerUser(req: Request, res: Response): Promise<void> {
       return;
     }
 
-    await connect();
+    await connectionToDatabase();
 
     const emailExists = await UserModel.findOne({ email: req.body.email });
     if (emailExists) {
@@ -47,7 +50,7 @@ export async function registerUser(req: Request, res: Response): Promise<void> {
       .status(500)
       .send("An error occurred while registering the user. Error:" + error);
   } finally {
-    await disconnect();
+    await disconnectFromDatabase();
   }
 }
 
@@ -65,7 +68,7 @@ export async function loginUser(req: Request, res: Response): Promise<void> {
       res.status(400).json({ error: error.details[0].message });
       return;
     }
-    await connect();
+    await connectionToDatabase();
     const user: User | null = await UserModel.findOne({
       email: req.body.email,
     });
@@ -84,7 +87,7 @@ export async function loginUser(req: Request, res: Response): Promise<void> {
         return;
       }
 
-     const userId: string = user.userID;
+      const userId: string = user.userID;
       const token: string = jwt.sign(
         {
           firstName: user.firstName,
@@ -95,7 +98,7 @@ export async function loginUser(req: Request, res: Response): Promise<void> {
         },
 
         process.env.TOKEN_SECRET as string,
-        { expiresIn: "2h" },
+        { expiresIn: "1h" },
       );
 
       res
@@ -108,33 +111,7 @@ export async function loginUser(req: Request, res: Response): Promise<void> {
       .status(500)
       .send("An error occurred while logging in the user. Error:" + error);
   } finally {
-    await disconnect();
-  }
-}
-
-/**
- * Middleware to verify the JWT token and protect routes
- * @param req
- * @param res
- * @param next
- */
-
-export async function verifyToken(
-  req: Request,
-  res: Response,
-  next: NextFunction,
-): Promise<void> {
-  const token = req.header("auth-token");
-  if (!token) {
-    res.status(400).json({ error: "Access denied. No token provided." });
-    return;
-  }
-
-  try {
-    if (token) jwt.verify(token, process.env.TOKEN_SECRET as string);
-    next();
-  } catch (error) {
-    res.status(401).send({ error: "Invalid token." });
+    await disconnectFromDatabase();
   }
 }
 

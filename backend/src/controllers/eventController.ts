@@ -1,11 +1,13 @@
 import { Request, Response } from "express";
 import { UserModel } from "../models/userModel";
-import { connect, disconnect } from "../repository/database";
-import { buildDynamicQuery } from "./dynamicueryBuilder";
+import {
+  connectionToDatabase,
+  disconnectFromDatabase,
+} from "../repository/database";
+import { buildDynamicQuery } from "./dynamicQueryBuilder";
 import { EventModel } from "../models/eventModel";
 
-
-// CRUD 
+// CRUD
 
 /**
  * Add new EVENT to the database
@@ -16,7 +18,7 @@ export async function createEvent(req: Request, res: Response): Promise<void> {
   const data = req.body;
 
   try {
-    await connect();
+    await connectionToDatabase();
 
     const event = new EventModel(data);
     const result = await event.save();
@@ -27,7 +29,7 @@ export async function createEvent(req: Request, res: Response): Promise<void> {
 
     res.status(500).json("An error occurred while creating the event." + err);
   } finally {
-    await disconnect();
+    await disconnectFromDatabase();
   }
 }
 
@@ -38,7 +40,7 @@ export async function createEvent(req: Request, res: Response): Promise<void> {
  */
 export async function getAllEvents(req: Request, res: Response): Promise<void> {
   try {
-    await connect();
+    await connectionToDatabase();
 
     const result = await EventModel.find({});
 
@@ -46,6 +48,6 @@ export async function getAllEvents(req: Request, res: Response): Promise<void> {
   } catch (err) {
     res.status(500).json("error retrieving the events." + err);
   } finally {
-    await disconnect();
+    await disconnectFromDatabase();
   }
 }

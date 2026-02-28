@@ -10,9 +10,9 @@ export function setupDocs(app: Application) {
   const swaggerDefinition = {
     openapi: "3.0.0",
     info: {
-      title: "Rubber Ducks API",
+      title: "Around You API Documentation",
       version: "1.0.0",
-      description: "API documentation for the Rubber Ducks project",
+      description: "API documentation for the Around You project",
     },
     servers: [
       {
