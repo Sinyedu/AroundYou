@@ -7,7 +7,7 @@ import { buildDynamicQuery } from "./dynamicueryBuilder";
 // CRUD YEAH
 
 /**
- * Add new DUCKS to the database
+ * Add new ATTRACTION to the database
  * @param req
  * @param res
  */
