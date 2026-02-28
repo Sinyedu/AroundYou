@@ -83,7 +83,7 @@ export async function getAttractionById(
 }
 
 /**
- * Update a DUCK by ID from the database
+ * Update a ATTRACTION by ID from the database
  * @param req
  * @param res
  */
