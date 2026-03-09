@@ -5,5 +5,5 @@
 </template>
 
 <script setup lang="ts">
-
+//TODO: Create a nice landing page
 </script>
