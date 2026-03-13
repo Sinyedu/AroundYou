@@ -45,8 +45,7 @@ export async function createAttraction(
  */
 export async function getAllAttractions(
   req: Request,
-  res: Response,
-): Promise<void> {
+  res: Response){
   try {
     await connectionToDatabase();
 
@@ -67,8 +66,7 @@ export async function getAllAttractions(
  */
 export async function getAttractionById(
   req: Request,
-  res: Response,
-): Promise<void> {
+  res: Response){
   try {
     await connectionToDatabase();
 
@@ -89,8 +87,7 @@ export async function getAttractionById(
  */
 export async function updateAttractionById(
   req: Request,
-  res: Response,
-): Promise<void> {
+  res: Response){
   const id = req.params.id;
 
   try {
@@ -143,8 +140,7 @@ export async function deleteAttractionById(
  */
 export async function getAttractionsByQuery(
   req: Request,
-  res: Response,
-): Promise<void> {
+  res: Response){
   try {
     await connectionToDatabase();
 
@@ -171,8 +167,7 @@ export async function getAttractionsByQuery(
  */
 export async function getAttractionsByQueryGeneric(
   req: Request,
-  res: Response,
-): Promise<void> {
+  res: Response){
   try {
     await connectionToDatabase();
 
