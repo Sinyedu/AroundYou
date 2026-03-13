@@ -39,7 +39,7 @@ export async function createAttraction(
 }
 
 /**
- * Retrieves all ATTRACTIONS from the database
+ * Retrieve all ATTRACTIONS from the database
  * @param req
  * @param res
  */
@@ -61,7 +61,7 @@ export async function getAllAttractions(
 }
 
 /**
- * Retrieves an ATTRACTION by ID from the database
+ * Retrieve an ATTRACTION by ID from the database
  * @param req
  * @param res
  */
@@ -83,7 +83,7 @@ export async function getAttractionById(
 }
 
 /**
- * Update a ATTRACTION by ID from the database
+ * Update an ATTRACTION by ID from the database
  * @param req
  * @param res
  */
@@ -137,7 +137,7 @@ export async function deleteAttractionById(
 }
 
 /**
- * Retrieves an ATTRACTION by query from the database
+ * Retrieve an ATTRACTION by query from the database
  * @param req
  * @param res
  */
@@ -165,7 +165,7 @@ export async function getAttractionsByQuery(
 }
 
 /**
- * Retrieves an ATTRACTION by query from the database
+ * Retrieve an ATTRACTION by query from the database with a dynamic query builder
  * @param req
  * @param res
  */
