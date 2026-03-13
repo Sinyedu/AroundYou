@@ -38,7 +38,7 @@ export async function createEvent(req: Request, res: Response): Promise<void> {
  * @param req
  * @param res
  */
-export async function getAllEvents(req: Request, res: Response): Promise<void> {
+export async function getAllEvents(req: Request, res: Response) {
   try {
     await connectionToDatabase();
 
