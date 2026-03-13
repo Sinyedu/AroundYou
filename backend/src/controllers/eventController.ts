@@ -34,7 +34,7 @@ export async function createEvent(req: Request, res: Response): Promise<void> {
 }
 
 /**
- * Retrieves all EVENTS from the database
+ * Retrieve all EVENTS from the database
  * @param req
  * @param res
  */
@@ -51,3 +51,26 @@ export async function getAllEvents(req: Request, res: Response): Promise<void> {
     await disconnectFromDatabase();
   }
 }
+
+/**
+ * Retrieve an EVENT by ID from the database
+ * @param req
+ * @param res 
+ */
+export async function getEventById(req: Request, res: Response) {
+  try {
+    await connectionToDatabase();
+
+    const eventId = req.params.id;
+    const result = await EventModel.findById(eventId);
+
+    res.status(200).json(result);
+  }
+  catch (err) {
+    res.status(500).json("error retrieving event by ID. Error: " + err);
+  }
+  finally {
+    await disconnectFromDatabase();
+  }
+}
+
