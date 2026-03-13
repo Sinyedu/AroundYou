@@ -74,3 +74,31 @@ export async function getEventById(req: Request, res: Response) {
   }
 }
 
+/**
+ * Update an EVENT by ID from the database
+ * @param req
+ * @param res
+ */
+export async function updateEventById(req: Request, res: Response) {
+
+  const eventId = req.params.id;
+
+  try {
+    await connectionToDatabase();
+
+    const result = await EventModel.findByIdAndUpdate(eventId, req.body);
+
+    if (!result) {
+      res.status(404).json("Cannot find event with id=: " + eventId);
+    } else {
+      res.status(200).json("Event was updated successfully.");
+    }
+  }
+  catch (err) {
+    res.status(500).json("Error updating the event by id. Error: " + err);
+  }
+  finally {
+    await disconnectFromDatabase();
+  }
+}
+
