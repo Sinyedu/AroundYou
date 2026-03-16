@@ -1,11 +1,8 @@
 import { Request, Response } from "express";
-import { UserModel } from "../models/userModel";
-import {
-  connectionToDatabase,
-  disconnectFromDatabase,
-} from "../repository/database";
-import { buildDynamicQuery } from "./dynamicQueryBuilder";
 import { EventModel } from "../models/eventModel";
+import { connectionToDatabase, disconnectFromDatabase } from "../repository/database";
+import { buildDynamicQuery } from "./dynamicQueryBuilder";
+
 
 // CRUD
 
