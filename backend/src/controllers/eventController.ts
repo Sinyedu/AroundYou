@@ -128,3 +128,27 @@ export async function deleteEventById(req: Request, res: Response) {
     await disconnectFromDatabase();
   }
 }
+
+/**
+ * Retrieve an EVENT by query from the database
+ * @param req
+ * @param res
+ */
+export async function getEventByQuery(req: Request, res: Response): Promise<void> {
+
+  try {
+    await connectionToDatabase();
+
+    const key: any = req.params.key;
+    const value: any = req.params.value;
+
+    const result = await EventModel.find({ [key]: {$regex: value, $options: 'i'} });
+
+    res.status(200).json(result);
+    
+  } catch (err) {
+      res.status(500).json("error retrieving event by query. Error: " + err);
+  } finally {
+      await disconnectFromDatabase();
+  }
+}
