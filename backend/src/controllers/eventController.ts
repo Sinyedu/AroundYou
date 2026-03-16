@@ -156,7 +156,7 @@ export async function getEventByQuery(req: Request, res: Response): Promise<void
 }
 
 /**
- * Retrieves an EVENT by generic query from the database
+ * Retrieve an EVENT by query from the database with a dynamic query builder
  * @param req
  * @param res
  */
