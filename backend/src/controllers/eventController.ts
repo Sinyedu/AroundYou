@@ -4,7 +4,6 @@ import { connectionToDatabase, disconnectFromDatabase } from "../repository/data
 import { buildDynamicQuery } from "./dynamicQueryBuilder";
 
 
-// CRUD
 
 /**
  * Add new EVENT to the database
@@ -21,11 +20,13 @@ export async function createEvent(req: Request, res: Response): Promise<void> {
     const result = await event.save();
 
     res.status(201).json(result);
-  } catch (err) {
-    console.error("Error creating event:", err); // Add this line
+  }
+  catch (err) {
+    console.error("Error creating event:", err);
 
     res.status(500).json("An error occurred while creating the event." + err);
-  } finally {
+  }
+  finally {
     await disconnectFromDatabase();
   }
 }
@@ -42,9 +43,11 @@ export async function getAllEvents(req: Request, res: Response) {
     const result = await EventModel.find({});
 
     res.status(200).json(result);
-  } catch (err) {
+  }
+  catch (err) {
     res.status(500).json("error retrieving the events." + err);
-  } finally {
+  }
+  finally {
     await disconnectFromDatabase();
   }
 }
