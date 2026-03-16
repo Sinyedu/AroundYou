@@ -72,3 +72,31 @@ export async function getCityById(req: Request, res: Response) {
         await disconnectFromDatabase();
     }
 }
+
+/**
+ * Update an CITY by ID in the database
+ * @param req
+ * @param res
+ */
+export async function updateCityById(req: Request, res: Response) {
+
+    const cityId = req.params.id;
+
+    try {
+        await connectionToDatabase();
+
+        const result = await CityModel.findByIdAndUpdate(cityId, req.body, { new: true });
+
+        if (!result) {
+            res.status(404).json("Cannot find city with id=: " + cityId);
+        } else {
+            res.status(200).json("City was updated successfully.");
+        }
+    }
+    catch (err) {
+        res.status(500).json("error updating city by ID. Error: " + err);
+    }
+    finally {
+        await disconnectFromDatabase();
+    }
+}
