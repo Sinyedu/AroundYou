@@ -52,7 +52,7 @@ export async function getAllCities(req: Request, res: Response) {
 }
 
 /**
- * Retrieve an CITY by ID from the database
+ * Retrieve a CITY by ID from the database
  * @param req
  * @param res
  */
@@ -74,7 +74,7 @@ export async function getCityById(req: Request, res: Response) {
 }
 
 /**
- * Update an CITY by ID in the database
+ * Update a CITY by ID in the database
  * @param req
  * @param res
  */
