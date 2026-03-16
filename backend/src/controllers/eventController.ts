@@ -102,3 +102,29 @@ export async function updateEventById(req: Request, res: Response) {
   }
 }
 
+/**
+ * Delete an EVENT by ID from the database
+ * @param req
+ * @param res
+ */
+export async function deleteEventById(req: Request, res: Response) {
+  const eventId = req.params.id;
+
+  try {
+    await connectionToDatabase();
+
+    const result = await EventModel.findByIdAndDelete(eventId);
+
+    if (!result) {
+      res.status(404).json("Cannot find event with id=: " + eventId);
+    } else {
+      res.status(200).json("Event was deleted successfully.");
+    }
+  }
+  catch (err) {
+    res.status(500).json("Error deleting the event by id. Error: " + err);
+  }
+  finally {
+    await disconnectFromDatabase();
+  }
+}
