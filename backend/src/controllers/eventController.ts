@@ -146,9 +146,36 @@ export async function getEventByQuery(req: Request, res: Response): Promise<void
 
     res.status(200).json(result);
     
-  } catch (err) {
-      res.status(500).json("error retrieving event by query. Error: " + err);
-  } finally {
-      await disconnectFromDatabase();
+  } 
+  catch (err) {
+    res.status(500).json("error retrieving event by query. Error: " + err);
+  }
+  finally {
+     await disconnectFromDatabase();
+  }
+}
+
+/**
+ * Retrieves an EVENT by generic query from the database
+ * @param req
+ * @param res
+ */
+export async function getEventByGenericQuery(req: Request, res: Response): Promise<void> {
+  
+  try {
+    await connectionToDatabase();
+
+    const body = req.body;
+
+    const result = await EventModel.find(buildDynamicQuery(EventModel, body)); 
+
+    res.status(200).json(result);
+
+  }
+  catch (err) {
+    res.status(500).json("error retrieving event by generic query. Error: " + err);
+  }
+  finally {
+    await disconnectFromDatabase();
   }
 }
