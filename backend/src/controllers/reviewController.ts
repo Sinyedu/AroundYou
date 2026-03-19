@@ -52,7 +52,7 @@ export async function getAllReviews(req: Request, res: Response) {
 }
 
 /**
- * Retrieve an REVIEW by ID from the database
+ * Retrieve a REVIEW by ID from the database
  * @param req
  * @param res 
  */
@@ -67,6 +67,34 @@ export async function getReviewById(req: Request, res: Response) {
   }
   catch (err) {
     res.status(500).json("error retrieving review by ID. Error: " + err);
+  }
+  finally {
+    await disconnectFromDatabase();
+  }
+}
+
+/**
+ * Update a REVIEW by ID from the database
+ * @param req
+ * @param res
+ */
+export async function updateReviewById(req: Request, res: Response) {
+
+  const reviewId = req.params.id;
+
+  try {
+    await connectionToDatabase();
+
+    const result = await ReviewModel.findByIdAndUpdate(reviewId, req.body);
+
+    if (!result) {
+      res.status(404).json("Cannot find review with id=: " + reviewId);
+    } else {
+      res.status(200).json("Review was updated successfully.");
+    }
+  }
+  catch (err) {
+    res.status(500).json("Error updating the review by id. Error: " + err);
   }
   finally {
     await disconnectFromDatabase();
