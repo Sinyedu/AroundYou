@@ -29,3 +29,24 @@ export async function createReview(req: Request, res: Response): Promise<void> {
     await disconnectFromDatabase();
   }
 }
+
+/**
+ * Retrieve all REVIEWS from the database
+ * @param req
+ * @param res
+ */
+export async function getAllReviews(req: Request, res: Response) {
+  try {
+    await connectionToDatabase();
+
+    const result = await ReviewModel.find({});
+
+    res.status(200).json(result);
+  }
+  catch (err) {
+    res.status(500).json("error retrieving the reviews." + err);
+  }
+  finally {
+    await disconnectFromDatabase();
+  }
+}
