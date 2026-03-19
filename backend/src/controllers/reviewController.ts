@@ -2,8 +2,6 @@ import { Request, Response } from "express";
 import { ReviewModel } from "../models/reviewModel";
 import { connectionToDatabase, disconnectFromDatabase } from "../repository/database";
 import { buildDynamicQuery } from "./dynamicQueryBuilder";
-import { EventModel } from "src/models/eventModel";
-import { EventModel } from "src/models/eventModel";
 
 
 /**
@@ -127,5 +125,31 @@ export async function deleteReviewById(req: Request, res: Response) {
   }
   finally {
     await disconnectFromDatabase();
+  }
+}
+
+/**
+ * Retrieve a REVIEW by query from the database
+ * @param req
+ * @param res
+ */
+export async function getReviewByQuery(req: Request, res: Response): Promise<void> {
+
+  try {
+    await connectionToDatabase();
+
+    const key: any = req.params.key;
+    const value: any = req.params.value;
+
+    const result = await ReviewModel.find({ [key]: {$regex: value, $options: 'i'} });
+
+    res.status(200).json(result);
+    
+  } 
+  catch (err) {
+    res.status(500).json("error retrieving review by query. Error: " + err);
+  }
+  finally {
+     await disconnectFromDatabase();
   }
 }
