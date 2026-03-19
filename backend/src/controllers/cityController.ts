@@ -94,7 +94,34 @@ export async function updateCityById(req: Request, res: Response) {
         }
     }
     catch (err) {
-        res.status(500).json("error updating city by ID. Error: " + err);
+        res.status(500).json("Error updating city by ID. Error: " + err);
+    }
+    finally {
+        await disconnectFromDatabase();
+    }
+}
+
+/**
+ * Delete a CITY by ID from the database
+ * @param req
+ * @param res
+ */
+export async function deleteCityById(req: Request, res: Response) {
+    const cityId = req.params.id;
+
+    try {
+        await connectionToDatabase();
+
+        const result = await CityModel.findByIdAndDelete(cityId);
+
+        if (!result) {
+            res.status(404).json("Cannot find city with id=: " + cityId);
+        } else {
+            res.status(200).json("City was deleted successfully.");
+        }
+    }
+    catch (err) {
+        res.status(500).json("Error deleting city by ID. Error: " + err);
     }
     finally {
         await disconnectFromDatabase();
