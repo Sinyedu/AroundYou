@@ -2,6 +2,8 @@ import { Request, Response } from "express";
 import { ReviewModel } from "../models/reviewModel";
 import { connectionToDatabase, disconnectFromDatabase } from "../repository/database";
 import { buildDynamicQuery } from "./dynamicQueryBuilder";
+import { EventModel } from "src/models/eventModel";
+import { EventModel } from "src/models/eventModel";
 
 
 /**
@@ -95,6 +97,33 @@ export async function updateReviewById(req: Request, res: Response) {
   }
   catch (err) {
     res.status(500).json("Error updating the review by id. Error: " + err);
+  }
+  finally {
+    await disconnectFromDatabase();
+  }
+}
+
+/**
+ * Delete a REVIEW by ID from the database
+ * @param req
+ * @param res
+ */
+export async function deleteReviewById(req: Request, res: Response) {
+  const reviewId = req.params.id;
+
+  try {
+    await connectionToDatabase();
+
+    const result = await ReviewModel.findByIdAndDelete(reviewId);
+
+    if (!result) {
+      res.status(404).json("Cannot find review with id=: " + reviewId);
+    } else {
+      res.status(200).json("Review was deleted successfully.");
+    }
+  }
+  catch (err) {
+    res.status(500).json("Error deleting the review by id. Error: " + err);
   }
   finally {
     await disconnectFromDatabase();
