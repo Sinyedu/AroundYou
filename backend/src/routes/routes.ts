@@ -20,7 +20,10 @@ router.get("/", (req: Request, res: Response) => {
   // disconnect
 });
 
-// auth routes
+
+
+// AUTH ROUTES
+// REGISTER
 /**
  * @swagger
  * /user/register:
@@ -50,6 +53,7 @@ router.get("/", (req: Request, res: Response) => {
  */
 router.post("/user/register", registerUser);
 
+// LOGIN
 /**
  * @swagger
  * /user/login:
@@ -103,7 +107,10 @@ router.post("/user/register", registerUser);
  */
 router.post("/user/login", loginUser);
 
-// create
+
+
+// ATTRACTION ROUTES
+// CREATE
 /**
  * @swagger
  * /attractions:
@@ -135,7 +142,40 @@ router.post("/user/login", loginUser);
  */
 router.post("/attractions", createAttraction);
 
-// create
+// GET ALL
+/**
+ * @swagger
+ * /attractions:
+ *   get:
+ *     tags:
+ *       - Attraction Routes
+ *     summary: Get all ATTRACTIONs
+ *     description: Retrieves all ATTRACTIONs from the database.
+ *     responses:
+ *       200:
+ *         description: A list of all ATTRACTIONs
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: array
+ *               items:
+ *                 $ref: '#/components/schemas/Attraction'
+ *       500:
+ *         description: Server error
+ */
+router.get("/attractions", getAllAttractions);
+
+
+router.get("/attractions/:id", getAttractionById);
+router.put("/attractions/:id", updateAttractionById);
+router.delete("/attractions/:id", deleteAttractionById);
+router.get("/attractions/:key/:value", verifyToken, getAttractionsByQuery);
+router.post("/attractions/query", getAttractionsByQueryGeneric);
+
+
+
+// EVENT ROUTES
+// CREATE
 /**
  * @swagger
  * /events:
@@ -167,30 +207,7 @@ router.post("/attractions", createAttraction);
  */
 router.post("/events", createEvent);
 
-// gets
-/**
- * @swagger
- * /attractions:
- *   get:
- *     tags:
- *       - Attraction Routes
- *     summary: Get all ATTRACTIONs
- *     description: Retrieves all ATTRACTIONs from the database.
- *     responses:
- *       200:
- *         description: A list of all ATTRACTIONs
- *         content:
- *           application/json:
- *             schema:
- *               type: array
- *               items:
- *                 $ref: '#/components/schemas/Attraction'
- *       500:
- *         description: Server error
- */
-router.get("/attractions", getAllAttractions);
-
-// gets
+// GET ALL
 /**
  * @swagger
  * /events:
@@ -213,12 +230,12 @@ router.get("/attractions", getAllAttractions);
  */
 router.get("/events", getAllEvents);
 
-router.get("/attractions/:id", getAttractionById);
 
-router.post("/attractions/query", getAttractionsByQueryGeneric);
-router.get("/attractions/:key/:value", verifyToken, getAttractionsByQuery);
 
-router.put("/attractions/:id", updateAttractionById);
-router.delete("/attractions/:id", deleteAttractionById);
+
+
+
+
+
 
 export default router;
