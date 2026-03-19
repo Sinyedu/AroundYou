@@ -2,6 +2,8 @@ import { Request, Response } from "express";
 import { ReviewModel } from "../models/reviewModel";
 import { connectionToDatabase, disconnectFromDatabase } from "../repository/database";
 import { buildDynamicQuery } from "./dynamicQueryBuilder";
+import { EventModel } from "src/models/eventModel";
+import { EventModel } from "src/models/eventModel";
 
 
 /**
@@ -151,5 +153,30 @@ export async function getReviewByQuery(req: Request, res: Response): Promise<voi
   }
   finally {
      await disconnectFromDatabase();
+  }
+}
+
+/**
+ * Retrieve a REVIEW by query from the database with a dynamic query builder
+ * @param req
+ * @param res
+ */
+export async function getReviewByGenericQuery(req: Request, res: Response): Promise<void> {
+  
+  try {
+    await connectionToDatabase();
+
+    const body = req.body;
+
+    const result = await ReviewModel.find(buildDynamicQuery(ReviewModel, body)); 
+
+    res.status(200).json(result);
+
+  }
+  catch (err) {
+    res.status(500).json("error retrieving review by generic query. Error: " + err);
+  }
+  finally {
+    await disconnectFromDatabase();
   }
 }
