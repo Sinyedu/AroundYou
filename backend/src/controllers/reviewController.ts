@@ -50,3 +50,25 @@ export async function getAllReviews(req: Request, res: Response) {
     await disconnectFromDatabase();
   }
 }
+
+/**
+ * Retrieve an REVIEW by ID from the database
+ * @param req
+ * @param res 
+ */
+export async function getReviewById(req: Request, res: Response) {
+  try {
+    await connectionToDatabase();
+
+    const reviewId = req.params.id;
+    const result = await ReviewModel.findById(reviewId);
+
+    res.status(200).json(result);
+  }
+  catch (err) {
+    res.status(500).json("error retrieving review by ID. Error: " + err);
+  }
+  finally {
+    await disconnectFromDatabase();
+  }
+}
