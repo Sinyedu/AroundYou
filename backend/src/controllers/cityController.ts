@@ -2,6 +2,7 @@ import { Request, Response } from "express";
 import { CityModel } from "../models/cityModel";
 import { connectionToDatabase, disconnectFromDatabase } from "../repository/database";
 import { buildDynamicQuery } from "./dynamicQueryBuilder";
+import { EventModel } from "src/models/eventModel";
 
 
 /**
@@ -151,5 +152,30 @@ export async function getCityByQuery(req: Request, res: Response): Promise<void>
   }
   finally {
      await disconnectFromDatabase();
+  }
+}
+
+/**
+ * Retrieve a CITY by query from the database with a dynamic query builder
+ * @param req
+ * @param res
+ */
+export async function getCityByGenericQuery(req: Request, res: Response): Promise<void> {
+  
+  try {
+    await connectionToDatabase();
+
+    const body = req.body;
+
+    const result = await CityModel.find(buildDynamicQuery(CityModel, body)); 
+
+    res.status(200).json(result);
+
+  }
+  catch (err) {
+    res.status(500).json("Error retrieving city by generic query. Error: " + err);
+  }
+  finally {
+    await disconnectFromDatabase();
   }
 }
