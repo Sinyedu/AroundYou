@@ -1,16 +1,13 @@
 import { Router, Request, Response } from "express";
-import {
-  createAttraction,
-  getAllAttractions,
-  getAttractionById,
-  updateAttractionById,
-  deleteAttractionById,
-  getAttractionsByQuery,
-  getAttractionsByQueryGeneric,
-} from "../controllers/attractionController";
-import { createEvent, getAllEvents } from "../controllers/eventController";
+
+import { createAttraction, getAllAttractions, getAttractionById, updateAttractionById, deleteAttractionById, getAttractionsByQuery, getAttractionsByQueryGeneric } from "../controllers/attractionController";
+import { createEvent,getAllEvents, getEventById, updateEventById,deleteEventById, getEventByQuery, getEventByGenericQuery } from "../controllers/eventController";
+import { createCity, getAllCities, getCityById, updateCityById, deleteCityById, getCityByQuery, getCityByGenericQuery } from "../controllers/cityController";
+import { createReview, getAllReviews, getReviewById, updateReviewById, deleteReviewById, getReviewByQuery, getReviewByGenericQuery } from "../controllers/reviewController";
+
 import { loginUser, registerUser } from "../controllers/authController";
 import { verifyToken } from "../middleware/verifyUserToken";
+
 
 const router: Router = Router();
 
@@ -230,8 +227,32 @@ router.post("/events", createEvent);
  */
 router.get("/events", getAllEvents);
 
+router.get("/events/:id", getEventById);
+router.put("/events/:id", updateEventById);
+router.delete("/events/:id", deleteEventById);
+router.get("/events/:key/:value", verifyToken, getEventByQuery);
+router.post("/events/query", getEventByGenericQuery);
 
 
+
+// CITY ROUTES
+router.post("/city", createCity);
+router.get("/city", getAllCities);
+router.get("/city/:id", getCityById);
+router.put("/city/:id", updateCityById);
+router.delete("/city/:id", deleteCityById);
+router.get("/city/:key/:value", verifyToken, getCityByQuery);
+router.post("/city/query", getCityByGenericQuery);
+
+
+// REVIEW ROUTES
+router.post("/reviews", createReview);
+router.get("/reviews", getAllReviews);
+router.get("/reviews/:id", getReviewById);
+router.put("/reviews/:id", updateReviewById);
+router.delete("/reviews/:id", deleteReviewById);
+router.get("/reviews/:key/:value", verifyToken, getReviewByQuery);
+router.post("/reviews/query", getReviewByGenericQuery);
 
 
 
