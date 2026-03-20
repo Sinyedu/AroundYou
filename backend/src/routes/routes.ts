@@ -260,9 +260,50 @@ router.put("/attractions/:id", updateAttractionById);
  */
 router.delete("/attractions/:id", deleteAttractionById);
 
-
-
+// GET ATTRACTION BY QUERY
+/**
+ * @swagger
+ * /attractions/{key}/{value}:
+ *   get:
+ *     tags:
+ *       - Attraction Routes
+ *     summary: Get ATTRACTIONs by query
+ *     description: Retrieves ATTRACTIONs from the database based on a key-value query. Requires authentication.
+ *     parameters:
+ *       - name: key
+ *         in: path
+ *         required: true
+ *         description: The field to query (e.g., name, city)
+ *         schema:
+ *           type: string
+ *       - name: value
+ *         in: path
+ *         required: true
+ *         description: The value to match for the specified key
+ *         schema:
+ *           type: string
+ *     responses:
+ *       200:
+ *         description: A list of matching ATTRACTIONs
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: array
+ *               items:
+ *                 $ref: '#/components/schemas/Attraction'
+ *       400:
+ *         description: Bad request - Invalid input
+ *       401:
+ *         description: Unauthorized - Invalid or missing token
+ *       404:
+ *         description: ATTRACTION not found
+ *       500:
+ *         description: Server error
+ */
 router.get("/attractions/:key/:value", verifyToken, getAttractionsByQuery);
+
+
+
 router.post("/attractions/query", getAttractionsByQueryGeneric);
 
 
