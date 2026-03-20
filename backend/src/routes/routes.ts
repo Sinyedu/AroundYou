@@ -609,9 +609,30 @@ router.post("/events/query", verifyToken, getEventByGenericQuery);
  */
 router.post("/city", createCity);
 
-
-
+// GET ALL CITIES
+/**
+ * @swagger
+ * /city:
+ *   get:
+ *     tags:
+ *       - City Routes
+ *     summary: Get all CITIES
+ *     description: Retrieves all CITIES from the database.
+ *     responses:
+ *       200:
+ *         description: A list of all CITIES
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: array
+ *               items:
+ *                 $ref: '#/components/schemas/City'
+ *       500:
+ *         description: Server error
+ */
 router.get("/city", getAllCities);
+
+
 router.get("/city/:id", getCityById);
 router.put("/city/:id", updateCityById);
 router.delete("/city/:id", deleteCityById);
