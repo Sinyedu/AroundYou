@@ -729,6 +729,45 @@ router.put("/city/:id", updateCityById);
  *         description: Server error
  */
 router.delete("/city/:id", deleteCityById);
+
+// GET CITY BY QUERY
+/**
+ * @swagger
+ * /city/query/{key}/{value}:
+ *   get:
+ *     tags:
+ *       - City Routes
+ *     summary: Get CITYs by query
+ *     description: Retrieves CITYs from the database based on a key-value query. Requires authentication.
+ *     parameters:
+ *       - name: key
+ *         in: path
+ *         required: true
+ *         description: The field to query (e.g., name, country)
+ *         schema:
+ *           type: string
+ *       - name: value
+ *         in: path
+ *         required: true
+ *         description: The value to match for the specified key
+ *         schema:
+ *           type: string
+ *     responses:
+ *       200:
+ *         description: A list of matching CITYs (can be empty)
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: array
+ *               items:
+ *                 $ref: '#/components/schemas/City'
+ *       400:
+ *         description: Bad request - Invalid input
+ *       401:
+ *         description: Unauthorized - Invalid or missing token
+ *       500:
+ *         description: Server error
+ */
 router.get("/city/query/:key/:value", verifyToken, getCityByQuery);
 router.post("/city/query", verifyToken, getCityByGenericQuery);
 
