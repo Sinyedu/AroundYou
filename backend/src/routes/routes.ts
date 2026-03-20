@@ -839,9 +839,30 @@ router.post("/city/query", verifyToken, getCityByGenericQuery);
  */
 router.post("/reviews", createReview);
 
-
-
+// GET ALL REVIEWS
+/**
+ * @swagger
+ * /reviews:
+ *   get:
+ *     tags:
+ *       - Review Routes
+ *     summary: Get all REVIEWS
+ *     description: Retrieves all REVIEWS from the database.
+ *     responses:
+ *       200:
+ *         description: A list of all REVIEWS
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: array
+ *               items:
+ *                 $ref: '#/components/schemas/Review'
+ *       500:
+ *         description: Server error
+ */
 router.get("/reviews", getAllReviews);
+
+
 router.get("/reviews/:id", getReviewById);
 router.put("/reviews/:id", updateReviewById);
 router.delete("/reviews/:id", deleteReviewById);
