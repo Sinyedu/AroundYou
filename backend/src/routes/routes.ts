@@ -232,11 +232,36 @@ router.get("/attractions/:id", getAttractionById);
  */
 router.put("/attractions/:id", updateAttractionById);
 
-
-
-
-
+// DELETE ATTRACTION BY ID
+/**
+ * @swagger
+ * /attractions/{id}:
+ *   delete:
+ *     tags:
+ *       - Attraction Routes
+ *     summary: Delete an ATTRACTION by ID
+ *     description: Deletes an existing ATTRACTION from the database by its ID. Requires authentication.
+ *     parameters:
+ *       - name: id
+ *         in: path
+ *         required: true
+ *         description: The ID of the ATTRACTION to delete
+ *         schema:
+ *           type: string
+ *     responses:
+ *       200:
+ *         description: ATTRACTION deleted successfully
+ *       401:
+ *         description: Unauthorized - Invalid or missing token
+ *       404:
+ *         description: ATTRACTION not found
+ *       500:
+ *         description: Server error
+ */
 router.delete("/attractions/:id", deleteAttractionById);
+
+
+
 router.get("/attractions/:key/:value", verifyToken, getAttractionsByQuery);
 router.post("/attractions/query", getAttractionsByQueryGeneric);
 
