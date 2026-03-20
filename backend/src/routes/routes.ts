@@ -769,6 +769,39 @@ router.delete("/city/:id", deleteCityById);
  *         description: Server error
  */
 router.get("/city/query/:key/:value", verifyToken, getCityByQuery);
+
+// GET CITY BY GENERIC QUERY
+/**
+ * @swagger
+ * /city/query:
+ *   post:
+ *     tags:
+ *       - City Routes
+ *     summary: Get CITYs by generic query
+ *     description: Retrieves CITYs from the database based on a generic query object. Requires authentication.
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             description: A JSON object containing key-value pairs to query CITYs
+ *     responses:
+ *       200:
+ *         description: A list of matching CITYs (can be empty)
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: array
+ *               items:
+ *                 $ref: '#/components/schemas/City'
+ *       400:
+ *         description: Bad request - Invalid input
+ *       401:
+ *         description: Unauthorized - Invalid or missing token
+ *       500:
+ *         description: Server error
+ */
 router.post("/city/query", verifyToken, getCityByGenericQuery);
 
 
