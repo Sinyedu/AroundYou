@@ -47,6 +47,12 @@ router.get("/", (req: Request, res: Response) => {
  *                  type: string
  *                _id:
  *                  type: string
+ *       400:
+ *         description: Bad request - Invalid input
+ *       409:
+ *         description: Conflict - User already exists
+ *       500:
+ *         description: Server error
  */
 router.post("/user/register", registerUser);
 
@@ -99,6 +105,8 @@ router.post("/user/register", registerUser);
  *                       type: string
  *       400:
  *         description: Invalid email or password
+ *       401:
+ *         description: Unauthorized - Invalid or missing token
  *       500:
  *         description: Server error
  */
@@ -116,7 +124,8 @@ router.post("/user/login", loginUser);
  *       - Attraction Routes
  *     summary: Create a new ATTRACTION
  *     description: Creates a new ATTRACTION in the database. Requires authentication.
- *
+ *     security:
+ *       - bearerAuth: []
  *     requestBody:
  *       required: true
  *       content:
@@ -137,7 +146,7 @@ router.post("/user/login", loginUser);
  *       500:
  *         description: Server error
  */
-router.post("/attractions", createAttraction);
+router.post("/attractions", verifyToken, createAttraction);
 
 // GET ALL ATTRACTIONS
 /**
