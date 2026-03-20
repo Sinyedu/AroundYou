@@ -931,6 +931,33 @@ router.get("/reviews/:id", getReviewById);
  *         description: Server error
  */
 router.put("/reviews/:id", updateReviewById);
+
+// DELETE REVIEW BY ID
+/**
+ * @swagger
+ * /reviews/{id}:
+ *   delete:
+ *     tags:
+ *       - Review Routes
+ *     summary: Delete a REVIEW by ID
+ *     description: Deletes an existing REVIEW from the database by its ID. Requires authentication.
+ *     parameters:
+ *       - name: id
+ *         in: path
+ *         required: true
+ *         description: The ID of the REVIEW to delete
+ *         schema:
+ *           type: string
+ *     responses:
+ *       204:
+ *         description: REVIEW deleted successfully
+ *       401:
+ *         description: Unauthorized - Invalid or missing token
+ *       404:
+ *         description: REVIEW not found
+ *       500:
+ *         description: Server error
+ */
 router.delete("/reviews/:id", deleteReviewById);
 router.get("/reviews/query/:key/:value", verifyToken, getReviewByQuery);
 router.post("/reviews/query", verifyToken, getReviewByGenericQuery);
