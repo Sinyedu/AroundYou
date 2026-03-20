@@ -263,7 +263,7 @@ router.delete("/attractions/:id", deleteAttractionById);
 // GET ATTRACTION BY QUERY
 /**
  * @swagger
- * /attractions/{key}/{value}:
+ * /attractions/query/{key}/{value}:
  *   get:
  *     tags:
  *       - Attraction Routes
@@ -284,6 +284,40 @@ router.delete("/attractions/:id", deleteAttractionById);
  *           type: string
  *     responses:
  *       200:
+ *         description: A list of matching ATTRACTIONs (can be empty)
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: array
+ *               items:
+ *                 $ref: '#/components/schemas/Attraction'
+ *       400:
+ *         description: Bad request - Invalid input
+ *       401:
+ *         description: Unauthorized - Invalid or missing token
+ *       500:
+ *         description: Server error
+ */
+router.get("/attractions/query/:key/:value", verifyToken, getAttractionsByQuery);
+
+// GET ATTRACTION BY GENERIC QUERY
+/**
+ * @swagger
+ * /attractions/query:
+ *   post:
+ *     tags:
+ *       - Attraction Routes
+ *     summary: Get ATTRACTIONs by generic query
+ *     description: Retrieves ATTRACTIONs from the database based on a generic query object. Requires authentication.
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             description: A JSON object containing key-value pairs to query ATTRACTIONs (e.g., { "name": "Eiffel Tower", "city": "Paris" })
+ *     responses:
+ *       200:
  *         description: A list of matching ATTRACTIONs
  *         content:
  *           application/json:
@@ -300,10 +334,6 @@ router.delete("/attractions/:id", deleteAttractionById);
  *       500:
  *         description: Server error
  */
-router.get("/attractions/:key/:value", verifyToken, getAttractionsByQuery);
-
-
-
 router.post("/attractions/query", getAttractionsByQueryGeneric);
 
 
