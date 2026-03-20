@@ -192,10 +192,50 @@ router.get("/attractions", getAllAttractions);
  */
 router.get("/attractions/:id", getAttractionById);
 
-
-
-
+// UPDATE ATTRACTION BY ID
+/**
+ * @swagger
+ * /attractions/{id}:
+ *   put:
+ *     tags:
+ *       - Attraction Routes
+ *     summary: Update an ATTRACTION by ID
+ *     description: Updates an existing ATTRACTION in the database by its ID. Requires authentication.
+ *     parameters:
+ *       - name: id
+ *         in: path
+ *         required: true
+ *         description: The ID of the ATTRACTION to update
+ *         schema:
+ *           type: string
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             $ref: '#/components/schemas/Attraction'
+ *     responses:
+ *       200:
+ *         description: ATTRACTION updated successfully
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/Attraction'
+ *       400:
+ *         description: Bad request - Invalid input
+ *       401:
+ *         description: Unauthorized - Invalid or missing token
+ *       404:
+ *         description: ATTRACTION not found
+ *       500:
+ *         description: Server error
+ */
 router.put("/attractions/:id", updateAttractionById);
+
+
+
+
+
 router.delete("/attractions/:id", deleteAttractionById);
 router.get("/attractions/:key/:value", verifyToken, getAttractionsByQuery);
 router.post("/attractions/query", getAttractionsByQueryGeneric);
