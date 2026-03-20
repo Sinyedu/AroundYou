@@ -701,6 +701,33 @@ router.get("/city/:id", getCityById);
  *         description: Server error
  */
 router.put("/city/:id", updateCityById);
+
+// DELETE CITY BY ID
+/**
+ * @swagger
+ * /city/{id}:
+ *   delete:
+ *     tags:
+ *       - City Routes
+ *     summary: Delete a CITY by ID
+ *     description: Deletes an existing CITY from the database by its ID. Requires authentication.
+ *     parameters:
+ *       - name: id
+ *         in: path
+ *         required: true
+ *         description: The ID of the CITY to delete
+ *         schema:
+ *           type: string
+ *     responses:
+ *       204:
+ *         description: CITY deleted successfully
+ *       401:
+ *         description: Unauthorized - Invalid or missing token
+ *       404:
+ *         description: CITY not found
+ *       500:
+ *         description: Server error
+ */
 router.delete("/city/:id", deleteCityById);
 router.get("/city/query/:key/:value", verifyToken, getCityByQuery);
 router.post("/city/query", verifyToken, getCityByGenericQuery);
