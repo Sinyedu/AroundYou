@@ -662,7 +662,44 @@ router.get("/city", getAllCities);
  */
 router.get("/city/:id", getCityById);
 
-
+// UPDATE CITY BY ID
+/**
+ * @swagger
+ * /city/{id}:
+ *   put:
+ *     tags:
+ *       - City Routes
+ *     summary: Update a CITY by ID
+ *     description: Updates an existing CITY in the database by its ID. Requires authentication.
+ *     parameters:
+ *       - name: id
+ *         in: path
+ *         required: true
+ *         description: The ID of the CITY to update
+ *         schema:
+ *           type: string
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             $ref: '#/components/schemas/City'
+ *     responses:
+ *       200:
+ *         description: CITY updated successfully
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/City'
+ *       400:
+ *         description: Bad request - Invalid input
+ *       401:
+ *         description: Unauthorized - Invalid or missing token
+ *       404:
+ *         description: CITY not found
+ *       500:
+ *         description: Server error
+ */
 router.put("/city/:id", updateCityById);
 router.delete("/city/:id", deleteCityById);
 router.get("/city/query/:key/:value", verifyToken, getCityByQuery);
