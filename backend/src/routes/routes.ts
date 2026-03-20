@@ -539,9 +539,38 @@ router.delete("/events/:id", deleteEventById);
  */
 router.get("/events/query/:key/:value", verifyToken, getEventByQuery);
 
-
-
-
+// GET EVENT BY GENERIC QUERY
+/**
+ * @swagger
+ * /events/query:
+ *   post:
+ *     tags:
+ *       - Event Routes
+ *     summary: Get EVENTs by generic query
+ *     description: Retrieves EVENTs from the database based on a generic query object. Requires authentication.
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             description: A JSON object containing key-value pairs to query EVENTs
+ *     responses:
+ *       200:
+ *         description: A list of matching EVENTs (can be empty)
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: array
+ *               items:
+ *                 $ref: '#/components/schemas/Event'
+ *       400:
+ *         description: Bad request - Invalid input
+ *       401:
+ *         description: Unauthorized - Invalid or missing token
+ *       500:
+ *         description: Server error
+ */
 router.post("/events/query", verifyToken, getEventByGenericQuery);
 
 
