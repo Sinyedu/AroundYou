@@ -632,8 +632,37 @@ router.post("/city", createCity);
  */
 router.get("/city", getAllCities);
 
-
+// GET CITY BY ID
+/**
+ * @swagger
+ * /city/{id}:
+ *   get:
+ *     tags:
+ *       - City Routes
+ *     summary: Get a CITY by ID
+ *     description: Retrieves a CITY from the database by its ID.
+ *     parameters:
+ *       - name: id
+ *         in: path
+ *         required: true
+ *         description: The ID of the CITY to retrieve
+ *         schema:
+ *           type: string
+ *     responses:
+ *       200:
+ *         description: CITY found
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/City'
+ *       404:
+ *         description: CITY not found
+ *       500:
+ *         description: Server error
+ */
 router.get("/city/:id", getCityById);
+
+
 router.put("/city/:id", updateCityById);
 router.delete("/city/:id", deleteCityById);
 router.get("/city/query/:key/:value", verifyToken, getCityByQuery);
