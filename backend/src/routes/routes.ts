@@ -107,7 +107,7 @@ router.post("/user/login", loginUser);
 
 
 // ATTRACTION ROUTES
-// CREATE
+// CREATE ATTRACTION
 /**
  * @swagger
  * /attractions:
@@ -139,7 +139,7 @@ router.post("/user/login", loginUser);
  */
 router.post("/attractions", createAttraction);
 
-// GET ALL
+// GET ALL ATTRACTIONS
 /**
  * @swagger
  * /attractions:
@@ -162,8 +162,39 @@ router.post("/attractions", createAttraction);
  */
 router.get("/attractions", getAllAttractions);
 
-
+// GET ATTRACTION BY ID
+/**
+ * @swagger
+ * /attractions/{id}:
+ *   get:
+ *     tags:
+ *       - Attraction Routes
+ *     summary: Get an ATTRACTION by ID
+ *     description: Retrieves an ATTRACTION from the database by its ID.
+ *     parameters:
+ *       - name: id
+ *         in: path
+ *         required: true
+ *         description: The ID of the ATTRACTION to retrieve
+ *         schema:
+ *           type: string
+ *     responses:
+ *       200:
+ *         description: ATTRACTION found
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/Attraction'
+ *       404:
+ *         description: ATTRACTION not found
+ *       500:
+ *         description: Server error
+ */
 router.get("/attractions/:id", getAttractionById);
+
+
+
+
 router.put("/attractions/:id", updateAttractionById);
 router.delete("/attractions/:id", deleteAttractionById);
 router.get("/attractions/:key/:value", verifyToken, getAttractionsByQuery);
