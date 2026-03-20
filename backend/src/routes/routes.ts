@@ -258,7 +258,7 @@ router.put("/attractions/:id", updateAttractionById);
  *         schema:
  *           type: string
  *     responses:
- *       200:
+ *       204:
  *         description: ATTRACTION deleted successfully
  *       401:
  *         description: Unauthorized - Invalid or missing token
