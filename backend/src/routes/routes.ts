@@ -805,6 +805,7 @@ router.get("/city/query/:key/:value", verifyToken, getCityByQuery);
 router.post("/city/query", verifyToken, getCityByGenericQuery);
 
 
+
 // REVIEW ROUTES
 // CREATE REVIEW
 /**
@@ -1033,9 +1034,6 @@ router.get("/reviews/query/:key/:value", verifyToken, getReviewByQuery);
  *         description: Server error
  */
 router.post("/reviews/query", verifyToken, getReviewByGenericQuery);
-
-
-
 
 
 
