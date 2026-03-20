@@ -959,6 +959,45 @@ router.put("/reviews/:id", updateReviewById);
  *         description: Server error
  */
 router.delete("/reviews/:id", deleteReviewById);
+
+// GET REVIEW BY QUERY
+/**
+ * @swagger
+ * /reviews/query/{key}/{value}:
+ *   get:
+ *     tags:
+ *       - Review Routes
+ *     summary: Get REVIEWs by query
+ *     description: Retrieves REVIEWs from the database based on a key-value query. Requires authentication.
+ *     parameters:
+ *       - name: key
+ *         in: path
+ *         required: true
+ *         description: The field to query (e.g., rating, city)
+ *         schema:
+ *           type: string
+ *       - name: value
+ *         in: path
+ *         required: true
+ *         description: The value to match for the specified key
+ *         schema:
+ *           type: string
+ *     responses:
+ *       200:
+ *         description: A list of matching REVIEWs (can be empty)
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: array
+ *               items:
+ *                 $ref: '#/components/schemas/Review'
+ *       400:
+ *         description: Bad request - Invalid input
+ *       401:
+ *         description: Unauthorized - Invalid or missing token
+ *       500:
+ *         description: Server error
+ */
 router.get("/reviews/query/:key/:value", verifyToken, getReviewByQuery);
 router.post("/reviews/query", verifyToken, getReviewByGenericQuery);
 
