@@ -499,10 +499,49 @@ router.put("/events/:id", updateEventById);
  */
 router.delete("/events/:id", deleteEventById);
 
-
-
-
+// GET EVENT BY QUERY
+/**
+ * @swagger
+ * /events/query/{key}/{value}:
+ *   get:
+ *     tags:
+ *       - Event Routes
+ *     summary: Get EVENTs by query
+ *     description: Retrieves EVENTs from the database based on a key-value query. Requires authentication.
+ *     parameters:
+ *       - name: key
+ *         in: path
+ *         required: true
+ *         description: The field to query (e.g., name, city)
+ *         schema:
+ *           type: string
+ *       - name: value
+ *         in: path
+ *         required: true
+ *         description: The value to match for the specified key
+ *         schema:
+ *           type: string
+ *     responses:
+ *       200:
+ *         description: A list of matching EVENTs (can be empty)
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: array
+ *               items:
+ *                 $ref: '#/components/schemas/Event'
+ *       400:
+ *         description: Bad request - Invalid input
+ *       401:
+ *         description: Unauthorized - Invalid or missing token
+ *       500:
+ *         description: Server error
+ */
 router.get("/events/query/:key/:value", verifyToken, getEventByQuery);
+
+
+
+
 router.post("/events/query", verifyToken, getEventByGenericQuery);
 
 
