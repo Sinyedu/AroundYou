@@ -892,7 +892,44 @@ router.get("/reviews", getAllReviews);
  */
 router.get("/reviews/:id", getReviewById);
 
-
+// UPDATE REVIEW BY ID
+/**
+ * @swagger
+ * /reviews/{id}:
+ *   put:
+ *     tags:
+ *       - Review Routes
+ *     summary: Update a REVIEW by ID
+ *     description: Updates an existing REVIEW in the database by its ID. Requires authentication.
+ *     parameters:
+ *       - name: id
+ *         in: path
+ *         required: true
+ *         description: The ID of the REVIEW to update
+ *         schema:
+ *           type: string
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             $ref: '#/components/schemas/Review'
+ *     responses:
+ *       200:
+ *         description: REVIEW updated successfully
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/Review'
+ *       400:
+ *         description: Bad request - Invalid input
+ *       401:
+ *         description: Unauthorized - Invalid or missing token
+ *       404:
+ *         description: REVIEW not found
+ *       500:
+ *         description: Server error
+ */
 router.put("/reviews/:id", updateReviewById);
 router.delete("/reviews/:id", deleteReviewById);
 router.get("/reviews/query/:key/:value", verifyToken, getReviewByQuery);
