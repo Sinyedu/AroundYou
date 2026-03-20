@@ -806,7 +806,41 @@ router.post("/city/query", verifyToken, getCityByGenericQuery);
 
 
 // REVIEW ROUTES
+// CREATE REVIEW
+/**
+ * @swagger
+ * /reviews:
+ *   post:
+ *     tags:
+ *       - Review Routes
+ *     summary: Create a new REVIEW
+ *     description: Creates a new REVIEW in the database. Requires authentication.
+ *     security:
+ *       - bearerAuth: []
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             $ref: '#/components/schemas/Review'
+ *     responses:
+ *       201:
+ *         description: REVIEW created successfully
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/Review'
+ *       400:
+ *         description: Bad request - Invalid input
+ *       401:
+ *         description: Unauthorized - Invalid or missing token
+ *       500:
+ *         description: Server error
+ */
 router.post("/reviews", createReview);
+
+
+
 router.get("/reviews", getAllReviews);
 router.get("/reviews/:id", getReviewById);
 router.put("/reviews/:id", updateReviewById);
