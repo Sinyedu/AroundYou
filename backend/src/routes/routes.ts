@@ -431,8 +431,48 @@ router.get("/events", getAllEvents);
  */
 router.get("/events/:id", getEventById);
 
-
+// UPDATE EVENT BY ID
+/**
+ * @swagger
+ * /events/{id}:
+ *   put:
+ *     tags:
+ *       - Event Routes
+ *     summary: Update an EVENT by ID
+ *     description: Updates an existing EVENT in the database by its ID. Requires authentication.
+ *     parameters:
+ *       - name: id
+ *         in: path
+ *         required: true
+ *         description: The ID of the EVENT to update
+ *         schema:
+ *           type: string
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             $ref: '#/components/schemas/Event'
+ *     responses:
+ *       200:
+ *         description: EVENT updated successfully
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/Event'
+ *       400:
+ *         description: Bad request - Invalid input
+ *       401:
+ *         description: Unauthorized - Invalid or missing token
+ *       404:
+ *         description: EVENT not found
+ *       500:
+ *         description: Server error
+ */
 router.put("/events/:id", updateEventById);
+
+
+
 router.delete("/events/:id", deleteEventById);
 router.get("/events/query/:key/:value", verifyToken, getEventByQuery);
 router.post("/events/query", verifyToken, getEventByGenericQuery);
