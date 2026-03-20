@@ -346,7 +346,7 @@ router.post("/attractions/query", verifyToken, getAttractionsByQueryGeneric);
 
 
 // EVENT ROUTES
-// CREATE
+// CREATE EVENT
 /**
  * @swagger
  * /events:
@@ -378,7 +378,7 @@ router.post("/attractions/query", verifyToken, getAttractionsByQueryGeneric);
  */
 router.post("/events", createEvent);
 
-// GET ALL
+// GET ALL EVENTS
 /**
  * @swagger
  * /events:
@@ -401,7 +401,37 @@ router.post("/events", createEvent);
  */
 router.get("/events", getAllEvents);
 
+// GET EVENT BY ID
+/**
+ * @swagger
+ * /events/{id}:
+ *   get:
+ *     tags:
+ *       - Event Routes
+ *     summary: Get an EVENT by ID
+ *     description: Retrieves an EVENT from the database by its ID.
+ *     parameters:
+ *       - name: id
+ *         in: path
+ *         required: true
+ *         description: The ID of the EVENT to retrieve
+ *         schema:
+ *           type: string
+ *     responses:
+ *       200:
+ *         description: EVENT found
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/Event'
+ *       404:
+ *         description: EVENT not found
+ *       500:
+ *         description: Server error
+ */
 router.get("/events/:id", getEventById);
+
+
 router.put("/events/:id", updateEventById);
 router.delete("/events/:id", deleteEventById);
 router.get("/events/query/:key/:value", verifyToken, getEventByQuery);
