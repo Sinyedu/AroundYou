@@ -999,6 +999,39 @@ router.delete("/reviews/:id", deleteReviewById);
  *         description: Server error
  */
 router.get("/reviews/query/:key/:value", verifyToken, getReviewByQuery);
+
+// GET REVIEW BY GENERIC QUERY
+/**
+ * @swagger
+ * /reviews/query:
+ *   post:
+ *     tags:
+ *       - Review Routes
+ *     summary: Get REVIEWs by generic query
+ *     description: Retrieves REVIEWs from the database based on a generic query object. Requires authentication.
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             description: A JSON object containing key-value pairs to query REVIEWs
+ *     responses:
+ *       200:
+ *         description: A list of matching REVIEWs (can be empty)
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: array
+ *               items:
+ *                 $ref: '#/components/schemas/Review'
+ *       400:
+ *         description: Bad request - Invalid input
+ *       401:
+ *         description: Unauthorized - Invalid or missing token
+ *       500:
+ *         description: Server error
+ */
 router.post("/reviews/query", verifyToken, getReviewByGenericQuery);
 
 
