@@ -315,10 +315,10 @@ router.get("/attractions/query/:key/:value", verifyToken, getAttractionsByQuery)
  *         application/json:
  *           schema:
  *             type: object
- *             description: A JSON object containing key-value pairs to query ATTRACTIONs (e.g., { "name": "Eiffel Tower", "city": "Paris" })
+ *             description: A JSON object containing key-value pairs to query ATTRACTIONs
  *     responses:
  *       200:
- *         description: A list of matching ATTRACTIONs
+ *         description: A list of matching ATTRACTIONs (can be empty)
  *         content:
  *           application/json:
  *             schema:
@@ -329,12 +329,10 @@ router.get("/attractions/query/:key/:value", verifyToken, getAttractionsByQuery)
  *         description: Bad request - Invalid input
  *       401:
  *         description: Unauthorized - Invalid or missing token
- *       404:
- *         description: ATTRACTION not found
  *       500:
  *         description: Server error
  */
-router.post("/attractions/query", getAttractionsByQueryGeneric);
+router.post("/attractions/query", verifyToken, getAttractionsByQueryGeneric);
 
 
 
@@ -397,8 +395,8 @@ router.get("/events", getAllEvents);
 router.get("/events/:id", getEventById);
 router.put("/events/:id", updateEventById);
 router.delete("/events/:id", deleteEventById);
-router.get("/events/:key/:value", verifyToken, getEventByQuery);
-router.post("/events/query", getEventByGenericQuery);
+router.get("/events/query/:key/:value", verifyToken, getEventByQuery);
+router.post("/events/query", verifyToken, getEventByGenericQuery);
 
 
 
