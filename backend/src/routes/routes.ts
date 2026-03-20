@@ -471,9 +471,37 @@ router.get("/events/:id", getEventById);
  */
 router.put("/events/:id", updateEventById);
 
-
-
+// DELETE EVENT BY ID
+/**
+ * @swagger
+ * /events/{id}:
+ *   delete:
+ *     tags:
+ *       - Event Routes
+ *     summary: Delete an EVENT by ID
+ *     description: Deletes an existing EVENT from the database by its ID. Requires authentication.
+ *     parameters:
+ *       - name: id
+ *         in: path
+ *         required: true
+ *         description: The ID of the EVENT to delete
+ *         schema:
+ *           type: string
+ *     responses:
+ *       204:
+ *         description: EVENT deleted successfully
+ *       401:
+ *         description: Unauthorized - Invalid or missing token
+ *       404:
+ *         description: EVENT not found
+ *       500:
+ *         description: Server error
+ */
 router.delete("/events/:id", deleteEventById);
+
+
+
+
 router.get("/events/query/:key/:value", verifyToken, getEventByQuery);
 router.post("/events/query", verifyToken, getEventByGenericQuery);
 
