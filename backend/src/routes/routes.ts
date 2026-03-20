@@ -862,8 +862,37 @@ router.post("/reviews", createReview);
  */
 router.get("/reviews", getAllReviews);
 
-
+// GET REVIEW BY ID
+/**
+ * @swagger
+ * /reviews/{id}:
+ *   get:
+ *     tags:
+ *       - Review Routes
+ *     summary: Get a REVIEW by ID
+ *     description: Retrieves a REVIEW from the database by its ID.
+ *     parameters:
+ *       - name: id
+ *         in: path
+ *         required: true
+ *         description: The ID of the REVIEW to retrieve
+ *         schema:
+ *           type: string
+ *     responses:
+ *       200:
+ *         description: REVIEW found
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/Review'
+ *       404:
+ *         description: REVIEW not found
+ *       500:
+ *         description: Server error
+ */
 router.get("/reviews/:id", getReviewById);
+
+
 router.put("/reviews/:id", updateReviewById);
 router.delete("/reviews/:id", deleteReviewById);
 router.get("/reviews/query/:key/:value", verifyToken, getReviewByQuery);
