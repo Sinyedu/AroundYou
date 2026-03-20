@@ -576,13 +576,47 @@ router.post("/events/query", verifyToken, getEventByGenericQuery);
 
 
 // CITY ROUTES
+// CREATE CITY
+/**
+ * @swagger
+ * /city:
+ *   post:
+ *     tags:
+ *       - City Routes
+ *     summary: Create a new CITY
+ *     description: Creates a new CITY in the database. Requires authentication.
+ *     security:
+ *       - bearerAuth: []
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             $ref: '#/components/schemas/City'
+ *     responses:
+ *       201:
+ *         description: CITY created successfully
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/City'
+ *       400:
+ *         description: Bad request - Invalid input
+ *       401:
+ *         description: Unauthorized - Invalid or missing token
+ *       500:
+ *         description: Server error
+ */
 router.post("/city", createCity);
+
+
+
 router.get("/city", getAllCities);
 router.get("/city/:id", getCityById);
 router.put("/city/:id", updateCityById);
 router.delete("/city/:id", deleteCityById);
-router.get("/city/:key/:value", verifyToken, getCityByQuery);
-router.post("/city/query", getCityByGenericQuery);
+router.get("/city/query/:key/:value", verifyToken, getCityByQuery);
+router.post("/city/query", verifyToken, getCityByGenericQuery);
 
 
 // REVIEW ROUTES
@@ -591,8 +625,8 @@ router.get("/reviews", getAllReviews);
 router.get("/reviews/:id", getReviewById);
 router.put("/reviews/:id", updateReviewById);
 router.delete("/reviews/:id", deleteReviewById);
-router.get("/reviews/:key/:value", verifyToken, getReviewByQuery);
-router.post("/reviews/query", getReviewByGenericQuery);
+router.get("/reviews/query/:key/:value", verifyToken, getReviewByQuery);
+router.post("/reviews/query", verifyToken, getReviewByGenericQuery);
 
 
 
