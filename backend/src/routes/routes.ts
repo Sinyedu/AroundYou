@@ -1,16 +1,13 @@
 import { Router, Request, Response } from "express";
-import {
-  createAttraction,
-  getAllAttractions,
-  getAttractionById,
-  updateAttractionById,
-  deleteAttractionById,
-  getAttractionsByQuery,
-  getAttractionsByQueryGeneric,
-} from "../controllers/attractionController";
-import { createEvent, getAllEvents } from "../controllers/eventController";
+
+import { createAttraction, getAllAttractions, getAttractionById, updateAttractionById, deleteAttractionById, getAttractionsByQuery, getAttractionsByQueryGeneric } from "../controllers/attractionController";
+import { createEvent,getAllEvents, getEventById, updateEventById,deleteEventById, getEventByQuery, getEventByGenericQuery } from "../controllers/eventController";
+import { createCity, getAllCities, getCityById, updateCityById, deleteCityById, getCityByQuery, getCityByGenericQuery } from "../controllers/cityController";
+import { createReview, getAllReviews, getReviewById, updateReviewById, deleteReviewById, getReviewByQuery, getReviewByGenericQuery } from "../controllers/reviewController";
+
 import { loginUser, registerUser } from "../controllers/authController";
 import { verifyToken } from "../middleware/verifyUserToken";
+
 
 const router: Router = Router();
 
@@ -20,7 +17,10 @@ router.get("/", (req: Request, res: Response) => {
   // disconnect
 });
 
-// auth routes
+
+
+// AUTH ROUTES
+// REGISTER
 /**
  * @swagger
  * /user/register:
@@ -47,9 +47,16 @@ router.get("/", (req: Request, res: Response) => {
  *                  type: string
  *                _id:
  *                  type: string
+ *       400:
+ *         description: Bad request - Invalid input
+ *       409:
+ *         description: Conflict - User already exists
+ *       500:
+ *         description: Server error
  */
 router.post("/user/register", registerUser);
 
+// LOGIN
 /**
  * @swagger
  * /user/login:
@@ -98,12 +105,17 @@ router.post("/user/register", registerUser);
  *                       type: string
  *       400:
  *         description: Invalid email or password
+ *       401:
+ *         description: Unauthorized - Invalid or missing token
  *       500:
  *         description: Server error
  */
 router.post("/user/login", loginUser);
 
-// create
+
+
+// ATTRACTION ROUTES
+// CREATE ATTRACTION
 /**
  * @swagger
  * /attractions:
@@ -112,7 +124,8 @@ router.post("/user/login", loginUser);
  *       - Attraction Routes
  *     summary: Create a new ATTRACTION
  *     description: Creates a new ATTRACTION in the database. Requires authentication.
- *
+ *     security:
+ *       - bearerAuth: []
  *     requestBody:
  *       required: true
  *       content:
@@ -133,9 +146,207 @@ router.post("/user/login", loginUser);
  *       500:
  *         description: Server error
  */
-router.post("/attractions", createAttraction);
+router.post("/attractions", verifyToken, createAttraction);
 
-// create
+// GET ALL ATTRACTIONS
+/**
+ * @swagger
+ * /attractions:
+ *   get:
+ *     tags:
+ *       - Attraction Routes
+ *     summary: Get all ATTRACTIONs
+ *     description: Retrieves all ATTRACTIONs from the database.
+ *     responses:
+ *       200:
+ *         description: A list of all ATTRACTIONs
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: array
+ *               items:
+ *                 $ref: '#/components/schemas/Attraction'
+ *       500:
+ *         description: Server error
+ */
+router.get("/attractions", getAllAttractions);
+
+// GET ATTRACTION BY ID
+/**
+ * @swagger
+ * /attractions/{id}:
+ *   get:
+ *     tags:
+ *       - Attraction Routes
+ *     summary: Get an ATTRACTION by ID
+ *     description: Retrieves an ATTRACTION from the database by its ID.
+ *     parameters:
+ *       - name: id
+ *         in: path
+ *         required: true
+ *         description: The ID of the ATTRACTION to retrieve
+ *         schema:
+ *           type: string
+ *     responses:
+ *       200:
+ *         description: ATTRACTION found
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/Attraction'
+ *       404:
+ *         description: ATTRACTION not found
+ *       500:
+ *         description: Server error
+ */
+router.get("/attractions/:id", getAttractionById);
+
+// UPDATE ATTRACTION BY ID
+/**
+ * @swagger
+ * /attractions/{id}:
+ *   put:
+ *     tags:
+ *       - Attraction Routes
+ *     summary: Update an ATTRACTION by ID
+ *     description: Updates an existing ATTRACTION in the database by its ID. Requires authentication.
+ *     parameters:
+ *       - name: id
+ *         in: path
+ *         required: true
+ *         description: The ID of the ATTRACTION to update
+ *         schema:
+ *           type: string
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             $ref: '#/components/schemas/Attraction'
+ *     responses:
+ *       200:
+ *         description: ATTRACTION updated successfully
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/Attraction'
+ *       400:
+ *         description: Bad request - Invalid input
+ *       401:
+ *         description: Unauthorized - Invalid or missing token
+ *       404:
+ *         description: ATTRACTION not found
+ *       500:
+ *         description: Server error
+ */
+router.put("/attractions/:id", updateAttractionById);
+
+// DELETE ATTRACTION BY ID
+/**
+ * @swagger
+ * /attractions/{id}:
+ *   delete:
+ *     tags:
+ *       - Attraction Routes
+ *     summary: Delete an ATTRACTION by ID
+ *     description: Deletes an existing ATTRACTION from the database by its ID. Requires authentication.
+ *     parameters:
+ *       - name: id
+ *         in: path
+ *         required: true
+ *         description: The ID of the ATTRACTION to delete
+ *         schema:
+ *           type: string
+ *     responses:
+ *       204:
+ *         description: ATTRACTION deleted successfully
+ *       401:
+ *         description: Unauthorized - Invalid or missing token
+ *       404:
+ *         description: ATTRACTION not found
+ *       500:
+ *         description: Server error
+ */
+router.delete("/attractions/:id", deleteAttractionById);
+
+// GET ATTRACTION BY QUERY
+/**
+ * @swagger
+ * /attractions/query/{key}/{value}:
+ *   get:
+ *     tags:
+ *       - Attraction Routes
+ *     summary: Get ATTRACTIONs by query
+ *     description: Retrieves ATTRACTIONs from the database based on a key-value query. Requires authentication.
+ *     parameters:
+ *       - name: key
+ *         in: path
+ *         required: true
+ *         description: The field to query (e.g., name, city)
+ *         schema:
+ *           type: string
+ *       - name: value
+ *         in: path
+ *         required: true
+ *         description: The value to match for the specified key
+ *         schema:
+ *           type: string
+ *     responses:
+ *       200:
+ *         description: A list of matching ATTRACTIONs (can be empty)
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: array
+ *               items:
+ *                 $ref: '#/components/schemas/Attraction'
+ *       400:
+ *         description: Bad request - Invalid input
+ *       401:
+ *         description: Unauthorized - Invalid or missing token
+ *       500:
+ *         description: Server error
+ */
+router.get("/attractions/query/:key/:value", verifyToken, getAttractionsByQuery);
+
+// GET ATTRACTION BY GENERIC QUERY
+/**
+ * @swagger
+ * /attractions/query:
+ *   post:
+ *     tags:
+ *       - Attraction Routes
+ *     summary: Get ATTRACTIONs by generic query
+ *     description: Retrieves ATTRACTIONs from the database based on a generic query object. Requires authentication.
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             description: A JSON object containing key-value pairs to query ATTRACTIONs
+ *     responses:
+ *       200:
+ *         description: A list of matching ATTRACTIONs (can be empty)
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: array
+ *               items:
+ *                 $ref: '#/components/schemas/Attraction'
+ *       400:
+ *         description: Bad request - Invalid input
+ *       401:
+ *         description: Unauthorized - Invalid or missing token
+ *       500:
+ *         description: Server error
+ */
+router.post("/attractions/query", verifyToken, getAttractionsByQueryGeneric);
+
+
+
+// EVENT ROUTES
+// CREATE EVENT
 /**
  * @swagger
  * /events:
@@ -167,30 +378,7 @@ router.post("/attractions", createAttraction);
  */
 router.post("/events", createEvent);
 
-// gets
-/**
- * @swagger
- * /attractions:
- *   get:
- *     tags:
- *       - Attraction Routes
- *     summary: Get all ATTRACTIONs
- *     description: Retrieves all ATTRACTIONs from the database.
- *     responses:
- *       200:
- *         description: A list of all ATTRACTIONs
- *         content:
- *           application/json:
- *             schema:
- *               type: array
- *               items:
- *                 $ref: '#/components/schemas/Attraction'
- *       500:
- *         description: Server error
- */
-router.get("/attractions", getAllAttractions);
-
-// gets
+// GET ALL EVENTS
 /**
  * @swagger
  * /events:
@@ -213,12 +401,640 @@ router.get("/attractions", getAllAttractions);
  */
 router.get("/events", getAllEvents);
 
-router.get("/attractions/:id", getAttractionById);
+// GET EVENT BY ID
+/**
+ * @swagger
+ * /events/{id}:
+ *   get:
+ *     tags:
+ *       - Event Routes
+ *     summary: Get an EVENT by ID
+ *     description: Retrieves an EVENT from the database by its ID.
+ *     parameters:
+ *       - name: id
+ *         in: path
+ *         required: true
+ *         description: The ID of the EVENT to retrieve
+ *         schema:
+ *           type: string
+ *     responses:
+ *       200:
+ *         description: EVENT found
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/Event'
+ *       404:
+ *         description: EVENT not found
+ *       500:
+ *         description: Server error
+ */
+router.get("/events/:id", getEventById);
 
-router.post("/attractions/query", getAttractionsByQueryGeneric);
-router.get("/attractions/:key/:value", verifyToken, getAttractionsByQuery);
+// UPDATE EVENT BY ID
+/**
+ * @swagger
+ * /events/{id}:
+ *   put:
+ *     tags:
+ *       - Event Routes
+ *     summary: Update an EVENT by ID
+ *     description: Updates an existing EVENT in the database by its ID. Requires authentication.
+ *     parameters:
+ *       - name: id
+ *         in: path
+ *         required: true
+ *         description: The ID of the EVENT to update
+ *         schema:
+ *           type: string
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             $ref: '#/components/schemas/Event'
+ *     responses:
+ *       200:
+ *         description: EVENT updated successfully
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/Event'
+ *       400:
+ *         description: Bad request - Invalid input
+ *       401:
+ *         description: Unauthorized - Invalid or missing token
+ *       404:
+ *         description: EVENT not found
+ *       500:
+ *         description: Server error
+ */
+router.put("/events/:id", updateEventById);
 
-router.put("/attractions/:id", updateAttractionById);
-router.delete("/attractions/:id", deleteAttractionById);
+// DELETE EVENT BY ID
+/**
+ * @swagger
+ * /events/{id}:
+ *   delete:
+ *     tags:
+ *       - Event Routes
+ *     summary: Delete an EVENT by ID
+ *     description: Deletes an existing EVENT from the database by its ID. Requires authentication.
+ *     parameters:
+ *       - name: id
+ *         in: path
+ *         required: true
+ *         description: The ID of the EVENT to delete
+ *         schema:
+ *           type: string
+ *     responses:
+ *       204:
+ *         description: EVENT deleted successfully
+ *       401:
+ *         description: Unauthorized - Invalid or missing token
+ *       404:
+ *         description: EVENT not found
+ *       500:
+ *         description: Server error
+ */
+router.delete("/events/:id", deleteEventById);
+
+// GET EVENT BY QUERY
+/**
+ * @swagger
+ * /events/query/{key}/{value}:
+ *   get:
+ *     tags:
+ *       - Event Routes
+ *     summary: Get EVENTs by query
+ *     description: Retrieves EVENTs from the database based on a key-value query. Requires authentication.
+ *     parameters:
+ *       - name: key
+ *         in: path
+ *         required: true
+ *         description: The field to query (e.g., name, city)
+ *         schema:
+ *           type: string
+ *       - name: value
+ *         in: path
+ *         required: true
+ *         description: The value to match for the specified key
+ *         schema:
+ *           type: string
+ *     responses:
+ *       200:
+ *         description: A list of matching EVENTs (can be empty)
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: array
+ *               items:
+ *                 $ref: '#/components/schemas/Event'
+ *       400:
+ *         description: Bad request - Invalid input
+ *       401:
+ *         description: Unauthorized - Invalid or missing token
+ *       500:
+ *         description: Server error
+ */
+router.get("/events/query/:key/:value", verifyToken, getEventByQuery);
+
+// GET EVENT BY GENERIC QUERY
+/**
+ * @swagger
+ * /events/query:
+ *   post:
+ *     tags:
+ *       - Event Routes
+ *     summary: Get EVENTs by generic query
+ *     description: Retrieves EVENTs from the database based on a generic query object. Requires authentication.
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             description: A JSON object containing key-value pairs to query EVENTs
+ *     responses:
+ *       200:
+ *         description: A list of matching EVENTs (can be empty)
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: array
+ *               items:
+ *                 $ref: '#/components/schemas/Event'
+ *       400:
+ *         description: Bad request - Invalid input
+ *       401:
+ *         description: Unauthorized - Invalid or missing token
+ *       500:
+ *         description: Server error
+ */
+router.post("/events/query", verifyToken, getEventByGenericQuery);
+
+
+
+// CITY ROUTES
+// CREATE CITY
+/**
+ * @swagger
+ * /city:
+ *   post:
+ *     tags:
+ *       - City Routes
+ *     summary: Create a new CITY
+ *     description: Creates a new CITY in the database. Requires authentication.
+ *     security:
+ *       - bearerAuth: []
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             $ref: '#/components/schemas/City'
+ *     responses:
+ *       201:
+ *         description: CITY created successfully
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/City'
+ *       400:
+ *         description: Bad request - Invalid input
+ *       401:
+ *         description: Unauthorized - Invalid or missing token
+ *       500:
+ *         description: Server error
+ */
+router.post("/city", createCity);
+
+// GET ALL CITIES
+/**
+ * @swagger
+ * /city:
+ *   get:
+ *     tags:
+ *       - City Routes
+ *     summary: Get all CITIES
+ *     description: Retrieves all CITIES from the database.
+ *     responses:
+ *       200:
+ *         description: A list of all CITIES
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: array
+ *               items:
+ *                 $ref: '#/components/schemas/City'
+ *       500:
+ *         description: Server error
+ */
+router.get("/city", getAllCities);
+
+// GET CITY BY ID
+/**
+ * @swagger
+ * /city/{id}:
+ *   get:
+ *     tags:
+ *       - City Routes
+ *     summary: Get a CITY by ID
+ *     description: Retrieves a CITY from the database by its ID.
+ *     parameters:
+ *       - name: id
+ *         in: path
+ *         required: true
+ *         description: The ID of the CITY to retrieve
+ *         schema:
+ *           type: string
+ *     responses:
+ *       200:
+ *         description: CITY found
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/City'
+ *       404:
+ *         description: CITY not found
+ *       500:
+ *         description: Server error
+ */
+router.get("/city/:id", getCityById);
+
+// UPDATE CITY BY ID
+/**
+ * @swagger
+ * /city/{id}:
+ *   put:
+ *     tags:
+ *       - City Routes
+ *     summary: Update a CITY by ID
+ *     description: Updates an existing CITY in the database by its ID. Requires authentication.
+ *     parameters:
+ *       - name: id
+ *         in: path
+ *         required: true
+ *         description: The ID of the CITY to update
+ *         schema:
+ *           type: string
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             $ref: '#/components/schemas/City'
+ *     responses:
+ *       200:
+ *         description: CITY updated successfully
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/City'
+ *       400:
+ *         description: Bad request - Invalid input
+ *       401:
+ *         description: Unauthorized - Invalid or missing token
+ *       404:
+ *         description: CITY not found
+ *       500:
+ *         description: Server error
+ */
+router.put("/city/:id", updateCityById);
+
+// DELETE CITY BY ID
+/**
+ * @swagger
+ * /city/{id}:
+ *   delete:
+ *     tags:
+ *       - City Routes
+ *     summary: Delete a CITY by ID
+ *     description: Deletes an existing CITY from the database by its ID. Requires authentication.
+ *     parameters:
+ *       - name: id
+ *         in: path
+ *         required: true
+ *         description: The ID of the CITY to delete
+ *         schema:
+ *           type: string
+ *     responses:
+ *       204:
+ *         description: CITY deleted successfully
+ *       401:
+ *         description: Unauthorized - Invalid or missing token
+ *       404:
+ *         description: CITY not found
+ *       500:
+ *         description: Server error
+ */
+router.delete("/city/:id", deleteCityById);
+
+// GET CITY BY QUERY
+/**
+ * @swagger
+ * /city/query/{key}/{value}:
+ *   get:
+ *     tags:
+ *       - City Routes
+ *     summary: Get CITYs by query
+ *     description: Retrieves CITYs from the database based on a key-value query. Requires authentication.
+ *     parameters:
+ *       - name: key
+ *         in: path
+ *         required: true
+ *         description: The field to query (e.g., name, country)
+ *         schema:
+ *           type: string
+ *       - name: value
+ *         in: path
+ *         required: true
+ *         description: The value to match for the specified key
+ *         schema:
+ *           type: string
+ *     responses:
+ *       200:
+ *         description: A list of matching CITYs (can be empty)
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: array
+ *               items:
+ *                 $ref: '#/components/schemas/City'
+ *       400:
+ *         description: Bad request - Invalid input
+ *       401:
+ *         description: Unauthorized - Invalid or missing token
+ *       500:
+ *         description: Server error
+ */
+router.get("/city/query/:key/:value", verifyToken, getCityByQuery);
+
+// GET CITY BY GENERIC QUERY
+/**
+ * @swagger
+ * /city/query:
+ *   post:
+ *     tags:
+ *       - City Routes
+ *     summary: Get CITYs by generic query
+ *     description: Retrieves CITYs from the database based on a generic query object. Requires authentication.
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             description: A JSON object containing key-value pairs to query CITYs
+ *     responses:
+ *       200:
+ *         description: A list of matching CITYs (can be empty)
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: array
+ *               items:
+ *                 $ref: '#/components/schemas/City'
+ *       400:
+ *         description: Bad request - Invalid input
+ *       401:
+ *         description: Unauthorized - Invalid or missing token
+ *       500:
+ *         description: Server error
+ */
+router.post("/city/query", verifyToken, getCityByGenericQuery);
+
+
+
+// REVIEW ROUTES
+// CREATE REVIEW
+/**
+ * @swagger
+ * /reviews:
+ *   post:
+ *     tags:
+ *       - Review Routes
+ *     summary: Create a new REVIEW
+ *     description: Creates a new REVIEW in the database. Requires authentication.
+ *     security:
+ *       - bearerAuth: []
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             $ref: '#/components/schemas/Review'
+ *     responses:
+ *       201:
+ *         description: REVIEW created successfully
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/Review'
+ *       400:
+ *         description: Bad request - Invalid input
+ *       401:
+ *         description: Unauthorized - Invalid or missing token
+ *       500:
+ *         description: Server error
+ */
+router.post("/reviews", createReview);
+
+// GET ALL REVIEWS
+/**
+ * @swagger
+ * /reviews:
+ *   get:
+ *     tags:
+ *       - Review Routes
+ *     summary: Get all REVIEWS
+ *     description: Retrieves all REVIEWS from the database.
+ *     responses:
+ *       200:
+ *         description: A list of all REVIEWS
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: array
+ *               items:
+ *                 $ref: '#/components/schemas/Review'
+ *       500:
+ *         description: Server error
+ */
+router.get("/reviews", getAllReviews);
+
+// GET REVIEW BY ID
+/**
+ * @swagger
+ * /reviews/{id}:
+ *   get:
+ *     tags:
+ *       - Review Routes
+ *     summary: Get a REVIEW by ID
+ *     description: Retrieves a REVIEW from the database by its ID.
+ *     parameters:
+ *       - name: id
+ *         in: path
+ *         required: true
+ *         description: The ID of the REVIEW to retrieve
+ *         schema:
+ *           type: string
+ *     responses:
+ *       200:
+ *         description: REVIEW found
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/Review'
+ *       404:
+ *         description: REVIEW not found
+ *       500:
+ *         description: Server error
+ */
+router.get("/reviews/:id", getReviewById);
+
+// UPDATE REVIEW BY ID
+/**
+ * @swagger
+ * /reviews/{id}:
+ *   put:
+ *     tags:
+ *       - Review Routes
+ *     summary: Update a REVIEW by ID
+ *     description: Updates an existing REVIEW in the database by its ID. Requires authentication.
+ *     parameters:
+ *       - name: id
+ *         in: path
+ *         required: true
+ *         description: The ID of the REVIEW to update
+ *         schema:
+ *           type: string
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             $ref: '#/components/schemas/Review'
+ *     responses:
+ *       200:
+ *         description: REVIEW updated successfully
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/Review'
+ *       400:
+ *         description: Bad request - Invalid input
+ *       401:
+ *         description: Unauthorized - Invalid or missing token
+ *       404:
+ *         description: REVIEW not found
+ *       500:
+ *         description: Server error
+ */
+router.put("/reviews/:id", updateReviewById);
+
+// DELETE REVIEW BY ID
+/**
+ * @swagger
+ * /reviews/{id}:
+ *   delete:
+ *     tags:
+ *       - Review Routes
+ *     summary: Delete a REVIEW by ID
+ *     description: Deletes an existing REVIEW from the database by its ID. Requires authentication.
+ *     parameters:
+ *       - name: id
+ *         in: path
+ *         required: true
+ *         description: The ID of the REVIEW to delete
+ *         schema:
+ *           type: string
+ *     responses:
+ *       204:
+ *         description: REVIEW deleted successfully
+ *       401:
+ *         description: Unauthorized - Invalid or missing token
+ *       404:
+ *         description: REVIEW not found
+ *       500:
+ *         description: Server error
+ */
+router.delete("/reviews/:id", deleteReviewById);
+
+// GET REVIEW BY QUERY
+/**
+ * @swagger
+ * /reviews/query/{key}/{value}:
+ *   get:
+ *     tags:
+ *       - Review Routes
+ *     summary: Get REVIEWs by query
+ *     description: Retrieves REVIEWs from the database based on a key-value query. Requires authentication.
+ *     parameters:
+ *       - name: key
+ *         in: path
+ *         required: true
+ *         description: The field to query (e.g., rating, city)
+ *         schema:
+ *           type: string
+ *       - name: value
+ *         in: path
+ *         required: true
+ *         description: The value to match for the specified key
+ *         schema:
+ *           type: string
+ *     responses:
+ *       200:
+ *         description: A list of matching REVIEWs (can be empty)
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: array
+ *               items:
+ *                 $ref: '#/components/schemas/Review'
+ *       400:
+ *         description: Bad request - Invalid input
+ *       401:
+ *         description: Unauthorized - Invalid or missing token
+ *       500:
+ *         description: Server error
+ */
+router.get("/reviews/query/:key/:value", verifyToken, getReviewByQuery);
+
+// GET REVIEW BY GENERIC QUERY
+/**
+ * @swagger
+ * /reviews/query:
+ *   post:
+ *     tags:
+ *       - Review Routes
+ *     summary: Get REVIEWs by generic query
+ *     description: Retrieves REVIEWs from the database based on a generic query object. Requires authentication.
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             description: A JSON object containing key-value pairs to query REVIEWs
+ *     responses:
+ *       200:
+ *         description: A list of matching REVIEWs (can be empty)
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: array
+ *               items:
+ *                 $ref: '#/components/schemas/Review'
+ *       400:
+ *         description: Bad request - Invalid input
+ *       401:
+ *         description: Unauthorized - Invalid or missing token
+ *       500:
+ *         description: Server error
+ */
+router.post("/reviews/query", verifyToken, getReviewByGenericQuery);
+
+
 
 export default router;
