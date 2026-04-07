@@ -47,7 +47,9 @@
 
         <!-- Confirm Password -->
         <div>
-          <label for="confirmPassword" class="block text-gray-700 font-medium mb-1">Confirm Password</label>
+          <label for="confirmPassword" class="block text-gray-700 font-medium mb-1"
+            >Confirm Password</label
+          >
           <input
             type="password"
             id="confirmPassword"
@@ -55,10 +57,15 @@
             placeholder="********"
             class="w-full px-4 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-indigo-500 focus:outline-none"
           />
-          <p v-if="confirmPassword && confirmPassword !== password" class="text-red-500 text-sm mt-1">
+          <p
+            v-if="confirmPassword && confirmPassword !== password"
+            class="text-red-500 text-sm mt-1"
+          >
             Passwords do not match
           </p>
-          <p v-else-if="!confirmPassword" class="text-red-500 text-sm mt-1">Please confirm your password</p>
+          <p v-else-if="!confirmPassword" class="text-red-500 text-sm mt-1">
+            Please confirm your password
+          </p>
         </div>
 
         <!-- Submit Button -->
@@ -80,13 +87,13 @@
 </template>
 
 <script setup lang="ts">
-import { ref, computed } from "vue"
-import { useAuth } from "../../composables/useAuth"
+import { ref, computed } from 'vue'
+import { useAuth } from '../../composables/useAuth'
 
-const name = ref("")
-const email = ref("")
-const password = ref("")
-const confirmPassword = ref("")
+const name = ref('')
+const email = ref('')
+const password = ref('')
+const confirmPassword = ref('')
 
 const { register, loading, error } = useAuth()
 
@@ -104,15 +111,14 @@ const submitForm = async () => {
     await register({
       name: name.value,
       email: email.value,
-      password: password.value
+      password: password.value,
     })
 
-    console.log("User registered!")
+    console.log('User registered!')
   } catch (err) {
-    console.error("Register failed")
+    console.error('Register failed')
   }
 }
 </script>
 
-<style scoped>
-</style>
+<style scoped></style>
