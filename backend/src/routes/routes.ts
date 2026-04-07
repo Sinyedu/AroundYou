@@ -7,10 +7,10 @@ import {
   deleteAttractionById,
   getAttractionsByQuery,
   getAttractionsByQueryGeneric,
-} from "./controllers/attractionController";
-import { createEvent, getAllEvents } from "./controllers/eventController";
-import { loginUser, registerUser } from "./controllers/authController";
-import { verifyToken } from "./middleware/verifyUserToken";
+} from "../controllers/attractionController";
+import { createEvent, getAllEvents } from "../controllers/eventController";
+import { loginUser, registerUser } from "../controllers/authController";
+import { verifyToken } from "../middleware/verifyUserToken";
 
 const router: Router = Router();
 

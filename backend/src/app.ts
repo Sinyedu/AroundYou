@@ -2,7 +2,7 @@ import express, { Application } from "express";
 import dotenvFlow from "dotenv-flow";
 import { testConnection } from "./repository/database";
 
-import routes from "./routes";
+import routes from "./routes/routes";
 import { setupDocs } from "./utils/swaggerDocumentation";
 import cors from "cors";
 

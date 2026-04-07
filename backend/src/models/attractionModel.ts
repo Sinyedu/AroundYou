@@ -1,6 +1,6 @@
 import { Schema, model } from "mongoose";
 import { Attraction } from "../interfaces/attraction";
-
+// Define the Attraction schema
 const attractionSchema = new Schema<Attraction>({
   attractionID: { type: String, required: true, unique: true },
   name: { type: String, required: true, min: 3, max: 255 },
