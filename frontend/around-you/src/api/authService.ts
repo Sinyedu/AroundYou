@@ -1,6 +1,6 @@
 import type { LoginUser, RegisterUser, AuthResponse } from "@/interfaces/auth"
 //No clue if this is our endpoint for the backend yet
-const API_URL = "http://localhost:4000/api"
+const API_URL = "http://localhost:4000/api/user"
 
 export async function registerUser(data: RegisterUser): Promise<string> {
   const response = await fetch(`${API_URL}/register`, {

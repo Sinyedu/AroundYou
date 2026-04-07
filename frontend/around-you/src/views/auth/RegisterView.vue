@@ -1,6 +1,3 @@
-//TODO: CREATE REGISTER VIEW
-
-
 <template>
   <div class="min-h-screen flex items-center justify-center bg-gray-50">
     <div class="w-full max-w-md bg-white p-8 rounded-lg shadow-md">
@@ -83,23 +80,38 @@
 </template>
 
 <script setup lang="ts">
-import { ref, computed } from "vue";
+import { ref, computed } from "vue"
+import { useAuth } from "../../composables/useAuth"
 
-const name = ref("");
-const email = ref("");
-const password = ref("");
-const confirmPassword = ref("");
+const name = ref("")
+const email = ref("")
+const password = ref("")
+const confirmPassword = ref("")
 
-// Simple email regex validation
+const { register, loading, error } = useAuth()
+
 const validEmail = computed(() => {
-  const regex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-  return regex.test(email.value);
-});
+  const regex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
+  return regex.test(email.value)
+})
 
-// Placeholder submit function
-const submitForm = () => {
-  alert("Form submitted (UI only, no backend)");
-};
+const submitForm = async () => {
+  if (!name.value || !email.value || !password.value) return
+  if (!validEmail.value) return
+  if (password.value !== confirmPassword.value) return
+
+  try {
+    await register({
+      name: name.value,
+      email: email.value,
+      password: password.value
+    })
+
+    console.log("User registered!")
+  } catch (err) {
+    console.error("Register failed")
+  }
+}
 </script>
 
 <style scoped>
