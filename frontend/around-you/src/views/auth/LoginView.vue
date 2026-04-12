@@ -40,13 +40,11 @@ const email = ref('')
 const password = ref('')
 
 const { login, isAuthenticated } = useAuth()
-
+//TODO: Make sure when a successful login is handled the user gets brought back to their old location or home
 const handleLogin = async () => {
   try {
     await login(email.value, password.value)
     if (isAuthenticated.value) {
-      // Redirect to home or dashboard
-      window.location.href = '/'
     }
   } catch (error) {
     console.error('Login failed:', error)

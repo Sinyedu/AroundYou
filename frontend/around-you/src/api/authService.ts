@@ -1,6 +1,6 @@
 import { ref } from 'vue'
 
-const apiUrl = 'http://localhost:4000/api/user' // Change to your backend API URL
+const apiUrl = 'http://localhost:4000/api/user'
 
 export const useAuthService = () => {
   const token = ref<string | null>(localStorage.getItem('authToken') || null)
@@ -27,12 +27,18 @@ export const useAuthService = () => {
     }
   }
 
-  const register = async (name: string, email: string, password: string): Promise<void> => {
+  const register = async (
+    firstName: string,
+    lastName: string,
+    userName: string,
+    email: string,
+    password: string,
+  ): Promise<void> => {
     try {
       const response = await fetch(`${apiUrl}/register`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ name, email, password }),
+        body: JSON.stringify({ firstName, lastName, userName, email, password }),
       })
 
       if (!response.ok) {

@@ -1,9 +1,9 @@
 import { ref } from 'vue'
 
-const apiUrl = 'http://localhost:4000/api/register'
+const apiUrl = 'http://localhost:4000/api/user'
 
 export function useUser() {
-  const token = ref<string | null>(null)
+  const token = ref<string | null>(localStorage.getItem('authToken') || null)
 
   async function login(email: string, password: string) {
     try {
@@ -57,29 +57,11 @@ export function useUser() {
     return !!token.value
   }
 
-  async function getUserInfo() {
-    try {
-      const response = await fetch(`${apiUrl}/user`, {
-        headers: { Authorization: `Bearer ${token.value}` },
-      })
-
-      if (!response.ok) {
-        throw new Error('Failed to get user info')
-      }
-
-      return await response.json()
-    } catch (error) {
-      console.error('Failed to get user info:', error)
-      throw error
-    }
-  }
-
   return {
     login,
     register,
     logout,
     isAuthenticated,
-    getUserInfo,
     token,
   }
 }
