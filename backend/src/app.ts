@@ -46,7 +46,7 @@ export function startServer() {
   testConnection();
 
   const PORT: number = parseInt(process.env.PORT as string) || 4000;
-  app.listen(PORT, function () {
+  app.listen(PORT, function() {
     console.log("Server is running on port:" + PORT);
   });
 }

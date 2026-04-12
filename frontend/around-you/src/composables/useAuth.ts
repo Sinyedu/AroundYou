@@ -1,1 +1,16 @@
-//TODO: JUST A PLACEHOLDER FOR NOW, THIS FILE IS MEANT TO BE USED FOR AUTHENTICATION RELATED COMPOSABLES IN THE FUTURE.
+import { computed } from 'vue'
+import { useAuthService } from '../api/authService'
+
+export const useAuth = () => {
+  const { login, register, logout, token } = useAuthService()
+
+  const isAuthenticated = computed(() => !!token.value)
+
+  return {
+    login,
+    register,
+    logout,
+    token,
+    isAuthenticated,
+  }
+}

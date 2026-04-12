@@ -1,11 +1,25 @@
-<script setup lang="ts"></script>
+<template class="w-screen">
+  <header class="text-black py-4">
+    <div class="wrapper">
+      <nav class="px-10">
+        <RouterLink to="/" class="mr-4">Home</RouterLink>
+        <RouterLink to="/auth/register" class="mr-4">Register</RouterLink>
+        <RouterLink to="/auth/login" class="mr-4">Login</RouterLink>
+      </nav>
+    </div>
+  </header>
 
-<template>
-  <h1>You did it!</h1>
-  <p>
-    Visit <a href="https://vuejs.org/" target="_blank" rel="noopener">vuejs.org</a> to read the
-    documentation
-  </p>
+  <RouterView />
+
 </template>
 
-<style scoped></style>
+<script setup lang="ts">
+import { RouterLink, RouterView } from "vue-router";
+</script>
+
+<style scoped>
+.logo {
+  display: block;
+  margin: 0 auto 2rem;
+}
+</style>
