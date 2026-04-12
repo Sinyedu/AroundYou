@@ -1,54 +1,85 @@
-import { ref, computed } from 'vue'
-import type { User } from '../types/user'
-import type { AuthResponse } from '@/interfaces/auth'
+import { ref } from 'vue'
 
-const TOKEN_KEY = 'auth_token' as const
-const USER_ID_KEY = 'auth_user_id' as const
+const apiUrl = 'http://localhost:4000/api/register'
 
-/**
- * Composable for managing authenticated user state and session persistence.
- * Handles storing/retrieving the JWT token and userId from localStorage.
- */
-export function useUsers() {
-  const currentUserId = ref<string | null>(localStorage.getItem(USER_ID_KEY))
-  const token = ref<string | null>(localStorage.getItem(TOKEN_KEY))
+export function useUser() {
+  const token = ref<string | null>(null)
 
-  const isAuthenticated = computed<boolean>(() => token.value !== null)
+  async function login(email: string, password: string) {
+    try {
+      const response = await fetch(`${apiUrl}/login`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email, password }),
+      })
 
-  /**
-   * Persists auth session data after a successful login or registration.
-   */
-  const setSession = (authResponse: AuthResponse): void => {
-    token.value = authResponse.token
-    currentUserId.value = authResponse.userId
-    localStorage.setItem(TOKEN_KEY, authResponse.token)
-    localStorage.setItem(USER_ID_KEY, authResponse.userId)
+      if (!response.ok) {
+        throw new Error('Login failed')
+      }
+
+      const data = await response.json()
+      token.value = data.token
+      if (token.value) {
+        localStorage.setItem('authToken', token.value)
+      }
+      return data
+    } catch (error) {
+      console.error('Login failed:', error)
+      throw error
+    }
   }
 
-  /**
-   * Clears auth session data on logout.
-   */
-  const clearSession = (): void => {
+  async function register(name: string, email: string, password: string) {
+    try {
+      const response = await fetch(`${apiUrl}/register`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ name, email, password }),
+      })
+
+      if (!response.ok) {
+        throw new Error('Registration failed')
+      }
+
+      return await response.json()
+    } catch (error) {
+      console.error('Registration failed:', error)
+      throw error
+    }
+  }
+
+  function logout() {
     token.value = null
-    currentUserId.value = null
-    localStorage.removeItem(TOKEN_KEY)
-    localStorage.removeItem(USER_ID_KEY)
+    localStorage.removeItem('authToken')
   }
 
-  /**
-   * Returns auth headers for use in authenticated API requests.
-   */
-  const getAuthHeaders = (): Record<string, string> => {
-    if (!token.value) return {}
-    return { 'auth-token': token.value }
+  function isAuthenticated() {
+    return !!token.value
+  }
+
+  async function getUserInfo() {
+    try {
+      const response = await fetch(`${apiUrl}/user`, {
+        headers: { Authorization: `Bearer ${token.value}` },
+      })
+
+      if (!response.ok) {
+        throw new Error('Failed to get user info')
+      }
+
+      return await response.json()
+    } catch (error) {
+      console.error('Failed to get user info:', error)
+      throw error
+    }
   }
 
   return {
-    currentUserId,
-    token,
+    login,
+    register,
+    logout,
     isAuthenticated,
-    setSession,
-    clearSession,
-    getAuthHeaders,
+    getUserInfo,
+    token,
   }
 }

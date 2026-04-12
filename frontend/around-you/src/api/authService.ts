@@ -1,39 +1,57 @@
-import type { LoginUser, RegisterUser, AuthResponse } from "@/interfaces/auth"
-//No clue if this is our endpoint for the backend yet
-const API_URL = "http://localhost:4000/api/user"
+import { ref } from 'vue'
 
-export async function registerUser(data: RegisterUser): Promise<string> {
-  const response = await fetch(`${API_URL}/register`, {
-    method: "POST",
-    headers: {
-      "Content-Type": "application/json"
-    },
-    body: JSON.stringify(data)
-  })
+const apiUrl = 'http://localhost:4000/api/user' // Change to your backend API URL
 
-  const result = await response.json()
+export const useAuthService = () => {
+  const token = ref<string | null>(localStorage.getItem('authToken') || null)
 
-  if (!response.ok) {
-    throw new Error(result.error)
+  const login = async (email: string, password: string): Promise<void> => {
+    try {
+      const response = await fetch(`${apiUrl}/login`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email, password }),
+      })
+
+      if (!response.ok) {
+        throw new Error('Login failed')
+      }
+
+      const data = await response.json()
+      token.value = data.token
+      if (token.value) {
+        localStorage.setItem('authToken', token.value)
+      }
+    } catch (error) {
+      throw error
+    }
   }
 
-  return result.data
-}
+  const register = async (name: string, email: string, password: string): Promise<void> => {
+    try {
+      const response = await fetch(`${apiUrl}/register`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ name, email, password }),
+      })
 
-export async function loginUser(data: LoginUser): Promise<AuthResponse> {
-  const response = await fetch(`${API_URL}/login`, {
-    method: "POST",
-    headers: {
-      "Content-Type": "application/json"
-    },
-    body: JSON.stringify(data)
-  })
-
-  const result = await response.json()
-
-  if (!response.ok) {
-    throw new Error(result.error)
+      if (!response.ok) {
+        throw new Error('Registration failed')
+      }
+    } catch (error) {
+      throw error
+    }
   }
 
-  return result.data
+  const logout = (): void => {
+    token.value = null
+    localStorage.removeItem('authToken')
+  }
+
+  return {
+    login,
+    register,
+    logout,
+    token,
+  }
 }
