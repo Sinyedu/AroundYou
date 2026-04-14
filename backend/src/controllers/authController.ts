@@ -38,7 +38,9 @@ export async function registerUser(req: Request, res: Response): Promise<void> {
     const hashedPassword = await bcrypt.hash(req.body.password, salt);
 
     const userObject = new UserModel({
-      name: req.body.name,
+      firstName: req.body.firstName,
+      lastName: req.body.lastName,
+      userName: req.body.userName,
       email: req.body.email,
       password: hashedPassword,
     });
