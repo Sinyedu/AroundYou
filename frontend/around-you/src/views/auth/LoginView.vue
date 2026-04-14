@@ -35,17 +35,20 @@
 <script setup lang="ts">
 import { ref } from 'vue'
 import { useAuth } from '../../composables/useAuth'
+import { useRouter } from 'vue-router'
+
+const router = useRouter()
 
 const email = ref('')
 const password = ref('')
 
 const { login, isAuthenticated } = useAuth()
-//TODO: Make sure when a successful login is handled the user gets brought back to their old location or home
 const handleLogin = async () => {
   try {
-    await login(email.value, password.value)
+    await login(email.value.trim(), password.value)
     if (isAuthenticated.value) {
     }
+    router.push('/')
   } catch (error) {
     console.error('Login failed:', error)
   }

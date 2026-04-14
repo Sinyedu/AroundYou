@@ -5,6 +5,9 @@
   "type": "module",
   "scripts": {
     "dev": "vite",
+    "dev:backend": "cd ../../backend && npm run start-dev",
+    "dev:frontend": "vite",
+    "dev:all": "run-p dev:frontend dev:backend",
     "build": "run-p type-check \"build-only {@}\" --",
     "preview": "vite preview",
     "test:unit": "vitest",

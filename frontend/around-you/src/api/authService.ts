@@ -9,10 +9,7 @@ type AuthResponse = {
 export const useAuthService = () => {
   const token = ref<string | null>(localStorage.getItem('authToken'))
 
-  const login = async (
-    email: string,
-    password: string
-  ): Promise<AuthResponse> => {
+  const login = async (email: string, password: string): Promise<AuthResponse> => {
     const response = await fetch(`${apiUrl}/login`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
@@ -20,7 +17,9 @@ export const useAuthService = () => {
     })
 
     if (!response.ok) {
-      throw new Error('Login failed')
+      const errorData = await response.json()
+      console.error('Backend error:', errorData)
+      throw new Error(errorData.message || 'Login failed')
     }
 
     const data: AuthResponse = await response.json()
@@ -36,7 +35,7 @@ export const useAuthService = () => {
     lastName: string,
     userName: string,
     email: string,
-    password: string
+    password: string,
   ): Promise<void> => {
     const response = await fetch(`${apiUrl}/register`, {
       method: 'POST',
