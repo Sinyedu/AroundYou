@@ -6,11 +6,14 @@ export const useAuth = () => {
 
   const isAuthenticated = computed(() => !!token.value)
 
+  const userName = computed(() => localStorage.getItem('userName'))
+
   return {
     login,
     register,
     logout,
     token,
     isAuthenticated,
+    userName,
   }
 }

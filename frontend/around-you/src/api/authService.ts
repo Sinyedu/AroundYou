@@ -5,10 +5,8 @@ const apiUrl = 'http://localhost:4000/api/user'
 type AuthResponse = {
   token: string
 }
-
+const token = ref<string | null>(localStorage.getItem('authToken'))
 export const useAuthService = () => {
-  const token = ref<string | null>(localStorage.getItem('authToken'))
-
   const login = async (email: string, password: string): Promise<AuthResponse> => {
     const response = await fetch(`${apiUrl}/login`, {
       method: 'POST',
@@ -26,6 +24,8 @@ export const useAuthService = () => {
 
     token.value = data.token
     localStorage.setItem('authToken', data.token)
+
+    localStorage.setItem('userName', email)
 
     return data
   }
