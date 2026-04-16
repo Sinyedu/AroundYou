@@ -149,7 +149,7 @@ export function validateUserRegistration(data: User): ValidationResult {
  * Validates the user Login ( email, password)
  * @param data
  */
-export function validateUserLoginInfo(data: any): ValidationResult {
+export function validateUserLoginInfo(data: User): ValidationResult {
   const schema = Joi.object({
     identifier: Joi.string().required(), // email OR username
     password: Joi.string().min(6).max(30).required(),
