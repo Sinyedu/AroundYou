@@ -21,6 +21,7 @@
 </template>
 
 <script setup lang="ts">
+import { ref } from "vue"
 import { RouterLink, RouterView } from 'vue-router'
 import { useAuth } from '@/composables/useAuth'
 
