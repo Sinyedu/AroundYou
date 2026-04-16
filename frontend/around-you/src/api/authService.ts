@@ -4,29 +4,37 @@ const apiUrl = 'http://localhost:4000/api/user'
 
 type AuthResponse = {
   token: string
+  user: {
+    id: string
+    userName: string
+    email: string
+  }
 }
 const token = ref<string | null>(localStorage.getItem('token'))
 
 export const useAuthService = () => {
-  const login = async (email: string, password: string): Promise<AuthResponse> => {
+  const login = async (identifier: string, password: string): Promise<AuthResponse> => {
     const response = await fetch(`${apiUrl}/login`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ email, password }),
+      body: JSON.stringify({ identifier, password }),
     })
-
     if (!response.ok) {
       const errorData = await response.json()
       console.error('Backend error:', errorData)
       throw new Error(errorData.message || 'Login failed')
     }
 
-    const data: AuthResponse = await response.json()
+    const data = await response.json()
+
+    token.value = data.token
+    localStorage.setItem('token', data.token)
+    localStorage.setItem('userName', data.user.userName)
 
     token.value = data.token
     localStorage.setItem('token', data.token)
 
-    localStorage.setItem('userName', email)
+    localStorage.setItem('userName', data.user.userName)
 
     return data
   }
@@ -48,10 +56,10 @@ export const useAuthService = () => {
       throw new Error('Registration failed')
     }
   }
-
   const logout = (): void => {
     token.value = null
-    localStorage.removeItem('authToken')
+    localStorage.removeItem('token')
+    localStorage.removeItem('userName')
   }
 
   return {
