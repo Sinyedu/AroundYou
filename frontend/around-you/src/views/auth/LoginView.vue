@@ -3,11 +3,10 @@
     <h2 class="text-2xl font-bold mb-4">Login</h2>
     <form @submit.prevent="handleLogin">
       <div class="mb-4">
-        <label for="email" class="block text-sm font-medium text-gray-700">Email</label>
+        <label for="email" class="block text-sm font-medium text-gray-700">Email or Username</label>
         <input
           id="email"
-          v-model="email"
-          type="email"
+          v-model="identifier"
           required
           class="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
         />
@@ -39,13 +38,13 @@ import { useRouter } from 'vue-router'
 
 const router = useRouter()
 
-const email = ref('')
+const identifier = ref('')
 const password = ref('')
 
 const { login, isAuthenticated } = useAuth()
 const handleLogin = async () => {
   try {
-    await login(email.value.trim(), password.value)
+    await login(identifier.value.trim(), password.value)
     if (isAuthenticated.value) {
     }
     router.push('/')

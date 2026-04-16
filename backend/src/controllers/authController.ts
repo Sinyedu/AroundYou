@@ -34,6 +34,15 @@ export async function registerUser(req: Request, res: Response): Promise<void> {
       return;
     }
 
+    const userNameExists = await UserModel.findOne({
+      userName: req.body.userName,
+    });
+
+    if (userNameExists) {
+      res.status(400).json({ error: "Username already exists." });
+      return;
+    }
+
     const salt = await bcrypt.genSalt(10);
     const hashedPassword = await bcrypt.hash(req.body.password, salt);
 
@@ -70,44 +79,47 @@ export async function loginUser(req: Request, res: Response): Promise<void> {
       res.status(400).json({ error: error.details[0].message });
       return;
     }
+
     await connectionToDatabase();
-    const user: User | null = await UserModel.findOne({
-      email: req.body.email,
+
+    const { identifier, password } = req.body;
+
+    const user = await UserModel.findOne({
+      $or: [{ email: identifier }, { userName: identifier }],
     });
 
     if (!user) {
-      res.status(400).json({ error: "Email or password is wrong." });
+      res.status(400).json({ error: "Email/Username or password is wrong." });
       return;
-    } else {
-      const validPassword: boolean = await bcrypt.compare(
-        req.body.password,
-        user.password,
-      );
-
-      if (!validPassword) {
-        res.status(400).json({ error: "Email or password is wrong." });
-        return;
-      }
-
-      const userId: string = user.userID;
-      const token: string = jwt.sign(
-        {
-          firstName: user.firstName,
-          lastName: user.lastName,
-          userName: user.userName,
-          email: user.email,
-          id: userId,
-        },
-
-        process.env.TOKEN_SECRET as string,
-        { expiresIn: "1h" },
-      );
-
-      res
-        .status(200)
-        .header("auth-token", token)
-        .json({ error: null, data: { userId, token } });
     }
+
+    const validPassword = await bcrypt.compare(password, user.password);
+
+    if (!validPassword) {
+      res.status(400).json({ error: "Email/Username or password is wrong." });
+      return;
+    }
+
+    const token = jwt.sign(
+      {
+        id: user._id,
+        userName: user.userName,
+        email: user.email,
+        firstName: user.firstName,
+        lastName: user.lastName,
+      },
+      process.env.TOKEN_SECRET as string,
+      { expiresIn: "1h" },
+    );
+
+    res.status(200).json({
+      token,
+      user: {
+        id: user._id,
+        userName: user.userName,
+        email: user.email,
+      },
+    });
   } catch (error) {
     res
       .status(500)
@@ -139,7 +151,7 @@ export function validateUserRegistration(data: User): ValidationResult {
  */
 export function validateUserLoginInfo(data: User): ValidationResult {
   const schema = Joi.object({
-    email: Joi.string().email().min(5).max(255).required(),
+    identifier: Joi.string().required(), // email OR username
     password: Joi.string().min(6).max(30).required(),
   });
 
