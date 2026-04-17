@@ -1,12 +1,12 @@
 import { Router, Request, Response } from "express";
 
 import { createAttraction, getAllAttractions, getAttractionById, updateAttractionById, deleteAttractionById, getAttractionsByQuery, getAttractionsByQueryGeneric } from "../controllers/attractionController";
-import { createEvent,getAllEvents, getEventById, updateEventById,deleteEventById, getEventByQuery, getEventByGenericQuery } from "../controllers/eventController";
+import { createEvent, getAllEvents, getEventById, updateEventById, deleteEventById, getEventByQuery, getEventByGenericQuery } from "../controllers/eventController";
 import { createCity, getAllCities, getCityById, updateCityById, deleteCityById, getCityByQuery, getCityByGenericQuery } from "../controllers/cityController";
 import { createReview, getAllReviews, getReviewById, updateReviewById, deleteReviewById, getReviewByQuery, getReviewByGenericQuery } from "../controllers/reviewController";
-
+import { getCurrentUser } from "../controllers/userController";
 import { loginUser, registerUser } from "../controllers/authController";
-import { verifyToken } from "../middleware/verifyUserToken";
+import { verifyToken } from "../middleware/verifyUserToken"
 
 
 const router: Router = Router();
@@ -112,6 +112,38 @@ router.post("/user/register", registerUser);
  */
 router.post("/user/login", loginUser);
 
+/**
+* @swagger
+* /user/me:
+*   get:
+*     tags:
+*       - User Routes
+*     summary: Get current authenticated user
+*     description: Returns the user linked to the provided JWT token.
+*     security:
+*       - bearerAuth: []
+*     responses:
+*       200:
+*         description: Successfully retrieved user
+*         content:
+*           application/json:
+*             schema:
+*               type: object
+*               properties:
+*                 _id:
+*                   type: string
+*                 email:
+*                   type: string
+*                 createdAt:
+*                   type: string
+*       401:
+*         description: Unauthorized - Missing or invalid token
+*       404:
+*         description: User not found
+*       500:
+*         description: Server error
+*/
+router.get("/user/me", verifyToken, getCurrentUser);
 
 
 // ATTRACTION ROUTES
