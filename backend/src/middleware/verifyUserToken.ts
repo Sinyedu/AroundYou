@@ -2,7 +2,7 @@ import { Request, Response, NextFunction } from "express";
 import jwt from "jsonwebtoken";
 
 interface JwtPayload {
-  userId: string;
+  userID: string;
 }
 
 export function verifyToken(
@@ -10,12 +10,14 @@ export function verifyToken(
   res: Response,
   next: NextFunction
 ): void {
-  const token = req.header("auth-token");
+  const authHeader = req.header("Authorization");
 
-  if (!token) {
+  if (!authHeader) {
     res.status(401).json({ error: "No token provided" });
     return;
   }
+
+  const token = authHeader.replace("Bearer ", "");
 
   try {
     const decoded = jwt.verify(
@@ -23,8 +25,7 @@ export function verifyToken(
       process.env.TOKEN_SECRET as string
     ) as JwtPayload;
 
-    // attach userId safely
-    (req as Request & { userId?: string }).userId = decoded.userId;
+    (req as Request & { userID?: string }).userID = decoded.userID;
 
     next();
   } catch {

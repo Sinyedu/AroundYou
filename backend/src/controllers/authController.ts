@@ -102,14 +102,14 @@ export async function loginUser(req: Request, res: Response): Promise<void> {
 
     const token = jwt.sign(
       {
-        id: user._id,
+        userID: user._id,
         userName: user.userName,
         email: user.email,
         firstName: user.firstName,
         lastName: user.lastName,
       },
       process.env.TOKEN_SECRET as string,
-      { expiresIn: "1h" },
+      { expiresIn: "1h" }
     );
 
     res.status(200).json({
