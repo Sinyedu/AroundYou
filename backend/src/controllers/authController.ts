@@ -1,36 +1,29 @@
-import { type Request, type Response, type NextFunction } from "express";
-
+import { Request, Response } from "express";
 import jwt from "jsonwebtoken";
-
 import bcrypt from "bcrypt";
 import Joi, { ValidationResult } from "joi";
 
-//User imports
 import { UserModel } from "../models/userModel";
 import { User } from "../interfaces/user";
-import {
-  connectionToDatabase,
-  disconnectFromDatabase,
-} from "../repository/database";
 
 /**
- * Registers a new user in the database
- * @param req
- * @param res
+ * REGISTER USER
  */
-export async function registerUser(req: Request, res: Response): Promise<void> {
+export async function registerUser(
+  req: Request,
+  res: Response
+): Promise<void> {
   try {
     const { error } = validateUserRegistration(req.body);
+
     if (error) {
       res.status(400).json({ error: error.details[0].message });
       return;
     }
 
-    await connectionToDatabase();
-
     const emailExists = await UserModel.findOne({ email: req.body.email });
     if (emailExists) {
-      res.status(400).json({ error: "Email already exists." });
+      res.status(409).json({ error: "Email already exists" });
       return;
     }
 
@@ -39,14 +32,14 @@ export async function registerUser(req: Request, res: Response): Promise<void> {
     });
 
     if (userNameExists) {
-      res.status(400).json({ error: "Username already exists." });
+      res.status(409).json({ error: "Username already exists" });
       return;
     }
 
     const salt = await bcrypt.genSalt(10);
     const hashedPassword = await bcrypt.hash(req.body.password, salt);
 
-    const userObject = new UserModel({
+    const user = new UserModel({
       firstName: req.body.firstName,
       lastName: req.body.lastName,
       userName: req.body.userName,
@@ -54,33 +47,34 @@ export async function registerUser(req: Request, res: Response): Promise<void> {
       password: hashedPassword,
     });
 
-    const savedUser = await userObject.save();
-    res.status(200).json({ error: null, data: savedUser._id });
-  } catch (error) {
-    res
-      .status(500)
-      .send("An error occurred while registering the user. Error:" + error);
-  } finally {
-    await disconnectFromDatabase();
+    const savedUser = await user.save();
+
+    res.status(201).json({
+      error: null,
+      data: {
+        userId: savedUser._id,
+      },
+    });
+  } catch (err) {
+    console.error("Register error:", err);
+    res.status(500).json({ error: "Internal server error" });
   }
 }
 
 /**
- * Login an existing user
- * @param req
- * @param res
- * @returns
+ * LOGIN USER
  */
-
-export async function loginUser(req: Request, res: Response): Promise<void> {
+export async function loginUser(
+  req: Request,
+  res: Response
+): Promise<void> {
   try {
-    const { error } = validateUserLoginInfo(req.body);
+    const { error } = validateUserLogin(req.body);
+
     if (error) {
       res.status(400).json({ error: error.details[0].message });
       return;
     }
-
-    await connectionToDatabase();
 
     const { identifier, password } = req.body;
 
@@ -89,27 +83,27 @@ export async function loginUser(req: Request, res: Response): Promise<void> {
     });
 
     if (!user) {
-      res.status(400).json({ error: "Email/Username or password is wrong." });
+      res.status(401).json({ error: "Invalid credentials" });
       return;
     }
 
     const validPassword = await bcrypt.compare(password, user.password);
 
     if (!validPassword) {
-      res.status(400).json({ error: "Email/Username or password is wrong." });
+      res.status(401).json({ error: "Invalid credentials" });
       return;
     }
 
     const token = jwt.sign(
       {
-        id: user._id,
+        userID: user._id.toString(),
         userName: user.userName,
         email: user.email,
         firstName: user.firstName,
         lastName: user.lastName,
       },
       process.env.TOKEN_SECRET as string,
-      { expiresIn: "1h" },
+      { expiresIn: "1h" }
     );
 
     res.status(200).json({
@@ -120,18 +114,14 @@ export async function loginUser(req: Request, res: Response): Promise<void> {
         email: user.email,
       },
     });
-  } catch (error) {
-    res
-      .status(500)
-      .send("An error occurred while logging in the user. Error:" + error);
-  } finally {
-    await disconnectFromDatabase();
+  } catch (err) {
+    console.error("Login error:", err);
+    res.status(500).json({ error: "Internal server error" });
   }
 }
 
 /**
- * Validates the user registration data (name, email, password)
- * @param data
+ * VALIDATION - REGISTER
  */
 export function validateUserRegistration(data: User): ValidationResult {
   const schema = Joi.object({
@@ -146,12 +136,13 @@ export function validateUserRegistration(data: User): ValidationResult {
 }
 
 /**
- * Validates the user Login ( email, password)
- * @param data
+ * VALIDATION - LOGIN
  */
-export function validateUserLoginInfo(data: User): ValidationResult {
+export function validateUserLogin(
+  data: Record<string, unknown>
+): ValidationResult {
   const schema = Joi.object({
-    identifier: Joi.string().required(), // email OR username
+    identifier: Joi.string().required(),
     password: Joi.string().min(6).max(30).required(),
   });
 
