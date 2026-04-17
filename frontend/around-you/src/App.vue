@@ -3,6 +3,7 @@
     <div class="wrapper">
       <nav class="px-10">
         <RouterLink to="/" class="mr-4">Home</RouterLink>
+        <RouterLink to="/search" class="mr-4">Search</RouterLink>
 
         <template v-if="!isAuthenticated">
           <RouterLink to="/auth/register" class="mr-4">Register</RouterLink>
