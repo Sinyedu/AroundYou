@@ -4,10 +4,10 @@
             <div class="flex flex-wrap items-center gap-3">
                 <div class="relative flex min-w-[180px] flex-1 items-center">
                     <div class="flex flex-col">
-                        <span v-if="isLocationOpen"
-                            class="mb-1 text-[11px] font-semibold uppercase tracking-wide text-slate-500">
+                        <!-- <span v-if="isLocationOpen"
+                            class="mb-1 text-[11px] font-semibold uppercase pl-4 tracking-wide text-slate-500">
                             Lokation
-                        </span>
+                        </span> -->
                         <div
                             class="flex w-full items-center justify-between rounded-full bg-transparent px-3 py-1.5 text-sm font-semibold text-slate-700 transition hover:bg-slate-100/70">
                             <input v-model="draft.location" type="text" placeholder="Lokation"
@@ -33,10 +33,10 @@
 
                 <div class="relative flex min-w-[200px] flex-1 items-center">
                     <div class="flex flex-col">
-                        <span v-if="isTypeOpen"
+                        <!-- <span v-if="isTypeOpen"
                             class="mb-1 text-[11px] font-semibold uppercase tracking-wide text-slate-500">
                             Event / Attraktion
-                        </span>
+                        </span> -->
                         <button type="button"
                             class="flex items-center gap-3 rounded-full bg-transparent px-3 py-1.5 text-sm font-semibold text-slate-700 transition hover:bg-slate-100/70"
                             @click="toggleType">
@@ -70,12 +70,12 @@
 
                 <div class="flex min-w-[140px] flex-1 items-center">
                     <div class="flex flex-col">
-                        <span v-if="isDateOpen"
+                        <!-- <span v-if="isDateOpen"
                             class="mb-1 text-[11px] font-semibold uppercase tracking-wide text-slate-500">
                             Dato
-                        </span>
+                        </span> -->
                         <label
-                            class="flex items-center gap-2 rounded-full px-3 py-1.5 text-sm font-semibold text-slate-700 transition hover:bg-slate-100/70">
+                            class="flex items-center gap-2 rounded-fullwhite px-3 py-1.5 text-sm font-semibold text-slate-700 transition hover:bg-slate-100/70">
                             <span class="min-w-[40px]">Dato</span>
                             <input v-model="draft.date" type="date"
                                 class="w-full bg-transparent text-sm text-slate-600 outline-none" @focus="openDate"
@@ -88,10 +88,10 @@
 
                 <div class="relative flex min-w-[200px] flex-1 items-center">
                     <div class="flex flex-col">
-                        <span v-if="isCategoriesOpen"
+                        <!-- <span v-if="isCategoriesOpen"
                             class="mb-1 text-[11px] font-semibold uppercase tracking-wide text-slate-500">
                             Kategorier
-                        </span>
+                        </span> -->
                         <div
                             class="flex w-full items-center justify-between rounded-full bg-transparent px-3 py-1.5 text-sm font-semibold text-slate-700 transition hover:bg-slate-100/70">
                             <input v-model="categoryQuery" type="text" placeholder="Kategorier"
@@ -124,12 +124,12 @@
                     </div>
                 </div>
 
-                <div class="ml-auto flex items-center gap-2">
+                <!-- <div class="ml-auto flex items-center gap-2">
                     <button type="button"
                         class="rounded-full bg-slate-900 px-4 py-2 text-xs font-semibold uppercase tracking-wide text-white shadow">
                         Sog
                     </button>
-                </div>
+                </div> -->
             </div>
         </div>
     </section>
