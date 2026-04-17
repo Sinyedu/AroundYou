@@ -17,21 +17,21 @@
 
       <!-- Nær din lokation -->
       <section class="px-8 py-12">
-        <h2 class="text-2xl font-extrabold text-[#094b7b] text-center mb-2">
+        <h2 class="text-5xl font-extrabold text-[#094b7b] text-center mb-2">
           Oplevelser nær {{ userLocation }}
         </h2>
-        <p class="text-sm text-gray-500 text-center mb-8">Gå på opdagelse i spændende oplevelser tæt på din egen lokation, hvor natur, kultur, attraktioner og restauranter er lige inden for rækkevidde. Oplev alt fra populære seværdigheder og hyggelige udflugtsmål til lokale favoritter og skjulte perler lige i nærheden.</p>
+        <p class="text-sm text-gray-500 text-center max-w-3xl mx-auto mb-8">Gå på opdagelse i spændende oplevelser tæt på din egen lokation, hvor natur, kultur, attraktioner og restauranter er lige inden for rækkevidde. Oplev alt fra populære seværdigheder og hyggelige udflugtsmål til lokale favoritter og skjulte perler lige i nærheden.</p>
 
         <div class="grid grid-cols-4 gap-4">
           <div
             v-for="card in nearbyCards"
             :key="card.id"
-            class="rounded-xl overflow-hidden shadow-sm border border-gray-100 cursor-pointer hover:shadow-md transition-shadow"
+            class="group rounded-xl overflow-hidden shadow-sm border border-gray-100 cursor-pointer hover:shadow-md transition-shadow"
           >
-            <img :src="card.image" :alt="card.name" class="w-full h-32 object-cover" />
+            <img :src="card.image" :alt="card.name" class="w-full h-40 object-cover transition-transform duration-300 group-hover:scale-105" />
             <div class="p-3">
               <p class="text-sm font-semibold text-[#094b7b]">{{ card.name }}</p>
-              <p class="text-xs text-gray-500 mt-1 leading-relaxed min-h-8">{{ card.description }}</p>
+              <p class="text-xs text-gray-500 mt-1 leading-relaxed line-clamp-3">{{ card.description }}</p>
               <div class="flex items-center gap-1 mt-1">
                 <span class="text-xs font-bold text-gray-800">{{ card.rating }}</span>
                 <div class="flex text-[#de5826]">
@@ -57,19 +57,19 @@
 
       <!-- Danmarks største byer -->
       <section class="px-8 py-12">
-        <h2 class="text-2xl font-extrabold text-[#094b7b] text-center mb-2">Udforsk Danmarks største byer</h2>
-        <p class="text-sm text-gray-500 text-center mb-8">Gå på opdagelse i København, Aarhus, Odense og Aalborg, hvor hver by byder på sin egen unikke stemning. Oplev alt fra pulserende byliv og spændende kultur til hyggelige kvarterer, historiske seværdigheder og nye smagsoplevelser.</p>
+        <h2 class="text-3xl font-extrabold text-[#094b7b] text-center mb-2">Udforsk Danmarks største byer</h2>
+        <p class="text-sm text-gray-500 text-center max-w-3xl mx-auto mb-8">Gå på opdagelse i København, Aarhus, Odense og Aalborg, hvor hver by byder på sin egen unikke stemning. Oplev alt fra pulserende byliv og spændende kultur til hyggelige kvarterer, historiske seværdigheder og nye smagsoplevelser.</p>
 
         <div class="grid grid-cols-4 gap-4">
           <div
             v-for="card in cityCards"
             :key="card.id"
-            class="rounded-xl overflow-hidden shadow-sm border border-gray-100 cursor-pointer hover:shadow-md transition-shadow"
+            class="group rounded-xl overflow-hidden shadow-sm border border-gray-100 cursor-pointer hover:shadow-md transition-shadow"
           >
-            <img :src="card.image" :alt="card.name" class="w-full h-32 object-cover" />
+            <img :src="card.image" :alt="card.name" class="w-full h-40 object-cover transition-transform duration-300 group-hover:scale-105" />
             <div class="p-3">
               <p class="text-sm font-semibold text-[#094b7b]">{{ card.name }}</p>
-              <p class="text-xs text-gray-500 mt-1 leading-relaxed min-h-8">{{ card.description }}</p>
+              <p class="text-xs text-gray-500 mt-1 leading-relaxed line-clamp-3">{{ card.description }}</p>
               <div class="flex items-center gap-1 mt-1">
                 <span class="text-xs font-bold text-gray-800">{{ card.rating }}</span>
                 <div class="flex text-[#de5826]">
@@ -95,19 +95,19 @@
 
       <!-- Natur -->
       <section class="px-8 py-12">
-        <h2 class="text-2xl font-extrabold text-[#094b7b] text-center mb-2">Oplev naturens perler</h2>
-        <p class="text-sm text-gray-500 text-center mb-8">Gå på opdagelse i Danmarks smukkeste landskaber, hvor naturen byder på ro, vidde og unikke oplevelser. Oplev alt fra imponerende udsigtspunkter og kyststrækninger til skove, søer og skjulte perler rundt i landet.</p>
+        <h2 class="text-3xl font-extrabold text-[#094b7b] text-center mb-2">Oplev naturens perler</h2>
+        <p class="text-sm text-gray-500 text-center max-w-3xl mx-auto mb-8">Gå på opdagelse i Danmarks smukkeste landskaber, hvor naturen byder på ro, vidde og unikke oplevelser. Oplev alt fra imponerende udsigtspunkter og kyststrækninger til skove, søer og skjulte perler rundt i landet.</p>
 
         <div class="grid grid-cols-4 gap-4">
           <div
             v-for="card in natureCards"
             :key="card.id"
-            class="rounded-xl overflow-hidden shadow-sm border border-gray-100 cursor-pointer hover:shadow-md transition-shadow"
+            class="group rounded-xl overflow-hidden shadow-sm border border-gray-100 cursor-pointer hover:shadow-md transition-shadow"
           >
-            <img :src="card.image" :alt="card.name" class="w-full h-32 object-cover" />
+            <img :src="card.image" :alt="card.name" class="w-full h-40 object-cover transition-transform duration-300 group-hover:scale-105" />
             <div class="p-3">
               <p class="text-sm font-semibold text-[#094b7b]">{{ card.name }}</p>
-              <p class="text-xs text-gray-500 mt-1 leading-relaxed min-h-8">{{ card.description }}</p>
+              <p class="text-xs text-gray-500 mt-1 leading-relaxed line-clamp-3">{{ card.description }}</p>
               <div class="flex items-center gap-1 mt-1">
                 <span class="text-xs font-bold text-gray-800">{{ card.rating }}</span>
                 <div class="flex text-[#de5826]">
@@ -133,19 +133,19 @@
 
       <!-- Familie -->
       <section class="px-8 py-12">
-        <h2 class="text-2xl font-extrabold text-[#094b7b] text-center mb-2">Eventyr for hele familien</h2>
-        <p class="text-sm text-gray-500 text-center mb-8">Gå på opdagelse i sjove og mindeværdige oplevelser for både børn og voksne i hele Danmark. Oplev alt fra legende aktiviteter og spændende attraktioner til lærerige oplevelser og hyggelige stunder, hvor hele familien kan være med.</p>
+        <h2 class="text-3xl font-extrabold text-[#094b7b] text-center mb-2">Eventyr for hele familien</h2>
+        <p class="text-sm text-gray-500 text-center max-w-3xl mx-auto mb-8">Gå på opdagelse i sjove og mindeværdige oplevelser for både børn og voksne i hele Danmark. Oplev alt fra legende aktiviteter og spændende attraktioner til lærerige oplevelser og hyggelige stunder, hvor hele familien kan være med.</p>
 
         <div class="grid grid-cols-4 gap-4">
           <div
             v-for="card in familyCards"
             :key="card.id"
-            class="rounded-xl overflow-hidden shadow-sm border border-gray-100 cursor-pointer hover:shadow-md transition-shadow"
+            class="group rounded-xl overflow-hidden shadow-sm border border-gray-100 cursor-pointer hover:shadow-md transition-shadow"
           >
-            <img :src="card.image" :alt="card.name" class="w-full h-32 object-cover" />
+            <img :src="card.image" :alt="card.name" class="w-full h-40 object-cover transition-transform duration-300 group-hover:scale-105" />
             <div class="p-3">
               <p class="text-sm font-semibold text-[#094b7b]">{{ card.name }}</p>
-              <p class="text-xs text-gray-500 mt-1 leading-relaxed min-h-8">{{ card.description }}</p>
+              <p class="text-xs text-gray-500 mt-1 leading-relaxed line-clamp-3">{{ card.description }}</p>
               <div class="flex items-center gap-1 mt-1">
                 <span class="text-xs font-bold text-gray-800">{{ card.rating }}</span>
                 <div class="flex text-[#de5826]">
