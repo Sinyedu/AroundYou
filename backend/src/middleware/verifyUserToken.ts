@@ -25,10 +25,15 @@ export function verifyToken(
       process.env.TOKEN_SECRET as string
     ) as JwtPayload;
 
+    console.log("DECODED:", decoded);
+
     (req as Request & { userID?: string }).userID = decoded.userID;
 
+    console.log("ATTACHED USERID:", (req as any).userID);
+
     next();
-  } catch {
+  } catch (err) {
+    console.log("JWT ERROR:", err);
     res.status(401).json({ error: "Invalid token" });
   }
 }

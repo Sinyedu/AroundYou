@@ -1,18 +1,17 @@
 import express, { Application } from "express";
 import dotenvFlow from "dotenv-flow";
-import { testConnection } from "./repository/database";
+import cors from "cors";
 
 import routes from "./routes/routes";
 import { setupDocs } from "./utils/swaggerDocumentation";
-import cors from "cors";
+import { connectDB } from "./repository/database";
 
 dotenvFlow.config();
 
-// Create Express application
 const app: Application = express();
 
 /**
- * Sets up CORS handling.
+ * CORS configuration
  */
 function setupCors() {
   app.use(
@@ -25,19 +24,35 @@ function setupCors() {
   );
 }
 
-export function startServer() {
-  setupCors();
-
+/**
+ * Middleware setup
+ */
+function setupMiddleware() {
   app.use(express.json());
+}
 
+/**
+ * Routes setup
+ */
+function setupRoutes() {
   app.use("/api", routes);
+}
+
+/**
+ * Server bootstrap
+ */
+export async function startServer() {
+  setupCors();
+  setupMiddleware();
+  setupRoutes();
 
   setupDocs(app);
 
-  testConnection();
+  await connectDB();
 
-  const PORT: number = parseInt(process.env.PORT as string) || 4000;
-  app.listen(PORT, function() {
-    console.log("Server is running on port:" + PORT);
+  const PORT: number = Number(process.env.PORT as string) || 4000;
+
+  app.listen(PORT, () => {
+    console.log(`Server is running on port: ${PORT}`);
   });
 }

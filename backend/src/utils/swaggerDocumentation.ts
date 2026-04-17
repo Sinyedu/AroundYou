@@ -20,6 +20,11 @@ export function setupDocs(app: Application) {
         description: "Development server",
       },
     ],
+    security: [
+      {
+        ApiKeyAuth: []
+      }
+    ],
     components: {
       securitySchemes: {
         ApiKeyAuth: {
