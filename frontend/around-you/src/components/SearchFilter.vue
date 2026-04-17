@@ -18,7 +18,7 @@
                     </div>
 
                     <div v-if="isLocationOpen"
-                        class="absolute left-0 top-full z-20 mt-2.5 w-56 rounded-2xl border border-slate-200 bg-[#C1D2DE] p-2 shadow-lg">
+                        class="absolute left-0 top-full z-20 mt-2.5 w-56 rounded-2xl border-[5px] border-[#C1D2DE] bg-white p-2 shadow-lg">
                         <div class="max-h-40 space-y-1 overflow-y-auto pr-1">
                             <button v-for="location in filteredLocationOptions" :key="location" type="button"
                                 class="flex w-full items-center justify-between rounded-lg px-3 py-2 text-sm text-slate-600 hover:bg-slate-100"
@@ -103,7 +103,7 @@
                     </div>
 
                     <div v-if="isCategoriesOpen"
-                        class="absolute right-0 top-full z-20 mt-2.5 w-60 rounded-2xl border border-slate-200 bg-[#C1D2DE] p-2 shadow-lg">
+                        class="absolute right-0 top-full z-20 mt-2.5 w-56 rounded-2xl border-[5px] border-[#C1D2DE] bg-white p-2 shadow-lg">
                         <div class="max-h-40 space-y-1 overflow-y-auto pr-1">
                             <button v-for="category in filteredCategoryOptions" :key="category" type="button"
                                 class="flex w-full items-center justify-between rounded-lg px-3 py-2 text-sm text-slate-600 hover:bg-slate-100"
