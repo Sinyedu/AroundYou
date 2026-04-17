@@ -1,180 +1,144 @@
 import { Request, Response } from "express";
 import { ReviewModel } from "../models/reviewModel";
-import { connectionToDatabase, disconnectFromDatabase } from "../repository/database";
 import { buildDynamicQuery } from "./dynamicQueryBuilder";
 
-
 /**
- * Add new REVIEW to the database
- * @param req
- * @param res
+ * CREATE REVIEW
  */
 export async function createReview(req: Request, res: Response): Promise<void> {
-  const data = req.body;
-
   try {
-    await connectionToDatabase();
-
-    const review = new ReviewModel(data);
+    const review = new ReviewModel(req.body);
     const result = await review.save();
 
     res.status(201).json(result);
-  }
-  catch (err) {
+  } catch (err) {
     console.error("Error creating review:", err);
-
-    res.status(500).json("An error occurred while creating the review." + err);
-  }
-  finally {
-    await disconnectFromDatabase();
+    res.status(500).json({
+      message: "Error creating review",
+    });
   }
 }
 
 /**
- * Retrieve all REVIEWS from the database
- * @param req
- * @param res
+ * GET ALL REVIEWS
  */
-export async function getAllReviews(req: Request, res: Response) {
+export async function getAllReviews(req: Request, res: Response): Promise<void> {
   try {
-    await connectionToDatabase();
-
     const result = await ReviewModel.find({});
-
     res.status(200).json(result);
-  }
-  catch (err) {
-    res.status(500).json("error retrieving the reviews." + err);
-  }
-  finally {
-    await disconnectFromDatabase();
+  } catch (err) {
+    console.error("Error fetching reviews:", err);
+    res.status(500).json({
+      message: "Error retrieving reviews",
+    });
   }
 }
 
 /**
- * Retrieve a REVIEW by ID from the database
- * @param req
- * @param res 
+ * GET REVIEW BY ID
  */
-export async function getReviewById(req: Request, res: Response) {
+export async function getReviewById(req: Request, res: Response): Promise<void> {
   try {
-    await connectionToDatabase();
-
-    const reviewId = req.params.id;
-    const result = await ReviewModel.findById(reviewId);
-
-    res.status(200).json(result);
-  }
-  catch (err) {
-    res.status(500).json("error retrieving review by ID. Error: " + err);
-  }
-  finally {
-    await disconnectFromDatabase();
-  }
-}
-
-/**
- * Update a REVIEW by ID from the database
- * @param req
- * @param res
- */
-export async function updateReviewById(req: Request, res: Response) {
-
-  const reviewId = req.params.id;
-
-  try {
-    await connectionToDatabase();
-
-    const result = await ReviewModel.findByIdAndUpdate(reviewId, req.body);
+    const result = await ReviewModel.findById(req.params.id);
 
     if (!result) {
-      res.status(404).json("Cannot find review with id=: " + reviewId);
-    } else {
-      res.status(200).json("Review was updated successfully.");
+      res.status(404).json({ message: "Review not found" });
+      return;
     }
-  }
-  catch (err) {
-    res.status(500).json("Error updating the review by id. Error: " + err);
-  }
-  finally {
-    await disconnectFromDatabase();
+
+    res.status(200).json(result);
+  } catch (err) {
+    console.error("Error fetching review:", err);
+    res.status(500).json({
+      message: "Error retrieving review",
+    });
   }
 }
 
 /**
- * Delete a REVIEW by ID from the database
- * @param req
- * @param res
+ * UPDATE REVIEW
  */
-export async function deleteReviewById(req: Request, res: Response) {
-  const reviewId = req.params.id;
-
+export async function updateReviewById(req: Request, res: Response): Promise<void> {
   try {
-    await connectionToDatabase();
-
-    const result = await ReviewModel.findByIdAndDelete(reviewId);
+    const result = await ReviewModel.findByIdAndUpdate(
+      req.params.id,
+      req.body,
+      { new: true }
+    );
 
     if (!result) {
-      res.status(404).json("Cannot find review with id=: " + reviewId);
-    } else {
-      res.status(200).json("Review was deleted successfully.");
+      res.status(404).json({ message: "Review not found" });
+      return;
     }
-  }
-  catch (err) {
-    res.status(500).json("Error deleting the review by id. Error: " + err);
-  }
-  finally {
-    await disconnectFromDatabase();
+
+    res.status(200).json({
+      message: "Review updated successfully",
+      data: result,
+    });
+  } catch (err) {
+    console.error("Error updating review:", err);
+    res.status(500).json({
+      message: "Error updating review",
+    });
   }
 }
 
 /**
- * Retrieve a REVIEW by query from the database
- * @param req
- * @param res
+ * DELETE REVIEW
+ */
+export async function deleteReviewById(req: Request, res: Response): Promise<void> {
+  try {
+    const result = await ReviewModel.findByIdAndDelete(req.params.id);
+
+    if (!result) {
+      res.status(404).json({ message: "Review not found" });
+      return;
+    }
+
+    res.status(200).json({ message: "Review deleted successfully" });
+  } catch (err) {
+    console.error("Error deleting review:", err);
+    res.status(500).json({
+      message: "Error deleting review",
+    });
+  }
+}
+
+/**
+ * QUERY REVIEW (KEY / VALUE)
  */
 export async function getReviewByQuery(req: Request, res: Response): Promise<void> {
-
   try {
-    await connectionToDatabase();
+    const key = req.params.key as string;
+    const value = req.params.value as string;
 
-    const key: any = req.params.key;
-    const value: any = req.params.value;
-
-    const result = await ReviewModel.find({ [key]: {$regex: value, $options: 'i'} });
+    const result = await ReviewModel.find({
+      [key]: { $regex: value, $options: "i" },
+    });
 
     res.status(200).json(result);
-    
-  } 
-  catch (err) {
-    res.status(500).json("error retrieving review by query. Error: " + err);
-  }
-  finally {
-     await disconnectFromDatabase();
+  } catch (err) {
+    console.error("Error querying reviews:", err);
+    res.status(500).json({
+      message: "Error retrieving reviews by query",
+    });
   }
 }
 
 /**
- * Retrieve a REVIEW by query from the database with a dynamic query builder
- * @param req
- * @param res
+ * GENERIC QUERY
  */
 export async function getReviewByGenericQuery(req: Request, res: Response): Promise<void> {
-  
   try {
-    await connectionToDatabase();
+    const query = buildDynamicQuery(ReviewModel, req.body);
 
-    const body = req.body;
-
-    const result = await ReviewModel.find(buildDynamicQuery(ReviewModel, body)); 
+    const result = await ReviewModel.find(query);
 
     res.status(200).json(result);
-
-  }
-  catch (err) {
-    res.status(500).json("error retrieving review by generic query. Error: " + err);
-  }
-  finally {
-    await disconnectFromDatabase();
+  } catch (err) {
+    console.error("Error generic review query:", err);
+    res.status(500).json({
+      message: "Error retrieving reviews",
+    });
   }
 }
