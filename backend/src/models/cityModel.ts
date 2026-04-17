@@ -2,7 +2,6 @@ import { Schema, model } from "mongoose";
 import { City } from "../interfaces/city";
 
 const citySchema = new Schema<City>({
-  cityID: { type: String, required: true, unique: true },
   name: { type: String, required: true, min: 3, max: 255 },
   description: { type: String, required: true, min: 3, max: 1024 },
   heroImage: { type: String, required: true },

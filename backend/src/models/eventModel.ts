@@ -2,7 +2,6 @@ import { Schema, model } from "mongoose";
 import { Event } from "../interfaces/event";
 
 const eventSchema = new Schema<Event>({
-  eventID: { type: String, required: true, unique: true },
   name: { type: String, required: true, min: 6, max: 255 },
   description: { type: String, required: true, min: 3, max: 1024 },
   heroImage: { type: String, required: true },
