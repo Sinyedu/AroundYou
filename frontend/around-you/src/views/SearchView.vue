@@ -5,9 +5,6 @@
                 <div class="flex flex-col gap-8">
                     <header class="flex flex-wrap items-center justify-between gap-6">
                         <div class="space-y-2">
-                            <p class="text-xs font-semibold uppercase tracking-wide text-slate-500">
-                                AroundYou
-                            </p>
                             <h1 class="text-2xl font-semibold text-slate-900">
                                 Find something to do today
                             </h1>
@@ -15,11 +12,6 @@
                                 Over 1,000 things to see and explore around you.
                             </p>
                         </div>
-                        <button
-                            class="rounded-full border border-slate-200 bg-slate-900 px-5 py-2 text-sm font-semibold text-white shadow-lg shadow-slate-200/70"
-                            type="button">
-                            Login
-                        </button>
                     </header>
 
                     <SearchFilter v-model="filters" />
