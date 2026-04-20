@@ -20,7 +20,7 @@
         <h2 class="text-5xl font-extrabold text-[#094b7b] text-center mb-2">
           Oplevelser nær {{ userLocation }}
         </h2>
-        <p class="text-sm text-gray-500 text-center max-w-3xl mx-auto mb-8">Gå på opdagelse i spændende oplevelser tæt på din egen lokation, hvor natur, kultur, attraktioner og restauranter er lige inden for rækkevidde. Oplev alt fra populære seværdigheder og hyggelige udflugtsmål til lokale favoritter og skjulte perler lige i nærheden.</p>
+        <p class="text-sm text-gray-500 text-center max-w-3xl mx-auto mb-8">{{ userLocationDescription }}</p>
 
         <p v-if="nearbyLoading" class="text-sm text-gray-500 text-center mb-8">
           Henter seværdigheder nær din lokation...
@@ -48,7 +48,19 @@
         <h2 class="text-3xl font-extrabold text-[#094b7b] text-center mb-2">Udforsk Danmarks største byer</h2>
         <p class="text-sm text-gray-500 text-center max-w-3xl mx-auto mb-8">Gå på opdagelse i København, Aarhus, Odense og Aalborg, hvor hver by byder på sin egen unikke stemning. Oplev alt fra pulserende byliv og spændende kultur til hyggelige kvarterer, historiske seværdigheder og nye smagsoplevelser.</p>
 
-        <div class="grid grid-cols-4 gap-4">
+        <p v-if="citiesLoading" class="text-sm text-gray-500 text-center mb-8">
+          Henter Danmarks største byer...
+        </p>
+
+        <p v-else-if="citiesError" class="text-sm text-red-600 text-center mb-8">
+          {{ citiesError }}
+        </p>
+
+        <p v-else-if="!cityCards.length" class="text-sm text-gray-500 text-center mb-8">
+          Der blev ikke fundet byer i databasen.
+        </p>
+
+        <div v-if="showCityCards" class="grid grid-cols-4 gap-4">
           <AttractionCard
             v-for="card in cityCards"
             :key="card.id"
@@ -90,15 +102,22 @@
 </template>
 
 <script setup lang="ts">
-import { computed, ref, watch } from 'vue'
+import { computed, onMounted, ref, watch } from 'vue'
 import AttractionCard from '@/components/AttractionCard.vue'
-import { getNearbyLocationContent } from '@/api/attractions.api'
+import {
+  DEFAULT_NEARBY_LOCATION_DESCRIPTION,
+  getLargestCities,
+  getNearbyLocationContent,
+} from '@/api/attractions.api'
 import { useGeolocationStore } from '@/stores/geolocation'
 
 const geolocationStore = useGeolocationStore()
 const userLocation = ref('din lokation')
+const userLocationDescription = ref(DEFAULT_NEARBY_LOCATION_DESCRIPTION)
 const nearbyLoading = ref(false)
 const nearbyError = ref<string | null>(null)
+const citiesLoading = ref(false)
+const citiesError = ref<string | null>(null)
 
 // Placeholder card data
 interface Card {
@@ -126,12 +145,22 @@ function createCard(id: number, name: string, description: string, tags: string[
   }
 }
 
-const cityCards = ref<Card[]>([
-  createCard(1, 'København', 'Udforsk kanaler, kultur og gastronomi i hjertet af hovedstaden.', ['Storby', 'Kultur', 'Mad']),
-  createCard(2, 'Aarhus', 'Oplev moderne byliv med kunst, havnefront og hyggelige kvarterer.', ['Havn', 'Kultur', 'Shopping']),
-  createCard(3, 'Odense', 'Gå i H.C. Andersens fodspor med historie, caféer og grønne områder.', ['Historie', 'Hygge', 'Museer']),
-  createCard(4, 'Aalborg', 'Nyd fjordstemning, spændende arkitektur og et levende natteliv.', ['Natteliv', 'Fjord', 'Oplevelser']),
-])
+const cityCards = ref<Card[]>([])
+
+async function loadLargestCities() {
+  citiesLoading.value = true
+  citiesError.value = null
+
+  try {
+    cityCards.value = await getLargestCities(4)
+  } catch (error) {
+    console.error('Fejl ved hentning af byer:', error)
+    citiesError.value = 'Vi kunne ikke hente de største byer fra databasen.'
+    cityCards.value = []
+  } finally {
+    citiesLoading.value = false
+  }
+}
 
 const nearbyCards = ref<Card[]>([])
 
@@ -139,6 +168,7 @@ async function loadNearbyContent() {
   if (!geolocationStore.coords) {
     nearbyCards.value = []
     userLocation.value = 'din lokation'
+    userLocationDescription.value = DEFAULT_NEARBY_LOCATION_DESCRIPTION
     return
   }
 
@@ -149,10 +179,12 @@ async function loadNearbyContent() {
     const nearbyContent = await getNearbyLocationContent(geolocationStore.coords, 4)
 
     userLocation.value = nearbyContent.locationName
+    userLocationDescription.value = nearbyContent.locationDescription
     nearbyCards.value = nearbyContent.attractions
   } catch (error) {
     console.error('Fejl ved hentning af nærliggende seværdigheder:', error)
     nearbyError.value = 'Vi kunne ikke hente seværdigheder tæt på din lokation.'
+    userLocationDescription.value = DEFAULT_NEARBY_LOCATION_DESCRIPTION
     nearbyCards.value = []
   } finally {
     nearbyLoading.value = false
@@ -181,11 +213,17 @@ watch(
     if (error) {
       nearbyError.value = 'Vi kunne ikke få adgang til din lokation.'
       userLocation.value = 'din lokation'
+      userLocationDescription.value = DEFAULT_NEARBY_LOCATION_DESCRIPTION
     }
   },
 )
 
 const showNearbyCards = computed(() => !nearbyLoading.value && !nearbyError.value && nearbyCards.value.length > 0)
+const showCityCards = computed(() => !citiesLoading.value && !citiesError.value && cityCards.value.length > 0)
+
+onMounted(() => {
+  void loadLargestCities()
+})
 
 const natureCards = ref<Card[]>([
   createCard(11, 'Møns Klint', 'Hvide klinter og turkisblåt vand danner en af Danmarks flotteste udsigter.', ['Natur', 'Vandretur', 'Udsigt']),

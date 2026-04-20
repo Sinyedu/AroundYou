@@ -1,5 +1,8 @@
 const API_BASE_URL = 'http://localhost:4000/api'
 
+export const DEFAULT_NEARBY_LOCATION_DESCRIPTION =
+  'Gå på opdagelse i spændende oplevelser tæt på din egen lokation, hvor natur, kultur, attraktioner og restauranter er lige inden for rækkevidde. Oplev alt fra populære seværdigheder og hyggelige udflugtsmål til lokale favoritter og skjulte perler lige i nærheden.'
+
 type Coordinates = {
   latitude: number
   longitude: number
@@ -20,7 +23,13 @@ type AttractionApiItem = {
 type CityApiItem = {
   _id: string
   name: string
+  description: string
+  heroImage: string
+  commune: string
+  region: string
   gpsPosition: string
+  population: number
+  rating: number
 }
 
 export type NearbyAttractionCard = {
@@ -36,7 +45,19 @@ export type NearbyAttractionCard = {
 
 export type NearbyLocationContent = {
   locationName: string
+  locationDescription: string
   attractions: NearbyAttractionCard[]
+}
+
+export type LargestCityCard = {
+  id: string
+  name: string
+  description: string
+  image: string
+  rating: number
+  reviews: number
+  tags: string[]
+  metaText?: string
 }
 
 function toSignedCoordinate(value: number, direction?: AxisDirection): number {
@@ -259,6 +280,25 @@ export async function getNearbyLocationContent(
 
   return {
     locationName: nearestCity?.city.name ?? 'din lokation',
+    locationDescription: nearestCity?.city.description ?? DEFAULT_NEARBY_LOCATION_DESCRIPTION,
     attractions: nearbyAttractions,
   }
+}
+
+export async function getLargestCities(limit = 4): Promise<LargestCityCard[]> {
+  const cities = await fetchJson<CityApiItem[]>('/city')
+
+  return cities
+    .sort((first, second) => second.population - first.population)
+    .slice(0, limit)
+    .map((city) => ({
+      id: city._id,
+      name: city.name,
+      description: city.description,
+      image: city.heroImage,
+      rating: city.rating,
+      reviews: 0,
+      tags: [city.region, city.commune, 'Storby'].filter(Boolean).slice(0, 3),
+      metaText: `${city.population.toLocaleString('da-DK')} indbyggere`,
+    }))
 }
