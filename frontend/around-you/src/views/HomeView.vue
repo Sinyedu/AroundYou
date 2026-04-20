@@ -22,36 +22,24 @@
         </h2>
         <p class="text-sm text-gray-500 text-center max-w-3xl mx-auto mb-8">Gå på opdagelse i spændende oplevelser tæt på din egen lokation, hvor natur, kultur, attraktioner og restauranter er lige inden for rækkevidde. Oplev alt fra populære seværdigheder og hyggelige udflugtsmål til lokale favoritter og skjulte perler lige i nærheden.</p>
 
-        <div class="grid grid-cols-4 gap-4">
-          <div
+        <p v-if="nearbyLoading" class="text-sm text-gray-500 text-center mb-8">
+          Henter seværdigheder nær din lokation...
+        </p>
+
+        <p v-else-if="nearbyError" class="text-sm text-red-600 text-center mb-8">
+          {{ nearbyError }}
+        </p>
+
+        <p v-else-if="!nearbyCards.length" class="text-sm text-gray-500 text-center mb-8">
+          Der blev ikke fundet seværdigheder i nærheden.
+        </p>
+
+        <div v-if="showNearbyCards" class="grid grid-cols-4 gap-4">
+          <AttractionCard
             v-for="card in nearbyCards"
             :key="card.id"
-            class="group rounded-xl overflow-hidden shadow-sm border border-gray-100 cursor-pointer hover:shadow-md transition-shadow"
-          >
-            <img :src="card.image" :alt="card.name" class="w-full h-40 object-cover transition-transform duration-300 group-hover:scale-105" />
-            <div class="p-3">
-              <p class="text-sm font-semibold text-[#094b7b]">{{ card.name }}</p>
-              <p class="text-xs text-gray-500 mt-1 leading-relaxed line-clamp-3">{{ card.description }}</p>
-              <div class="flex items-center gap-1 mt-1">
-                <span class="text-xs font-bold text-gray-800">{{ card.rating }}</span>
-                <div class="flex text-[#de5826]">
-                  <span v-for="n in 5" :key="n" class="text-xs">
-                    {{ n <= Math.floor(card.rating) ? '★' : n - card.rating < 1 ? '★' : '☆' }}
-                  </span>
-                </div>
-                <span class="text-xs text-gray-400">({{ card.reviews.toLocaleString() }})</span>
-              </div>
-              <div class="flex flex-wrap gap-1 mt-2">
-                <span
-                  v-for="tag in card.tags"
-                  :key="tag"
-                  class="text-[10px] text-gray-500 border border-gray-200 rounded-full px-2 py-0.5"
-                >
-                  {{ tag }}
-                </span>
-              </div>
-            </div>
-          </div>
+            :card="card"
+          />
         </div>
       </section>
 
@@ -61,35 +49,11 @@
         <p class="text-sm text-gray-500 text-center max-w-3xl mx-auto mb-8">Gå på opdagelse i København, Aarhus, Odense og Aalborg, hvor hver by byder på sin egen unikke stemning. Oplev alt fra pulserende byliv og spændende kultur til hyggelige kvarterer, historiske seværdigheder og nye smagsoplevelser.</p>
 
         <div class="grid grid-cols-4 gap-4">
-          <div
+          <AttractionCard
             v-for="card in cityCards"
             :key="card.id"
-            class="group rounded-xl overflow-hidden shadow-sm border border-gray-100 cursor-pointer hover:shadow-md transition-shadow"
-          >
-            <img :src="card.image" :alt="card.name" class="w-full h-40 object-cover transition-transform duration-300 group-hover:scale-105" />
-            <div class="p-3">
-              <p class="text-sm font-semibold text-[#094b7b]">{{ card.name }}</p>
-              <p class="text-xs text-gray-500 mt-1 leading-relaxed line-clamp-3">{{ card.description }}</p>
-              <div class="flex items-center gap-1 mt-1">
-                <span class="text-xs font-bold text-gray-800">{{ card.rating }}</span>
-                <div class="flex text-[#de5826]">
-                  <span v-for="n in 5" :key="n" class="text-xs">
-                    {{ n <= Math.floor(card.rating) ? '★' : n - card.rating < 1 ? '★' : '☆' }}
-                  </span>
-                </div>
-                <span class="text-xs text-gray-400">({{ card.reviews.toLocaleString() }})</span>
-              </div>
-              <div class="flex flex-wrap gap-1 mt-2">
-                <span
-                  v-for="tag in card.tags"
-                  :key="tag"
-                  class="text-[10px] text-gray-500 border border-gray-200 rounded-full px-2 py-0.5"
-                >
-                  {{ tag }}
-                </span>
-              </div>
-            </div>
-          </div>
+            :card="card"
+          />
         </div>
       </section>
 
@@ -99,35 +63,11 @@
         <p class="text-sm text-gray-500 text-center max-w-3xl mx-auto mb-8">Gå på opdagelse i Danmarks smukkeste landskaber, hvor naturen byder på ro, vidde og unikke oplevelser. Oplev alt fra imponerende udsigtspunkter og kyststrækninger til skove, søer og skjulte perler rundt i landet.</p>
 
         <div class="grid grid-cols-4 gap-4">
-          <div
+          <AttractionCard
             v-for="card in natureCards"
             :key="card.id"
-            class="group rounded-xl overflow-hidden shadow-sm border border-gray-100 cursor-pointer hover:shadow-md transition-shadow"
-          >
-            <img :src="card.image" :alt="card.name" class="w-full h-40 object-cover transition-transform duration-300 group-hover:scale-105" />
-            <div class="p-3">
-              <p class="text-sm font-semibold text-[#094b7b]">{{ card.name }}</p>
-              <p class="text-xs text-gray-500 mt-1 leading-relaxed line-clamp-3">{{ card.description }}</p>
-              <div class="flex items-center gap-1 mt-1">
-                <span class="text-xs font-bold text-gray-800">{{ card.rating }}</span>
-                <div class="flex text-[#de5826]">
-                  <span v-for="n in 5" :key="n" class="text-xs">
-                    {{ n <= Math.floor(card.rating) ? '★' : n - card.rating < 1 ? '★' : '☆' }}
-                  </span>
-                </div>
-                <span class="text-xs text-gray-400">({{ card.reviews.toLocaleString() }})</span>
-              </div>
-              <div class="flex flex-wrap gap-1 mt-2">
-                <span
-                  v-for="tag in card.tags"
-                  :key="tag"
-                  class="text-[10px] text-gray-500 border border-gray-200 rounded-full px-2 py-0.5"
-                >
-                  {{ tag }}
-                </span>
-              </div>
-            </div>
-          </div>
+            :card="card"
+          />
         </div>
       </section>
 
@@ -137,35 +77,11 @@
         <p class="text-sm text-gray-500 text-center max-w-3xl mx-auto mb-8">Gå på opdagelse i sjove og mindeværdige oplevelser for både børn og voksne i hele Danmark. Oplev alt fra legende aktiviteter og spændende attraktioner til lærerige oplevelser og hyggelige stunder, hvor hele familien kan være med.</p>
 
         <div class="grid grid-cols-4 gap-4">
-          <div
+          <AttractionCard
             v-for="card in familyCards"
             :key="card.id"
-            class="group rounded-xl overflow-hidden shadow-sm border border-gray-100 cursor-pointer hover:shadow-md transition-shadow"
-          >
-            <img :src="card.image" :alt="card.name" class="w-full h-40 object-cover transition-transform duration-300 group-hover:scale-105" />
-            <div class="p-3">
-              <p class="text-sm font-semibold text-[#094b7b]">{{ card.name }}</p>
-              <p class="text-xs text-gray-500 mt-1 leading-relaxed line-clamp-3">{{ card.description }}</p>
-              <div class="flex items-center gap-1 mt-1">
-                <span class="text-xs font-bold text-gray-800">{{ card.rating }}</span>
-                <div class="flex text-[#de5826]">
-                  <span v-for="n in 5" :key="n" class="text-xs">
-                    {{ n <= Math.floor(card.rating) ? '★' : n - card.rating < 1 ? '★' : '☆' }}
-                  </span>
-                </div>
-                <span class="text-xs text-gray-400">({{ card.reviews.toLocaleString() }})</span>
-              </div>
-              <div class="flex flex-wrap gap-1 mt-2">
-                <span
-                  v-for="tag in card.tags"
-                  :key="tag"
-                  class="text-[10px] text-gray-500 border border-gray-200 rounded-full px-2 py-0.5"
-                >
-                  {{ tag }}
-                </span>
-              </div>
-            </div>
-          </div>
+            :card="card"
+          />
         </div>
       </section>
 
@@ -174,18 +90,26 @@
 </template>
 
 <script setup lang="ts">
-import { ref } from 'vue'
-const userLocation = ref('København')
+import { computed, ref, watch } from 'vue'
+import AttractionCard from '@/components/AttractionCard.vue'
+import { getNearbyLocationContent } from '@/api/attractions.api'
+import { useGeolocationStore } from '@/stores/geolocation'
+
+const geolocationStore = useGeolocationStore()
+const userLocation = ref('din lokation')
+const nearbyLoading = ref(false)
+const nearbyError = ref<string | null>(null)
 
 // Placeholder card data
 interface Card {
-  id: number
+  id: number | string
   name: string
   description: string
   image: string
   rating: number
   reviews: number
   tags: string[]
+  metaText?: string
 }
 
 const placeholderImage = 'https://images.unsplash.com/photo-1558618666-fcd25c85cd64?w=400&h=300&fit=crop'
@@ -209,12 +133,59 @@ const cityCards = ref<Card[]>([
   createCard(4, 'Aalborg', 'Nyd fjordstemning, spændende arkitektur og et levende natteliv.', ['Natteliv', 'Fjord', 'Oplevelser']),
 ])
 
-const nearbyCards = ref<Card[]>([
-  createCard(31, 'Nyhavn', 'Farverige huse, hyggelige restauranter og klassisk københavnerstemning.', ['Lokalt', 'Havn', 'Mad']),
-  createCard(32, 'Tivoli i centrum', 'En ikonisk forlystelseshave med lys, musik og oplevelser for alle.', ['Forlystelser', 'Byliv', 'Aften']),
-  createCard(33, 'Torvehallerne', 'Smag på lokale specialiteter og street food fra hele verden.', ['Street food', 'Marked', 'Smag']),
-  createCard(34, 'Christianshavn', 'Tag en rolig gåtur langs kanalerne og oplev områdets særlige charme.', ['Kanaler', 'Gåtur', 'Hygge']),
-])
+const nearbyCards = ref<Card[]>([])
+
+async function loadNearbyContent() {
+  if (!geolocationStore.coords) {
+    nearbyCards.value = []
+    userLocation.value = 'din lokation'
+    return
+  }
+
+  nearbyLoading.value = true
+  nearbyError.value = null
+
+  try {
+    const nearbyContent = await getNearbyLocationContent(geolocationStore.coords, 4)
+
+    userLocation.value = nearbyContent.locationName
+    nearbyCards.value = nearbyContent.attractions
+  } catch (error) {
+    console.error('Fejl ved hentning af nærliggende seværdigheder:', error)
+    nearbyError.value = 'Vi kunne ikke hente seværdigheder tæt på din lokation.'
+    nearbyCards.value = []
+  } finally {
+    nearbyLoading.value = false
+  }
+}
+
+watch(
+  () => geolocationStore.coords,
+  (coords) => {
+    if (!coords) {
+      if (!geolocationStore.loading) {
+        geolocationStore.getLocation()
+      }
+
+      return
+    }
+
+    void loadNearbyContent()
+  },
+  { immediate: true },
+)
+
+watch(
+  () => geolocationStore.error,
+  (error) => {
+    if (error) {
+      nearbyError.value = 'Vi kunne ikke få adgang til din lokation.'
+      userLocation.value = 'din lokation'
+    }
+  },
+)
+
+const showNearbyCards = computed(() => !nearbyLoading.value && !nearbyError.value && nearbyCards.value.length > 0)
 
 const natureCards = ref<Card[]>([
   createCard(11, 'Møns Klint', 'Hvide klinter og turkisblåt vand danner en af Danmarks flotteste udsigter.', ['Natur', 'Vandretur', 'Udsigt']),
