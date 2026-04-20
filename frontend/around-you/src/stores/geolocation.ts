@@ -12,6 +12,8 @@ export const useGeolocationStore = defineStore('geolocation', () => {
   const loading = ref(false)
 
   const getLocation = () => {
+    console.log('📡 getLocation called')
+
     if (!navigator.geolocation) {
       error.value = 'Geolocation not supported'
       return
@@ -21,13 +23,17 @@ export const useGeolocationStore = defineStore('geolocation', () => {
 
     navigator.geolocation.getCurrentPosition(
       (position) => {
+        console.log('✅ Position received:', position.coords)
+
         coords.value = {
           latitude: position.coords.latitude,
           longitude: position.coords.longitude
         }
+
         loading.value = false
       },
       (err) => {
+        console.error('❌ Geolocation error:', err)
         error.value = err.message
         loading.value = false
       }
