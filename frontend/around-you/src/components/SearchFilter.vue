@@ -68,19 +68,49 @@
 
                 <div class="hidden h-6 w-px bg-slate-300/70 sm:block" />
 
-                <div class="flex min-w-[140px] flex-1 items-center">
+                <div class="relative flex min-w-[140px] flex-1 items-center">
                     <div class="flex flex-col">
                         <!-- <span v-if="isDateOpen"
                             class="mb-1 text-[11px] font-semibold uppercase tracking-wide text-slate-500">
                             Dato
                         </span> -->
-                        <label
-                            class="flex items-center gap-2 rounded-fullwhite px-3 py-1.5 text-sm font-semibold text-slate-700 transition hover:bg-slate-100/70">
+                        <button type="button"
+                            class="flex w-full items-center justify-between gap-2 rounded-full bg-transparent px-3 py-1.5 text-sm font-semibold text-slate-700 transition hover:bg-slate-100/70"
+                            @click="toggleDate">
                             <span class="min-w-[40px]">Dato</span>
-                            <input v-model="draft.date" type="date"
-                                class="w-full bg-transparent text-sm text-slate-600 outline-none" @focus="openDate"
-                                @blur="isDateOpen = false" />
-                        </label>
+                            <span class="text-sm text-slate-600">
+                                {{ displayDate || "Vælg" }}
+                            </span>
+                        </button>
+                    </div>
+
+                    <div v-if="isDateOpen"
+                        class="absolute left-1/2 top-full z-20 mt-2.5 w-[230px] -translate-x-1/2 rounded-[28px] bg-[#B8C7D4] p-2 shadow-lg">
+                        <div class="flex items-center justify-between rounded-[24px] bg-[#C1D2DE] px-3 py-2">
+                            <button type="button"
+                                class="flex h-7 w-7 items-center justify-center rounded-full text-slate-700 hover:bg-white/60"
+                                @click="goToPreviousMonth">
+                                <span aria-hidden="true">‹</span>
+                            </button>
+                            <span class="text-sm font-semibold text-slate-700">{{ monthLabel }}</span>
+                            <button type="button"
+                                class="flex h-7 w-7 items-center justify-center rounded-full text-slate-700 hover:bg-white/60"
+                                @click="goToNextMonth">
+                                <span aria-hidden="true">›</span>
+                            </button>
+                        </div>
+                        <div class="mt-3 rounded-[22px] bg-white px-3 pb-3 pt-2">
+                            <div class="grid grid-cols-7 gap-1 text-center text-[11px] font-semibold text-[#1E5A88]">
+                                <span v-for="day in weekdayLabels" :key="day">{{ day }}</span>
+                            </div>
+                            <div class="mt-2 grid grid-cols-7 gap-1 text-center text-sm text-[#1E5A88]">
+                                <button v-for="(day, index) in calendarDays" :key="index" type="button"
+                                    class="h-7 w-7 rounded-full text-sm font-semibold" :class="dayButtonClass(day)"
+                                    :disabled="!day" @click="selectDate(day)">
+                                    {{ day || "" }}
+                                </button>
+                            </div>
+                        </div>
                     </div>
                 </div>
 
@@ -172,6 +202,9 @@ const isTypeOpen = ref(false)
 const isDateOpen = ref(false)
 const isCategoriesOpen = ref(false)
 const categoryQuery = ref("")
+const today = new Date()
+const currentMonth = ref(today.getMonth())
+const currentYear = ref(today.getFullYear())
 
 const draft = reactive<SearchFilters>({
     location: props.modelValue.location,
@@ -246,6 +279,12 @@ const toggleType = () => {
     isTypeOpen.value = next
 }
 
+const toggleDate = () => {
+    const next = !isDateOpen.value
+    closeAll()
+    isDateOpen.value = next
+}
+
 const toggleCategories = () => {
     const next = !isCategoriesOpen.value
     closeAll()
@@ -310,5 +349,96 @@ const typeDotClass = (value: SearchFilters["type"]) => {
         "h-3 w-3 rounded-sm border border-slate-400",
         isActive ? "bg-slate-700" : "bg-white",
     ].join(" ")
+}
+
+const monthLabel = computed(() => {
+    const date = new Date(currentYear.value, currentMonth.value, 1)
+    return date.toLocaleDateString("da-DK", {
+        month: "long",
+        year: "numeric",
+    })
+})
+
+const weekdayLabels = ["M", "T", "O", "T", "F", "L", "S"]
+
+const calendarDays = computed(() => {
+    const year = currentYear.value
+    const month = currentMonth.value
+    const firstDay = new Date(year, month, 1).getDay()
+    const offset = (firstDay + 6) % 7
+    const daysInMonth = new Date(year, month + 1, 0).getDate()
+    const cells = Array.from({ length: 42 }, (_, index) => {
+        const dayNumber = index - offset + 1
+        return dayNumber > 0 && dayNumber <= daysInMonth ? dayNumber : null
+    })
+    return cells
+})
+
+const displayDate = computed(() => {
+    if (!draft.date) {
+        return ""
+    }
+    const date = new Date(draft.date)
+    if (Number.isNaN(date.getTime())) {
+        return draft.date
+    }
+    return date.toLocaleDateString("da-DK", {
+        day: "2-digit",
+        month: "short",
+        year: "numeric",
+    })
+})
+
+const dayButtonClass = (day: number | null) => {
+    if (!day) {
+        return "text-transparent"
+    }
+    const isSelected = isSelectedDay(day)
+    return [
+        "text-[#1E5A88] hover:bg-[#C1D2DE]",
+        isSelected ? "bg-[#C1D2DE]" : "bg-transparent",
+    ].join(" ")
+}
+
+const isSelectedDay = (day: number) => {
+    if (!draft.date) {
+        return false
+    }
+    const selected = new Date(draft.date)
+    return (
+        selected.getFullYear() === currentYear.value &&
+        selected.getMonth() === currentMonth.value &&
+        selected.getDate() === day
+    )
+}
+
+const selectDate = (day: number | null) => {
+    if (!day) {
+        return
+    }
+    const selected = new Date(currentYear.value, currentMonth.value, day)
+    const year = selected.getFullYear()
+    const month = String(selected.getMonth() + 1).padStart(2, "0")
+    const date = String(selected.getDate()).padStart(2, "0")
+    draft.date = `${year}-${month}-${date}`
+    isDateOpen.value = false
+}
+
+const goToPreviousMonth = () => {
+    if (currentMonth.value === 0) {
+        currentMonth.value = 11
+        currentYear.value -= 1
+        return
+    }
+    currentMonth.value -= 1
+}
+
+const goToNextMonth = () => {
+    if (currentMonth.value === 11) {
+        currentMonth.value = 0
+        currentYear.value += 1
+        return
+    }
+    currentMonth.value += 1
 }
 </script>
