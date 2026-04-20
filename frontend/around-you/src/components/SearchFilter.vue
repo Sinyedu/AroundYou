@@ -4,22 +4,19 @@
             <div class="flex flex-wrap items-center gap-3">
                 <div class="relative flex min-w-[180px] flex-1 items-center">
                     <div class="flex flex-col">
-                        <!-- <span v-if="isLocationOpen"
-                            class="mb-1 text-[11px] font-semibold uppercase pl-4 tracking-wide text-slate-500">
-                            Lokation
-                        </span> -->
+
                         <div
                             class="flex w-full items-center justify-between rounded-full bg-transparent px-3 py-1.5 text-sm font-semibold text-slate-700 transition hover:bg-slate-100/70">
                             <input v-model="draft.location" type="text" placeholder="Lokation"
-                                class="w-full bg-transparent text-sm font-semibold text-slate-700 outline-none placeholder:text-slate-400"
+                                class="w-full bg-transparent text-sm font-semibold text-slate-700 outline-none placeholder:text-slate-700"
                                 @focus="openLocation" @input="openLocation" />
-                            
+
                         </div>
                     </div>
 
                     <div v-if="isLocationOpen"
                         class="absolute left-0 top-full z-20 mt-2.5 w-56 rounded-2xl border-[5px] border-[#C1D2DE] bg-white p-2 shadow-lg">
-                        <div class="max-h-40 space-y-1 overflow-y-auto pr-1">
+                        <div class="filter-scroll max-h-40 space-y-1 overflow-y-auto pr-1">
                             <button v-for="location in filteredLocationOptions" :key="location" type="button"
                                 class="flex w-full items-center justify-between rounded-lg px-3 py-2 text-sm text-slate-600 hover:bg-slate-100"
                                 @click="selectLocation(location)">
@@ -33,10 +30,6 @@
 
                 <div class="relative flex min-w-[200px] flex-1 items-center">
                     <div class="flex flex-col">
-                        <!-- <span v-if="isTypeOpen"
-                            class="mb-1 text-[11px] font-semibold uppercase tracking-wide text-slate-500">
-                            Event / Attraktion
-                        </span> -->
                         <button type="button"
                             class="flex items-center gap-3 rounded-full bg-transparent px-3 py-1.5 text-sm font-semibold text-slate-700 transition hover:bg-slate-100/70"
                             @click="toggleType">
@@ -70,10 +63,6 @@
 
                 <div class="relative flex min-w-[140px] flex-1 items-center">
                     <div class="flex flex-col">
-                        <!-- <span v-if="isDateOpen"
-                            class="mb-1 text-[11px] font-semibold uppercase tracking-wide text-slate-500">
-                            Dato
-                        </span> -->
                         <button type="button"
                             class="flex w-full items-center justify-between gap-2 rounded-full bg-transparent px-3 py-1.5 text-sm font-semibold text-slate-700 transition hover:bg-slate-100/70"
                             @click="toggleDate">
@@ -86,15 +75,15 @@
 
                     <div v-if="isDateOpen"
                         class="absolute left-1/2 top-full z-20 mt-2.5 w-[230px] -translate-x-1/2 rounded-[28px] bg-[#B8C7D4] p-2 shadow-lg">
-                        <div class="flex items-center justify-between rounded-[24px] bg-[#C1D2DE] px-3 py-2">
+                        <div class="flex items-center justify-between rounded-[24px] bg-white px-3 py-2">
                             <button type="button"
-                                class="flex h-7 w-7 items-center justify-center rounded-full text-slate-700 hover:bg-white/60"
+                                class="flex h-7 w-7 items-center justify-center rounded-full text-slate-700 hover:bg-[#B8C7D4]/60"
                                 @click="goToPreviousMonth">
                                 <span aria-hidden="true">‹</span>
                             </button>
                             <span class="text-sm font-semibold text-slate-700">{{ monthLabel }}</span>
                             <button type="button"
-                                class="flex h-7 w-7 items-center justify-center rounded-full text-slate-700 hover:bg-white/60"
+                                class="flex h-7 w-7 items-center justify-center rounded-full text-slate-700 hover:bg-[#B8C7D4]/60"
                                 @click="goToNextMonth">
                                 <span aria-hidden="true">›</span>
                             </button>
@@ -118,14 +107,10 @@
 
                 <div class="relative flex min-w-[200px] flex-1 items-center">
                     <div class="flex flex-col">
-                        <!-- <span v-if="isCategoriesOpen"
-                            class="mb-1 text-[11px] font-semibold uppercase tracking-wide text-slate-500">
-                            Kategorier
-                        </span> -->
                         <div
                             class="flex w-full items-center justify-between rounded-full bg-transparent px-3 py-1.5 text-sm font-semibold text-slate-700 transition hover:bg-slate-100/70">
                             <input v-model="categoryQuery" type="text" placeholder="Kategorier"
-                                class="w-full bg-transparent text-sm font-semibold text-slate-700 outline-none placeholder:text-slate-400"
+                                class="w-full bg-transparent text-sm font-semibold text-slate-700 outline-none placeholder:text-slate-700"
                                 @focus="openCategories" @input="openCategories"
                                 @keydown.enter.prevent="addCategoryFromQuery" />
 
@@ -134,12 +119,12 @@
 
                     <div v-if="isCategoriesOpen"
                         class="absolute right-0 top-full z-20 mt-2.5 w-56 rounded-2xl border-[5px] border-[#C1D2DE] bg-white p-2 shadow-lg">
-                        <div class="max-h-40 space-y-1 overflow-y-auto pr-1">
+                        <div class="filter-scroll max-h-40 space-y-1 overflow-y-auto pr-1">
                             <button v-for="category in filteredCategoryOptions" :key="category" type="button"
                                 class="flex w-full items-center justify-between rounded-lg px-3 py-2 text-sm text-slate-600 hover:bg-slate-100"
                                 @click="toggleCategory(category)">
                                 <span>{{ category }}</span>
-                                
+
                             </button>
                         </div>
                         <div v-if="draft.categories.length" class="mt-3 -mb-2 -mx-2 rounded-b-1xl bg-[#C1D2DE] p-3">
@@ -154,13 +139,6 @@
                         </div>
                     </div>
                 </div>
-
-                <!-- <div class="ml-auto flex items-center gap-2">
-                    <button type="button"
-                        class="rounded-full bg-slate-900 px-4 py-2 text-xs font-semibold uppercase tracking-wide text-white shadow">
-                        Sog
-                    </button>
-                </div> -->
             </div>
         </div>
     </section>
@@ -466,3 +444,31 @@ const goToNextMonth = () => {
     currentMonth.value += 1
 }
 </script>
+
+<style scoped>
+.filter-scroll {
+    scrollbar-color: #074b7b transparent;
+    scrollbar-width: thin;
+}
+
+.filter-scroll::-webkit-scrollbar {
+    width: 10px;
+}
+
+.filter-scroll::-webkit-scrollbar-track {
+    background: transparent;
+}
+
+.filter-scroll::-webkit-scrollbar-thumb {
+    background-color: #074b7b;
+    border-radius: 999px;
+    border: 2px solid transparent;
+    background-clip: content-box;
+}
+
+.filter-scroll::-webkit-scrollbar-button {
+    background-color: #074b7b;
+    border-radius: 999px;
+    height: 12px;
+}
+</style>
