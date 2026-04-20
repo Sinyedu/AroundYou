@@ -1,0 +1,64 @@
+<template>
+  <div>
+    <button @click="geo.getLocation()" class="mb-3 bg-indigo-600 text-white px-4 py-2 rounded">
+      Enable Location
+    </button>
+
+    <div ref="mapEl" class="h-[500px] w-full rounded"></div>
+  </div>
+</template>
+
+<script setup lang="ts">
+import { onMounted, watch, ref, nextTick } from 'vue'
+import L from 'leaflet'
+import { useGeolocationStore } from '@/stores/geolocation'
+
+const geo = useGeolocationStore()
+
+const mapEl = ref<HTMLElement | null>(null)
+let map: L.Map | null = null
+let marker: L.Marker | null = null
+
+onMounted(async () => {
+  await nextTick()
+
+  if (!mapEl.value) return
+
+  map = L.map(mapEl.value).setView([56.1629, 10.2039], 13)
+
+  L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+    attribution: '&copy; OpenStreetMap contributors',
+  }).addTo(map)
+})
+
+watch(
+  () => geo.coords,
+  (coords) => {
+    console.log('📍 Geo coords from Pinia:', coords)
+
+    if (!coords || !map) return
+
+    const { latitude, longitude } = coords
+
+    map.setView([latitude, longitude], 13)
+
+    if (marker) {
+      marker.setLatLng([latitude, longitude])
+    } else {
+      marker = L.marker([latitude, longitude])
+        .addTo(map)
+        .bindPopup(
+          `You are here 📍<br/>Lat: ${latitude}<br/>Lng: ${longitude}`
+        )
+        .openPopup()
+    }
+  },
+  { immediate: true }
+)
+</script>
+
+<style scoped>
+div {
+  min-height: 500px;
+}
+</style>
