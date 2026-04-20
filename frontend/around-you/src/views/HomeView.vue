@@ -74,7 +74,19 @@
         <h2 class="text-3xl font-extrabold text-[#094b7b] text-center mb-2">Oplev naturens perler</h2>
         <p class="text-sm text-gray-500 text-center max-w-3xl mx-auto mb-8">Gå på opdagelse i Danmarks smukkeste landskaber, hvor naturen byder på ro, vidde og unikke oplevelser. Oplev alt fra imponerende udsigtspunkter og kyststrækninger til skove, søer og skjulte perler rundt i landet.</p>
 
-        <div class="grid grid-cols-4 gap-4">
+        <p v-if="natureLoading" class="text-sm text-gray-500 text-center mb-8">
+          Henter naturoplevelser...
+        </p>
+
+        <p v-else-if="natureError" class="text-sm text-red-600 text-center mb-8">
+          {{ natureError }}
+        </p>
+
+        <p v-else-if="!natureCards.length" class="text-sm text-gray-500 text-center mb-8">
+          Der blev ikke fundet naturoplevelser i databasen.
+        </p>
+
+        <div v-if="showNatureCards" class="grid grid-cols-4 gap-4">
           <AttractionCard
             v-for="card in natureCards"
             :key="card.id"
@@ -88,7 +100,19 @@
         <h2 class="text-3xl font-extrabold text-[#094b7b] text-center mb-2">Eventyr for hele familien</h2>
         <p class="text-sm text-gray-500 text-center max-w-3xl mx-auto mb-8">Gå på opdagelse i sjove og mindeværdige oplevelser for både børn og voksne i hele Danmark. Oplev alt fra legende aktiviteter og spændende attraktioner til lærerige oplevelser og hyggelige stunder, hvor hele familien kan være med.</p>
 
-        <div class="grid grid-cols-4 gap-4">
+        <p v-if="familyLoading" class="text-sm text-gray-500 text-center mb-8">
+          Henter familieoplevelser...
+        </p>
+
+        <p v-else-if="familyError" class="text-sm text-red-600 text-center mb-8">
+          {{ familyError }}
+        </p>
+
+        <p v-else-if="!familyCards.length" class="text-sm text-gray-500 text-center mb-8">
+          Der blev ikke fundet familieoplevelser i databasen.
+        </p>
+
+        <div v-if="showFamilyCards" class="grid grid-cols-4 gap-4">
           <AttractionCard
             v-for="card in familyCards"
             :key="card.id"
@@ -106,7 +130,9 @@ import { computed, onMounted, ref, watch } from 'vue'
 import AttractionCard from '@/components/AttractionCard.vue'
 import {
   DEFAULT_NEARBY_LOCATION_DESCRIPTION,
+  getFamilyExperiences,
   getLargestCities,
+  getNatureExperiences,
   getNearbyLocationContent,
 } from '@/api/attractions.api'
 import { useGeolocationStore } from '@/stores/geolocation'
@@ -118,6 +144,10 @@ const nearbyLoading = ref(false)
 const nearbyError = ref<string | null>(null)
 const citiesLoading = ref(false)
 const citiesError = ref<string | null>(null)
+const natureLoading = ref(false)
+const natureError = ref<string | null>(null)
+const familyLoading = ref(false)
+const familyError = ref<string | null>(null)
 
 // Placeholder card data
 interface Card {
@@ -159,6 +189,36 @@ async function loadLargestCities() {
     cityCards.value = []
   } finally {
     citiesLoading.value = false
+  }
+}
+
+async function loadNatureExperiences() {
+  natureLoading.value = true
+  natureError.value = null
+
+  try {
+    natureCards.value = await getNatureExperiences(4)
+  } catch (error) {
+    console.error('Fejl ved hentning af naturoplevelser:', error)
+    natureError.value = 'Vi kunne ikke hente naturoplevelser fra databasen.'
+    natureCards.value = []
+  } finally {
+    natureLoading.value = false
+  }
+}
+
+async function loadFamilyExperiences() {
+  familyLoading.value = true
+  familyError.value = null
+
+  try {
+    familyCards.value = await getFamilyExperiences(4)
+  } catch (error) {
+    console.error('Fejl ved hentning af familieoplevelser:', error)
+    familyError.value = 'Vi kunne ikke hente familieoplevelser fra databasen.'
+    familyCards.value = []
+  } finally {
+    familyLoading.value = false
   }
 }
 
@@ -220,22 +280,16 @@ watch(
 
 const showNearbyCards = computed(() => !nearbyLoading.value && !nearbyError.value && nearbyCards.value.length > 0)
 const showCityCards = computed(() => !citiesLoading.value && !citiesError.value && cityCards.value.length > 0)
+const showNatureCards = computed(() => !natureLoading.value && !natureError.value && natureCards.value.length > 0)
+const showFamilyCards = computed(() => !familyLoading.value && !familyError.value && familyCards.value.length > 0)
 
 onMounted(() => {
   void loadLargestCities()
+  void loadNatureExperiences()
+  void loadFamilyExperiences()
 })
 
-const natureCards = ref<Card[]>([
-  createCard(11, 'Møns Klint', 'Hvide klinter og turkisblåt vand danner en af Danmarks flotteste udsigter.', ['Natur', 'Vandretur', 'Udsigt']),
-  createCard(12, 'Nationalpark Thy', 'Vild vestkystnatur med klitter, hede og brede sandstrande.', ['Vild natur', 'Strand', 'Ro']),
-  createCard(13, 'Rold Skov', 'Store skovområder med stier til både vandring, cykling og familiehygge.', ['Skov', 'Cykling', 'Familie']),
-  createCard(14, 'Bornholms klipper', 'Rå klippekyster, små fiskerlejer og fantastisk udsigt over havet.', ['Ø', 'Klipper', 'Havudsigt']),
-])
+const natureCards = ref<Card[]>([])
 
-const familyCards = ref<Card[]>([
-  createCard(21, 'Tivoli', 'Forlystelser, musik og magisk stemning midt i København.', ['Forlystelser', 'Byliv', 'Aften']),
-  createCard(22, 'LEGOLAND', 'En hel dag med sjove temaområder, byggeleg og action for børn.', ['Børn', 'Aktiviteter', 'Heldagstur']),
-  createCard(23, 'Den Blå Planet', 'Mød hajer, rokker og tropiske fisk i Nordeuropas største akvarium.', ['Akvarium', 'Læring', 'Indendørs']),
-  createCard(24, 'Djurs Sommerland', 'Vandland og rutsjebaner giver fart, grin og familieeventyr.', ['Familie', 'Rutsjebaner', 'Sjov']),
-])
+const familyCards = ref<Card[]>([])
 </script>

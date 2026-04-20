@@ -20,6 +20,15 @@ type AttractionApiItem = {
   slugArray: string[]
 }
 
+type EventApiItem = {
+  _id: string
+  name: string
+  description: string
+  heroImage: string
+  rating: number
+  slugArray: string[]
+}
+
 type CityApiItem = {
   _id: string
   name: string
@@ -59,6 +68,29 @@ export type LargestCityCard = {
   tags: string[]
   metaText?: string
 }
+
+export type NatureExperienceCard = {
+  id: string
+  name: string
+  description: string
+  image: string
+  rating: number
+  reviews: number
+  tags: string[]
+  metaText?: string
+}
+
+type NatureExperienceSource = {
+  _id: string
+  name: string
+  description: string
+  heroImage: string
+  rating: number
+  slugArray: string[]
+  type: 'Seværdighed' | 'Event'
+}
+
+export type FamilyExperienceCard = NatureExperienceCard
 
 function toSignedCoordinate(value: number, direction?: AxisDirection): number {
   if (!direction) {
@@ -301,4 +333,39 @@ export async function getLargestCities(limit = 4): Promise<LargestCityCard[]> {
       tags: [city.region, city.commune, 'Storby'].filter(Boolean).slice(0, 3),
       metaText: `${city.population.toLocaleString('da-DK')} indbyggere`,
     }))
+}
+
+async function getExperiencesBySlug(slug: string, limit = 4): Promise<NatureExperienceCard[]> {
+  const [attractions, events] = await Promise.all([
+    fetchJson<AttractionApiItem[]>('/attractions'),
+    fetchJson<EventApiItem[]>('/events'),
+  ])
+
+  const entries: NatureExperienceSource[] = [
+    ...attractions.map((attraction) => ({ ...attraction, type: 'Seværdighed' as const })),
+    ...events.map((event) => ({ ...event, type: 'Event' as const })),
+  ]
+
+  return entries
+    .filter((entry) => entry.slugArray.some((entrySlug) => entrySlug.toLowerCase() === slug.toLowerCase()))
+    .sort((first, second) => second.rating - first.rating)
+    .slice(0, limit)
+    .map((entry) => ({
+      id: entry._id,
+      name: entry.name,
+      description: entry.description,
+      image: entry.heroImage,
+      rating: entry.rating,
+      reviews: 0,
+      tags: entry.slugArray,
+      metaText: entry.type,
+    }))
+}
+
+export async function getNatureExperiences(limit = 4): Promise<NatureExperienceCard[]> {
+  return getExperiencesBySlug('natur', limit)
+}
+
+export async function getFamilyExperiences(limit = 4): Promise<FamilyExperienceCard[]> {
+  return getExperiencesBySlug('familie', limit)
 }
