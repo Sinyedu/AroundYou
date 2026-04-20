@@ -1,28 +1,39 @@
 import { Request, Response, NextFunction } from "express";
 import jwt from "jsonwebtoken";
 
-/**
- * Middleware to verify the JWT token and protect routes
- * @param req
- * @param res
- * @param next
- */
+interface JwtPayload {
+  userID: string;
+}
 
-export async function verifyToken(
+export function verifyToken(
   req: Request,
   res: Response,
-  next: NextFunction,
-): Promise<void> {
-  const token = req.header("auth-token");
-  if (!token) {
-    res.status(400).json({ error: "Access denied. No token provided." });
+  next: NextFunction
+): void {
+  const authHeader = req.header("Authorization");
+
+  if (!authHeader) {
+    res.status(401).json({ error: "No token provided" });
     return;
   }
 
+  const token = authHeader.replace("Bearer ", "");
+
   try {
-    if (token) jwt.verify(token, process.env.TOKEN_SECRET as string);
+    const decoded = jwt.verify(
+      token,
+      process.env.TOKEN_SECRET as string
+    ) as JwtPayload;
+
+    console.log("DECODED:", decoded);
+
+    (req as Request & { userID?: string }).userID = decoded.userID;
+
+    console.log("ATTACHED USERID:", (req as any).userID);
+
     next();
-  } catch (error) {
-    res.status(401).send({ error: "Invalid token." });
+  } catch (err) {
+    console.log("JWT ERROR:", err);
+    res.status(401).json({ error: "Invalid token" });
   }
 }
