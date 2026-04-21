@@ -1,123 +1,121 @@
-import { type Request, type Response, type NextFunction } from "express";
-
+import { Request, Response } from "express";
 import jwt from "jsonwebtoken";
-
 import bcrypt from "bcrypt";
 import Joi, { ValidationResult } from "joi";
 
-//User imports
 import { UserModel } from "../models/userModel";
 import { User } from "../interfaces/user";
-import {
-  connectionToDatabase,
-  disconnectFromDatabase,
-} from "../repository/database";
 
 /**
- * Registers a new user in the database
- * @param req
- * @param res
+ * REGISTER USER
  */
 export async function registerUser(req: Request, res: Response): Promise<void> {
   try {
     const { error } = validateUserRegistration(req.body);
+
     if (error) {
       res.status(400).json({ error: error.details[0].message });
       return;
     }
 
-    await connectionToDatabase();
-
     const emailExists = await UserModel.findOne({ email: req.body.email });
     if (emailExists) {
-      res.status(400).json({ error: "Email already exists." });
+      res.status(409).json({ error: "Email already exists" });
+      return;
+    }
+
+    const userNameExists = await UserModel.findOne({
+      userName: req.body.userName,
+    });
+
+    if (userNameExists) {
+      res.status(409).json({ error: "Username already exists" });
       return;
     }
 
     const salt = await bcrypt.genSalt(10);
     const hashedPassword = await bcrypt.hash(req.body.password, salt);
 
-    const userObject = new UserModel({
-      name: req.body.name,
+    const user = new UserModel({
+      firstName: req.body.firstName,
+      lastName: req.body.lastName,
+      userName: req.body.userName,
       email: req.body.email,
       password: hashedPassword,
     });
 
-    const savedUser = await userObject.save();
-    res.status(200).json({ error: null, data: savedUser._id });
-  } catch (error) {
-    res
-      .status(500)
-      .send("An error occurred while registering the user. Error:" + error);
-  } finally {
-    await disconnectFromDatabase();
+    const savedUser = await user.save();
+
+    res.status(201).json({
+      error: null,
+      data: {
+        userId: savedUser._id,
+      },
+    });
+  } catch (err) {
+    console.error("Register error:", err);
+    res.status(500).json({ error: "Internal server error" });
   }
 }
 
 /**
- * Login an existing user
- * @param req
- * @param res
- * @returns
+ * LOGIN USER
  */
-
 export async function loginUser(req: Request, res: Response): Promise<void> {
   try {
-    const { error } = validateUserLoginInfo(req.body);
+    const { error } = validateUserLogin(req.body);
+
     if (error) {
       res.status(400).json({ error: error.details[0].message });
       return;
     }
-    await connectionToDatabase();
-    const user: User | null = await UserModel.findOne({
-      email: req.body.email,
+
+    const { identifier, password } = req.body;
+
+    const user = await UserModel.findOne({
+      $or: [{ email: identifier }, { userName: identifier }],
     });
 
     if (!user) {
-      res.status(400).json({ error: "Email or password is wrong." });
+      res.status(401).json({ error: "Invalid credentials" });
       return;
-    } else {
-      const validPassword: boolean = await bcrypt.compare(
-        req.body.password,
-        user.password,
-      );
-
-      if (!validPassword) {
-        res.status(400).json({ error: "Email or password is wrong." });
-        return;
-      }
-
-      const userId: string = user.userID;
-      const token: string = jwt.sign(
-        {
-          firstName: user.firstName,
-          lastName: user.lastName,
-          userName: user.userName,
-          email: user.email,
-          id: userId,
-        },
-
-        process.env.TOKEN_SECRET as string,
-        { expiresIn: "1h" },
-      );
-
-      res
-        .status(200)
-        .header("auth-token", token)
-        .json({ error: null, data: { userId, token } });
     }
-  } catch (error) {
-    res
-      .status(500)
-      .send("An error occurred while logging in the user. Error:" + error);
-  } finally {
-    await disconnectFromDatabase();
+
+    const validPassword = await bcrypt.compare(password, user.password);
+
+    if (!validPassword) {
+      res.status(401).json({ error: "Invalid credentials" });
+      return;
+    }
+
+    const token = jwt.sign(
+      {
+        userID: user._id.toString(),
+        userName: user.userName,
+        email: user.email,
+        firstName: user.firstName,
+        lastName: user.lastName,
+      },
+      process.env.TOKEN_SECRET as string,
+      { expiresIn: "1h" },
+    );
+
+    res.status(200).json({
+      token,
+      user: {
+        id: user._id,
+        userName: user.userName,
+        email: user.email,
+      },
+    });
+  } catch (err) {
+    console.error("Login error:", err);
+    res.status(500).json({ error: "Internal server error" });
   }
 }
 
 /**
- * Validates the user registration data (name, email, password)
- * @param data
+ * VALIDATION - REGISTER
  */
 export function validateUserRegistration(data: User): ValidationResult {
   const schema = Joi.object({
@@ -132,14 +130,45 @@ export function validateUserRegistration(data: User): ValidationResult {
 }
 
 /**
- * Validates the user Login ( email, password)
- * @param data
+ * VALIDATION - LOGIN
  */
-export function validateUserLoginInfo(data: User): ValidationResult {
+export function validateUserLogin(
+  data: Record<string, unknown>,
+): ValidationResult {
   const schema = Joi.object({
-    email: Joi.string().email().min(5).max(255).required(),
+    identifier: Joi.string().required(),
     password: Joi.string().min(6).max(30).required(),
   });
 
   return schema.validate(data);
+}
+
+export async function getMe(req: Request, res: Response): Promise<void> {
+  try {
+    const userID = req.user?.userID;
+
+    if (!userID) {
+      res.status(401).json({ error: "Unauthorized" });
+      return;
+    }
+
+    const user = await UserModel.findById(userID).select("-password");
+
+    if (!user) {
+      res.status(404).json({ error: "User not found" });
+      return;
+    }
+
+    res.status(200).json({
+      id: user._id,
+      userName: user.userName,
+      email: user.email,
+      firstName: user.firstName,
+      lastName: user.lastName,
+      userAvatar: user.userAvatar,
+    });
+  } catch (err) {
+    console.error("GetMe error:", err);
+    res.status(500).json({ error: "Internal server error" });
+  }
 }

@@ -1,181 +1,144 @@
 import { Request, Response } from "express";
 import { EventModel } from "../models/eventModel";
-import { connectionToDatabase, disconnectFromDatabase } from "../repository/database";
 import { buildDynamicQuery } from "./dynamicQueryBuilder";
 
-
-
 /**
- * Add new EVENT to the database
- * @param req
- * @param res
+ * CREATE EVENT
  */
 export async function createEvent(req: Request, res: Response): Promise<void> {
-  const data = req.body;
-
   try {
-    await connectionToDatabase();
-
-    const event = new EventModel(data);
+    const event = new EventModel(req.body);
     const result = await event.save();
 
     res.status(201).json(result);
-  }
-  catch (err) {
+  } catch (err) {
     console.error("Error creating event:", err);
-
-    res.status(500).json("An error occurred while creating the event." + err);
-  }
-  finally {
-    await disconnectFromDatabase();
+    res.status(500).json({
+      message: "Error creating event",
+    });
   }
 }
 
 /**
- * Retrieve all EVENTS from the database
- * @param req
- * @param res
+ * GET ALL EVENTS
  */
-export async function getAllEvents(req: Request, res: Response) {
+export async function getAllEvents(req: Request, res: Response): Promise<void> {
   try {
-    await connectionToDatabase();
-
     const result = await EventModel.find({});
-
     res.status(200).json(result);
-  }
-  catch (err) {
-    res.status(500).json("error retrieving the events." + err);
-  }
-  finally {
-    await disconnectFromDatabase();
+  } catch (err) {
+    console.error("Error fetching events:", err);
+    res.status(500).json({
+      message: "Error retrieving events",
+    });
   }
 }
 
 /**
- * Retrieve an EVENT by ID from the database
- * @param req
- * @param res 
+ * GET EVENT BY ID
  */
-export async function getEventById(req: Request, res: Response) {
+export async function getEventById(req: Request, res: Response): Promise<void> {
   try {
-    await connectionToDatabase();
-
-    const eventId = req.params.id;
-    const result = await EventModel.findById(eventId);
-
-    res.status(200).json(result);
-  }
-  catch (err) {
-    res.status(500).json("error retrieving event by ID. Error: " + err);
-  }
-  finally {
-    await disconnectFromDatabase();
-  }
-}
-
-/**
- * Update an EVENT by ID from the database
- * @param req
- * @param res
- */
-export async function updateEventById(req: Request, res: Response) {
-
-  const eventId = req.params.id;
-
-  try {
-    await connectionToDatabase();
-
-    const result = await EventModel.findByIdAndUpdate(eventId, req.body);
+    const result = await EventModel.findById(req.params.id);
 
     if (!result) {
-      res.status(404).json("Cannot find event with id=: " + eventId);
-    } else {
-      res.status(200).json("Event was updated successfully.");
+      res.status(404).json({ message: "Event not found" });
+      return;
     }
-  }
-  catch (err) {
-    res.status(500).json("Error updating the event by id. Error: " + err);
-  }
-  finally {
-    await disconnectFromDatabase();
+
+    res.status(200).json(result);
+  } catch (err) {
+    console.error("Error fetching event:", err);
+    res.status(500).json({
+      message: "Error retrieving event",
+    });
   }
 }
 
 /**
- * Delete an EVENT by ID from the database
- * @param req
- * @param res
+ * UPDATE EVENT
  */
-export async function deleteEventById(req: Request, res: Response) {
-  const eventId = req.params.id;
-
+export async function updateEventById(req: Request, res: Response): Promise<void> {
   try {
-    await connectionToDatabase();
-
-    const result = await EventModel.findByIdAndDelete(eventId);
+    const result = await EventModel.findByIdAndUpdate(
+      req.params.id,
+      req.body,
+      { new: true }
+    );
 
     if (!result) {
-      res.status(404).json("Cannot find event with id=: " + eventId);
-    } else {
-      res.status(200).json("Event was deleted successfully.");
+      res.status(404).json({ message: "Event not found" });
+      return;
     }
-  }
-  catch (err) {
-    res.status(500).json("Error deleting the event by id. Error: " + err);
-  }
-  finally {
-    await disconnectFromDatabase();
+
+    res.status(200).json({
+      message: "Event updated successfully",
+      data: result,
+    });
+  } catch (err) {
+    console.error("Error updating event:", err);
+    res.status(500).json({
+      message: "Error updating event",
+    });
   }
 }
 
 /**
- * Retrieve an EVENT by query from the database
- * @param req
- * @param res
+ * DELETE EVENT
+ */
+export async function deleteEventById(req: Request, res: Response): Promise<void> {
+  try {
+    const result = await EventModel.findByIdAndDelete(req.params.id);
+
+    if (!result) {
+      res.status(404).json({ message: "Event not found" });
+      return;
+    }
+
+    res.status(200).json({ message: "Event deleted successfully" });
+  } catch (err) {
+    console.error("Error deleting event:", err);
+    res.status(500).json({
+      message: "Error deleting event",
+    });
+  }
+}
+
+/**
+ * QUERY EVENT (KEY / VALUE)
  */
 export async function getEventByQuery(req: Request, res: Response): Promise<void> {
-
   try {
-    await connectionToDatabase();
+    const key = req.params.key as string;
+    const value = req.params.value as string;
 
-    const key: any = req.params.key;
-    const value: any = req.params.value;
-
-    const result = await EventModel.find({ [key]: {$regex: value, $options: 'i'} });
+    const result = await EventModel.find({
+      [key]: { $regex: value, $options: "i" },
+    });
 
     res.status(200).json(result);
-    
-  } 
-  catch (err) {
-    res.status(500).json("error retrieving event by query. Error: " + err);
-  }
-  finally {
-     await disconnectFromDatabase();
+  } catch (err) {
+    console.error("Error querying events:", err);
+    res.status(500).json({
+      message: "Error retrieving events by query",
+    });
   }
 }
 
 /**
- * Retrieve an EVENT by query from the database with a dynamic query builder
- * @param req
- * @param res
+ * GENERIC QUERY
  */
 export async function getEventByGenericQuery(req: Request, res: Response): Promise<void> {
-  
   try {
-    await connectionToDatabase();
+    const query = buildDynamicQuery(EventModel, req.body);
 
-    const body = req.body;
-
-    const result = await EventModel.find(buildDynamicQuery(EventModel, body)); 
+    const result = await EventModel.find(query);
 
     res.status(200).json(result);
-
-  }
-  catch (err) {
-    res.status(500).json("error retrieving event by generic query. Error: " + err);
-  }
-  finally {
-    await disconnectFromDatabase();
+  } catch (err) {
+    console.error("Error generic event query:", err);
+    res.status(500).json({
+      message: "Error retrieving events",
+    });
   }
 }

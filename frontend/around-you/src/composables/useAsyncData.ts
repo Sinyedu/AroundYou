@@ -1,0 +1,59 @@
+import { ref } from 'vue'
+import type { Ref } from 'vue'
+
+type UseAsyncDataOptions<T> = {
+  defaultValue: T
+  getErrorMessage?: (error: unknown) => string
+}
+
+type UseAsyncDataResult<T> = {
+  data: Ref<T>
+  loading: Ref<boolean>
+  error: Ref<string | null>
+  execute: () => Promise<T>
+  setData: (value: T) => void
+  setError: (message: string | null) => void
+}
+
+export function useAsyncData<T>(
+  fetcher: () => Promise<T>,
+  options: UseAsyncDataOptions<T>,
+): UseAsyncDataResult<T> {
+  const data = ref(options.defaultValue) as Ref<T>
+  const loading = ref(false)
+  const error = ref<string | null>(null)
+
+  const setData = (value: T) => {
+    data.value = value
+  }
+
+  const setError = (message: string | null) => {
+    error.value = message
+  }
+
+  const execute = async (): Promise<T> => {
+    loading.value = true
+    error.value = null
+
+    try {
+      const result = await fetcher()
+      data.value = result
+      return result
+    } catch (caughtError) {
+      data.value = options.defaultValue
+      error.value = options.getErrorMessage?.(caughtError) ?? 'Der opstod en fejl.'
+      throw caughtError
+    } finally {
+      loading.value = false
+    }
+  }
+
+  return {
+    data,
+    loading,
+    error,
+    execute,
+    setData,
+    setError,
+  }
+}
