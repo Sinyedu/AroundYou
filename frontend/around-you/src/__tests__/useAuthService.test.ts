@@ -9,14 +9,14 @@ vi.mock('@/utils/auth', () => ({
 
 describe('useAuthService', () => {
   let auth: ReturnType<typeof useAuthService>
+  let store: Record<string, string>
 
   beforeEach(() => {
     vi.restoreAllMocks()
 
     auth = useAuthService()
 
-    // Mock localStorage
-    const store: Record<string, string> = {}
+    store = {}
 
     vi.stubGlobal('localStorage', {
       getItem: (key: string) => store[key] || null,
@@ -27,6 +27,8 @@ describe('useAuthService', () => {
         delete store[key]
       },
     })
+
+    vi.stubGlobal('fetch', vi.fn())
   })
 
   it('logs in successfully and stores token + user data', async () => {
@@ -123,12 +125,15 @@ describe('useAuthService', () => {
       vi.fn(() =>
         Promise.resolve({
           ok: true,
-          json: () => Promise.resolve({ user: {} }),
+          json: () =>
+            Promise.resolve({
+              user: {},
+            }),
         }),
       ) as any,
     )
 
-    await expect(auth.login('test', 'test')).rejects.toThrow()
+    await expect(auth.login('test', 'test')).rejects.toThrow('Invalid API response')
   })
 
   it('does not crash if logout is called twice', () => {
