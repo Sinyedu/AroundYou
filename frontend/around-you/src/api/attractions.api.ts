@@ -1,96 +1,21 @@
+import type {
+  AttractionApiItem,
+  CityApiItem,
+  EventApiItem,
+  FamilyExperienceCard,
+  LargestCityCard,
+  NatureExperienceCard,
+  NatureExperienceSource,
+  NearbyLocationContent,
+} from '@/types/attractions'
+import type { Coordinates } from '@/types/coordinates'
+
 const API_BASE_URL = 'http://localhost:4000/api'
 
 export const DEFAULT_NEARBY_LOCATION_DESCRIPTION =
   'Gå på opdagelse i spændende oplevelser tæt på din egen lokation, hvor natur, kultur, attraktioner og restauranter er lige inden for rækkevidde. Oplev alt fra populære seværdigheder og hyggelige udflugtsmål til lokale favoritter og skjulte perler lige i nærheden.'
 
-type Coordinates = {
-  latitude: number
-  longitude: number
-}
-
 type AxisDirection = 'N' | 'S' | 'E' | 'W'
-
-type AttractionApiItem = {
-  _id: string
-  name: string
-  description: string
-  heroImage: string
-  gpsPosition: string
-  rating: number
-  slugArray: string[]
-}
-
-type EventApiItem = {
-  _id: string
-  name: string
-  description: string
-  heroImage: string
-  rating: number
-  slugArray: string[]
-}
-
-type CityApiItem = {
-  _id: string
-  name: string
-  description: string
-  heroImage: string
-  commune: string
-  region: string
-  gpsPosition: string
-  population: number
-  rating: number
-}
-
-export type NearbyAttractionCard = {
-  id: string
-  name: string
-  description: string
-  image: string
-  rating: number
-  reviews: number
-  tags: string[]
-  metaText?: string
-}
-
-export type NearbyLocationContent = {
-  locationName: string
-  locationDescription: string
-  attractions: NearbyAttractionCard[]
-}
-
-export type LargestCityCard = {
-  id: string
-  name: string
-  description: string
-  image: string
-  rating: number
-  reviews: number
-  tags: string[]
-  metaText?: string
-}
-
-export type NatureExperienceCard = {
-  id: string
-  name: string
-  description: string
-  image: string
-  rating: number
-  reviews: number
-  tags: string[]
-  metaText?: string
-}
-
-type NatureExperienceSource = {
-  _id: string
-  name: string
-  description: string
-  heroImage: string
-  rating: number
-  slugArray: string[]
-  type: 'Seværdighed' | 'Event'
-}
-
-export type FamilyExperienceCard = NatureExperienceCard
 
 function toSignedCoordinate(value: number, direction?: AxisDirection): number {
   if (!direction) {
@@ -227,7 +152,7 @@ function parseGpsPosition(gpsPosition: string): Coordinates | null {
   )
 }
 
-function haversineDistanceInKm(from: Coordinates, to: Coordinates): number {
+function yourDistanceInKm(from: Coordinates, to: Coordinates): number {
   const earthRadiusKm = 6371
   const latitudeDelta = ((to.latitude - from.latitude) * Math.PI) / 180
   const longitudeDelta = ((to.longitude - from.longitude) * Math.PI) / 180
@@ -275,7 +200,7 @@ export async function getNearbyLocationContent(
 
       return {
         city,
-        distanceKm: haversineDistanceInKm(coords, cityCoords),
+        distanceKm: yourDistanceInKm(coords, cityCoords),
       }
     })
     .filter((entry): entry is { city: CityApiItem; distanceKm: number } => entry !== null)
@@ -291,7 +216,7 @@ export async function getNearbyLocationContent(
 
       return {
         attraction,
-        distanceKm: haversineDistanceInKm(coords, attractionCoords),
+        distanceKm: yourDistanceInKm(coords, attractionCoords),
       }
     })
     .filter(

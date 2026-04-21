@@ -13,8 +13,8 @@
       <div class="flex items-center gap-1 mt-1">
         <span class="text-xs font-bold text-gray-800">{{ card.rating }}</span>
         <div class="flex text-[#de5826]">
-          <span v-for="n in 5" :key="n" class="text-xs">
-            {{ n <= Math.floor(card.rating) ? '★' : n - card.rating < 1 ? '★' : '☆' }}
+          <span v-for="starIndex in 5" :key="starIndex" class="text-xs">
+            {{ starIndex <= Math.floor(card.rating) ? '★' : starIndex - card.rating < 1 ? '★' : '☆' }}
           </span>
         </div>
         <span v-if="card.metaText" class="text-xs text-gray-400">{{ card.metaText }}</span>
@@ -34,16 +34,9 @@
 </template>
 
 <script setup lang="ts">
+import type { ExperienceCard } from '@/types/attractions'
+
 defineProps<{
-  card: {
-    id: number | string
-    name: string
-    description: string
-    image: string
-    rating: number
-    reviews: number
-    tags: string[]
-    metaText?: string
-  }
+  card: ExperienceCard
 }>()
 </script>
