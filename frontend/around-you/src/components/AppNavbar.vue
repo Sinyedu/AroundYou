@@ -12,24 +12,24 @@
         AroundYou
       </RouterLink>
 
-      <div class="flex basis-full flex-wrap items-center justify-start gap-x-4 gap-y-3 md:ml-20 md:basis-auto md:flex-1 md:justify-end md:gap-x-8">
+      <div
+        class="flex basis-full flex-wrap items-center justify-start gap-x-4 gap-y-3 md:ml-20 md:basis-auto md:flex-1 md:justify-end md:gap-x-8"
+      >
         <RouterLink :to="{ name: 'home' }" :class="getNavLinkClass('home')">Hjem</RouterLink>
-        <RouterLink :to="{ name: 'mapview' }" :class="getNavLinkClass('mapview')">Udforsk</RouterLink>
+        <RouterLink :to="{ name: 'mapview' }" :class="getNavLinkClass('mapview')"
+          >Udforsk</RouterLink
+        >
         <RouterLink :to="{ name: 'create' }" :class="getNavLinkClass('create')">Tilføj</RouterLink>
-        <RouterLink :to="{ name: 'contact' }" :class="getNavLinkClass('contact')">Kontakt</RouterLink>
+        <RouterLink :to="{ name: 'contact' }" :class="getNavLinkClass('contact')"
+          >Kontakt</RouterLink
+        >
 
         <template v-if="isAuthenticated">
           <span class="rounded-full bg-[#C1D2DE] px-4 py-2 text-sm font-medium text-[#094b7b]">
             Velkommen {{ displayUserName }}
           </span>
 
-          <RouterLink
-            v-if="isAdmin"
-            :to="{ name: 'admin' }"
-            :class="getNavLinkClass('admin')"
-          >
-            Admin
-          </RouterLink>
+          <RouterLink v-if="showAdminLink" :to="{ name: 'admin' }"> Admin </RouterLink>
 
           <div class="relative">
             <button
@@ -55,7 +55,9 @@
               role="menu"
             >
               <div class="border-b border-[#094b7b]/8 bg-[#FFF] px-5 py-4">
-                <p class="text-[0.7rem] font-semibold uppercase tracking-[0.24em] text-[#de5826]">Min konto</p>
+                <p class="text-[0.7rem] font-semibold uppercase tracking-[0.24em] text-[#de5826]">
+                  Min konto
+                </p>
                 <p class="mt-1 text-sm font-semibold text-[#094b7b]">{{ displayUserName }}</p>
               </div>
 
@@ -121,6 +123,10 @@ const { avatarInitials, isAdmin, isAuthenticated, logout, userAvatar, userName }
 
 const displayUserName = computed(() => userName.value || 'Guest')
 
+const showAdminLink = computed(() => {
+  return isAuthenticated.value && isAdmin.value
+})
+
 const getNavLinkClass = (routeName: string) => {
   const isActive = route.name === routeName
 
@@ -132,13 +138,8 @@ const getNavLinkClass = (routeName: string) => {
   ]
 }
 
-const closeAvatarMenu = () => {
-  isAvatarMenuOpen.value = false
-}
-
-const toggleAvatarMenu = () => {
-  isAvatarMenuOpen.value = !isAvatarMenuOpen.value
-}
+const closeAvatarMenu = () => (isAvatarMenuOpen.value = false)
+const toggleAvatarMenu = () => (isAvatarMenuOpen.value = !isAvatarMenuOpen.value)
 
 const handleLogout = async () => {
   closeAvatarMenu()
@@ -147,9 +148,7 @@ const handleLogout = async () => {
 }
 
 const handleDocumentClick = (event: MouseEvent) => {
-  if (!isAvatarMenuOpen.value) {
-    return
-  }
+  if (!isAvatarMenuOpen.value) return
 
   const navElement = navRef.value instanceof HTMLElement ? navRef.value : navRef.value?.$el
 
@@ -158,11 +157,6 @@ const handleDocumentClick = (event: MouseEvent) => {
   }
 }
 
-onMounted(() => {
-  document.addEventListener('click', handleDocumentClick)
-})
-
-onBeforeUnmount(() => {
-  document.removeEventListener('click', handleDocumentClick)
-})
+onMounted(() => document.addEventListener('click', handleDocumentClick))
+onBeforeUnmount(() => document.removeEventListener('click', handleDocumentClick))
 </script>

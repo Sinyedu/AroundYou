@@ -10,19 +10,18 @@ type JwtPayload = {
 }
 
 function getStoredValue(key: string): string | null {
-  if (typeof window === 'undefined') {
-    return null
-  }
-
+  if (typeof window === 'undefined') return null
   return window.localStorage.getItem(key)
 }
 
 function decodeBase64Url(value: string): string | null {
   try {
-    const normalizedValue = value.replace(/-/g, '+').replace(/_/g, '/')
-    const padding = normalizedValue.length % 4
-    const paddedValue = padding === 0 ? normalizedValue : normalizedValue.padEnd(normalizedValue.length + (4 - padding), '=')
-    return window.atob(paddedValue)
+    const normalized = value.replace(/-/g, '+').replace(/_/g, '/')
+    const padding = normalized.length % 4
+    const padded =
+      padding === 0 ? normalized : normalized.padEnd(normalized.length + (4 - padding), '=')
+
+    return window.atob(padded)
   } catch {
     return null
   }
@@ -30,55 +29,37 @@ function decodeBase64Url(value: string): string | null {
 
 export function getJwtPayload(token?: string | null): JwtPayload | null {
   const storedToken = token ?? getStoredValue('token')
+  if (!storedToken) return null
 
-  if (!storedToken) {
-    return null
-  }
+  const parts = storedToken.split('.')
+  if (parts.length !== 3) return null
 
-  const tokenParts = storedToken.split('.')
+  const payload = parts[1]
+  if (!payload) return null
 
-  if (tokenParts.length !== 3) {
-    return null
-  }
-
-  const payloadSegment = tokenParts[1]
-
-  if (!payloadSegment) {
-    return null
-  }
-
-  const decodedPayload = decodeBase64Url(payloadSegment)
-
-  if (!decodedPayload) {
-    return null
-  }
+  const decoded = decodeBase64Url(payload)
+  if (!decoded) return null
 
   try {
-    return JSON.parse(decodedPayload) as JwtPayload
+    return JSON.parse(decoded) as JwtPayload
   } catch {
     return null
   }
 }
 
 export function payloadHasAdminAccess(payload: JwtPayload | null): boolean {
-  if (!payload) {
-    return false
-  }
+  if (!payload) return false
 
   const hasAdminRole = payload.role?.toLowerCase() === 'admin'
-  const hasAdminInRoles = payload.roles?.some((role) => role.toLowerCase() === 'admin') ?? false
-  const hasAdminPermission = payload.permissions?.some((permission) => permission.toLowerCase() === 'admin') ?? false
+  const hasAdminInRoles = payload.roles?.some((r) => r.toLowerCase() === 'admin') ?? false
+  const hasAdminPermission = payload.permissions?.some((p) => p.toLowerCase() === 'admin') ?? false
 
-  return Boolean(payload.isAdmin || payload.admin || hasAdminRole || hasAdminInRoles || hasAdminPermission)
+  return Boolean(
+    payload.isAdmin || payload.admin || hasAdminRole || hasAdminInRoles || hasAdminPermission,
+  )
 }
 
 export function hasAdminAccess(): boolean {
-  const storedAdminFlag = getStoredValue('isAdmin')
-
-  if (storedAdminFlag === 'true') {
-    return true
-  }
-
   return payloadHasAdminAccess(getJwtPayload())
 }
 
@@ -87,18 +68,14 @@ export function getStoredUserName(): string {
 }
 
 export function getStoredUserAvatar(): string | null {
-  return getStoredValue('userAvatar') ?? getJwtPayload()?.userAvatar ?? getJwtPayload()?.avatar ?? null
+  return (
+    getStoredValue('userAvatar') ?? getJwtPayload()?.userAvatar ?? getJwtPayload()?.avatar ?? null
+  )
 }
 
 export function getUserInitials(userName: string): string {
-  const normalizedUserName = userName.trim()
+  const clean = userName.trim()
+  if (!clean) return 'AY'
 
-  if (!normalizedUserName) {
-    return 'AY'
-  }
-
-  const parts = normalizedUserName.split(/\s+/)
-  const initials = parts.slice(0, 2).map((part) => part.charAt(0).toUpperCase()).join('')
-
-  return initials || normalizedUserName.slice(0, 2).toUpperCase()
+  return clean.split(/\s+/).slice(0, 2).join('')
 }
