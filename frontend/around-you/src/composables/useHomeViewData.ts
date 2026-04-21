@@ -35,17 +35,17 @@ export const useHomeViewData = () => {
 
   const citiesSection = useAsyncData<ExperienceCard[]>(() => getLargestCities(4), {
     defaultValue: [],
-    getErrorMessage: () => 'Vi kunne ikke hente de største byer fra databasen.',
+    getErrorMessage: () => 'Vi kunne ikke hente de største byer',
   })
 
   const natureSection = useAsyncData<ExperienceCard[]>(() => getNatureExperiences(4), {
     defaultValue: [],
-    getErrorMessage: () => 'Vi kunne ikke hente naturoplevelser fra databasen.',
+    getErrorMessage: () => 'Vi kunne ikke hente naturoplevelser',
   })
 
   const familySection = useAsyncData<ExperienceCard[]>(() => getFamilyExperiences(4), {
     defaultValue: [],
-    getErrorMessage: () => 'Vi kunne ikke hente familieoplevelser fra databasen.',
+    getErrorMessage: () => 'Vi kunne ikke hente familieoplevelser.',
   })
 
   const userLocation = computed(() => nearbySection.data.value.locationName)
