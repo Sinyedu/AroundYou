@@ -6,10 +6,10 @@
                     <header class="flex flex-wrap items-center justify-between gap-6">
                         <div class="space-y-2">
                             <h1 class="text-2xl font-semibold text-slate-900">
-                                Find something to do today
+                                Find ting at lave omkring dig
                             </h1>
                             <p class="text-sm text-slate-500">
-                                Over 1,000 things to see and explore around you.
+                                Der er over 1,000 ting at se og erkende omkring dig.
                             </p>
                         </div>
 
@@ -21,7 +21,7 @@
                     <div class="grid gap-6 lg:grid-cols-[minmax(0,2fr)_minmax(0,1fr)]">
                         <div>
                             <div v-if="isLoading" class="rounded-2xl bg-white p-6 text-sm font-semibold text-slate-500">
-                                Loading results...
+                                Loader resultater...
                             </div>
                             <div v-else-if="errorMessage"
                                 class="rounded-2xl bg-rose-50 p-6 text-sm font-semibold text-rose-700">
@@ -55,7 +55,7 @@
 import { ref } from "vue"
 import SearchFilter from "@/components/SearchFilter.vue"
 import { useSearchResults } from "@/composables/useSearchResults"
-import type { SearchFilters } from "@/api/types"
+import type { SearchFilters } from "@/types/search"
 
 const filters = ref<SearchFilters>({
     location: "",
