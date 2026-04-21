@@ -12,11 +12,7 @@
 import { onMounted, watch, ref, nextTick } from 'vue'
 import L from 'leaflet'
 import { useGeolocationStore } from '@/stores/geolocation'
-
-type Coordinates = {
-  latitude: number
-  longitude: number
-}
+import type { Coordinates } from '@/types/coordinates'
 
 const geo = useGeolocationStore()
 
