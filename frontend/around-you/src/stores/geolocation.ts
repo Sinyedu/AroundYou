@@ -1,10 +1,6 @@
 import { defineStore } from 'pinia'
 import { ref } from 'vue'
-
-type Coordinates = {
-  latitude: number
-  longitude: number
-}
+import type { Coordinates } from '@/types/coordinates'
 
 export const useGeolocationStore = defineStore('geolocation', () => {
   const coords = ref<Coordinates | null>(null)
