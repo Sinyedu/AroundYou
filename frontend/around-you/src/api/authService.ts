@@ -1,4 +1,5 @@
 import { ref } from 'vue'
+import { getJwtPayload, payloadHasAdminAccess } from '@/utils/auth'
 
 const apiUrl = 'http://localhost:4000/api/user'
 
@@ -8,6 +9,9 @@ type AuthResponse = {
     id: string
     userName: string
     email: string
+    isAdmin?: boolean
+    role?: string
+    userAvatar?: string
   }
 }
 const token = ref<string | null>(localStorage.getItem('token'))
@@ -26,15 +30,19 @@ export const useAuthService = () => {
     }
 
     const data = await response.json()
+    const payload = getJwtPayload(data.token)
+    const isAdmin = Boolean(data.user.isAdmin || data.user.role === 'admin' || payloadHasAdminAccess(payload))
 
     token.value = data.token
     localStorage.setItem('token', data.token)
     localStorage.setItem('userName', data.user.userName)
+    localStorage.setItem('isAdmin', String(isAdmin))
 
-    token.value = data.token
-    localStorage.setItem('token', data.token)
-
-    localStorage.setItem('userName', data.user.userName)
+    if (data.user.userAvatar) {
+      localStorage.setItem('userAvatar', data.user.userAvatar)
+    } else {
+      localStorage.removeItem('userAvatar')
+    }
 
     return data
   }
@@ -60,6 +68,8 @@ export const useAuthService = () => {
     token.value = null
     localStorage.removeItem('token')
     localStorage.removeItem('userName')
+    localStorage.removeItem('userAvatar')
+    localStorage.removeItem('isAdmin')
   }
 
   return {
