@@ -17,8 +17,8 @@ import type { Coordinates } from '@/types/coordinates'
 const geo = useGeolocationStore()
 
 const mapEl = ref<HTMLElement | null>(null)
-let map: L.Map | null = null
-let marker: L.Marker | null = null
+let map: ReturnType<typeof L.map> | null = null
+let marker: ReturnType<typeof L.marker> | null = null
 
 // Instead of displaying X and Y coords, it reverses and prints out the address for better UX
 const getAddress = async (lat: number, lon: number): Promise<string> => {

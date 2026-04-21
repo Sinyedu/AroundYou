@@ -9,10 +9,7 @@ import { User } from "../interfaces/user";
 /**
  * REGISTER USER
  */
-export async function registerUser(
-  req: Request,
-  res: Response
-): Promise<void> {
+export async function registerUser(req: Request, res: Response): Promise<void> {
   try {
     const { error } = validateUserRegistration(req.body);
 
@@ -64,10 +61,7 @@ export async function registerUser(
 /**
  * LOGIN USER
  */
-export async function loginUser(
-  req: Request,
-  res: Response
-): Promise<void> {
+export async function loginUser(req: Request, res: Response): Promise<void> {
   try {
     const { error } = validateUserLogin(req.body);
 
@@ -103,7 +97,7 @@ export async function loginUser(
         lastName: user.lastName,
       },
       process.env.TOKEN_SECRET as string,
-      { expiresIn: "1h" }
+      { expiresIn: "1h" },
     );
 
     res.status(200).json({
@@ -139,7 +133,7 @@ export function validateUserRegistration(data: User): ValidationResult {
  * VALIDATION - LOGIN
  */
 export function validateUserLogin(
-  data: Record<string, unknown>
+  data: Record<string, unknown>,
 ): ValidationResult {
   const schema = Joi.object({
     identifier: Joi.string().required(),
@@ -147,4 +141,34 @@ export function validateUserLogin(
   });
 
   return schema.validate(data);
+}
+
+export async function getMe(req: Request, res: Response): Promise<void> {
+  try {
+    const userID = req.user?.userID;
+
+    if (!userID) {
+      res.status(401).json({ error: "Unauthorized" });
+      return;
+    }
+
+    const user = await UserModel.findById(userID).select("-password");
+
+    if (!user) {
+      res.status(404).json({ error: "User not found" });
+      return;
+    }
+
+    res.status(200).json({
+      id: user._id,
+      userName: user.userName,
+      email: user.email,
+      firstName: user.firstName,
+      lastName: user.lastName,
+      userAvatar: user.userAvatar,
+    });
+  } catch (err) {
+    console.error("GetMe error:", err);
+    res.status(500).json({ error: "Internal server error" });
+  }
 }

@@ -1,4 +1,5 @@
 import { ref } from 'vue'
+import { getJwtPayload, payloadHasAdminAccess } from '@/utils/auth'
 
 const apiUrl = 'http://localhost:4000/api/user'
 
@@ -8,8 +9,10 @@ type AuthResponse = {
     id: string
     userName: string
     email: string
+    userAvatar?: string
   }
 }
+
 const token = ref<string | null>(localStorage.getItem('token'))
 
 export const useAuthService = () => {
@@ -19,22 +22,26 @@ export const useAuthService = () => {
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ identifier, password }),
     })
+
     if (!response.ok) {
-      const errorData = await response.json()
-      console.error('Backend error:', errorData)
-      throw new Error(errorData.message || 'Login failed')
+      const error = await response.json()
+      throw new Error(error.message || 'Login failed')
     }
 
     const data = await response.json()
 
+    const payload = getJwtPayload(data.token)
+    const isAdmin = payloadHasAdminAccess(payload)
+
     token.value = data.token
     localStorage.setItem('token', data.token)
     localStorage.setItem('userName', data.user.userName)
 
-    token.value = data.token
-    localStorage.setItem('token', data.token)
-
-    localStorage.setItem('userName', data.user.userName)
+    if (data.user.userAvatar) {
+      localStorage.setItem('userAvatar', data.user.userAvatar)
+    } else {
+      localStorage.removeItem('userAvatar')
+    }
 
     return data
   }
@@ -46,20 +53,20 @@ export const useAuthService = () => {
     email: string,
     password: string,
   ): Promise<void> => {
-    const response = await fetch(`${apiUrl}/register`, {
+    const res = await fetch(`${apiUrl}/register`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ firstName, lastName, userName, email, password }),
     })
 
-    if (!response.ok) {
-      throw new Error('Registration failed')
-    }
+    if (!res.ok) throw new Error('Registration failed')
   }
-  const logout = (): void => {
+
+  const logout = () => {
     token.value = null
     localStorage.removeItem('token')
     localStorage.removeItem('userName')
+    localStorage.removeItem('userAvatar')
   }
 
   return {

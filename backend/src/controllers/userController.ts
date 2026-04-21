@@ -1,27 +1,26 @@
 import { Request, Response } from "express";
 import { UserModel } from "../models/userModel";
 
-export const getCurrentUser = async (req: Request, res: Response) => {
-  try {
-    const userID = (req as Request & { userID?: string }).userID;
+export async function getCurrentUser(
+  req: Request,
+  res: Response,
+): Promise<void> {
+  console.log("FINAL USER:", req.user);
 
-    console.log("USERID IN CONTROLLER:", userID);
+  const userID = req.user?.userID;
 
-    if (!userID) {
-      res.status(401).json({ message: "Missing userID from token" });
-      return;
-    }
-
-    const user = await UserModel.findById(userID).select("-password");
-
-    if (!user) {
-      res.status(404).json({ message: "User not found" });
-      return;
-    }
-
-    res.json(user);
-  } catch (err) {
-    console.log("CONTROLLER ERROR:", err);
-    res.status(500).json({ message: "Server error" });
+  if (!userID) {
+    console.log("❌ NO USERID");
+    res.status(401).json({ error: "Unauthorized" });
+    return;
   }
-};
+
+  const user = await UserModel.findById(userID).select("-password");
+
+  if (!user) {
+    res.status(404).json({ error: "User not found" });
+    return;
+  }
+
+  res.json(user);
+}

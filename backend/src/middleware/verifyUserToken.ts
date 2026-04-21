@@ -1,39 +1,36 @@
 import { Request, Response, NextFunction } from "express";
 import jwt from "jsonwebtoken";
-
-interface JwtPayload {
-  userID: string;
-}
+import { JwtUser } from "../types/auth";
 
 export function verifyToken(
   req: Request,
   res: Response,
-  next: NextFunction
+  next: NextFunction,
 ): void {
-  const authHeader = req.header("Authorization");
+  const authHeader = req.headers.authorization;
 
-  if (!authHeader) {
-    res.status(401).json({ error: "No token provided" });
+  if (!authHeader?.startsWith("Bearer ")) {
+    res.status(401).json({ message: "No token provided" });
     return;
   }
 
-  const token = authHeader.replace("Bearer ", "");
+  const token = authHeader.split(" ")[1];
 
   try {
-    const decoded = jwt.verify(
-      token,
-      process.env.TOKEN_SECRET as string
-    ) as JwtPayload;
+    const decoded = jwt.verify(token, process.env.TOKEN_SECRET as string);
 
-    console.log("DECODED:", decoded);
+    if (typeof decoded === "string") {
+      res.status(401).json({ message: "Invalid token format" });
+      return;
+    }
 
-    (req as Request & { userID?: string }).userID = decoded.userID;
+    req.user = decoded as JwtUser;
 
-    console.log("ATTACHED USERID:", (req as any).userID);
+    console.log("✔ USER SET:", req.user);
 
     next();
   } catch (err) {
     console.log("JWT ERROR:", err);
-    res.status(401).json({ error: "Invalid token" });
+    res.status(401).json({ message: "Invalid token" });
   }
 }

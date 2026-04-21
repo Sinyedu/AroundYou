@@ -1,13 +1,44 @@
 import { Router, Request, Response } from "express";
 
-import { createAttraction, getAllAttractions, getAttractionById, updateAttractionById, deleteAttractionById, getAttractionsByQuery, getAttractionsByQueryGeneric } from "../controllers/attractionController";
-import { createEvent, getAllEvents, getEventById, updateEventById, deleteEventById, getEventByQuery, getEventByGenericQuery } from "../controllers/eventController";
-import { createCity, getAllCities, getCityById, updateCityById, deleteCityById, getCityByQuery, getCityByGenericQuery } from "../controllers/cityController";
-import { createReview, getAllReviews, getReviewById, updateReviewById, deleteReviewById, getReviewByQuery, getReviewByGenericQuery } from "../controllers/reviewController";
+import {
+  createAttraction,
+  getAllAttractions,
+  getAttractionById,
+  updateAttractionById,
+  deleteAttractionById,
+  getAttractionsByQuery,
+  getAttractionsByQueryGeneric,
+} from "../controllers/attractionController";
+import {
+  createEvent,
+  getAllEvents,
+  getEventById,
+  updateEventById,
+  deleteEventById,
+  getEventByQuery,
+  getEventByGenericQuery,
+} from "../controllers/eventController";
+import {
+  createCity,
+  getAllCities,
+  getCityById,
+  updateCityById,
+  deleteCityById,
+  getCityByQuery,
+  getCityByGenericQuery,
+} from "../controllers/cityController";
+import {
+  createReview,
+  getAllReviews,
+  getReviewById,
+  updateReviewById,
+  deleteReviewById,
+  getReviewByQuery,
+  getReviewByGenericQuery,
+} from "../controllers/reviewController";
 import { getCurrentUser } from "../controllers/userController";
 import { loginUser, registerUser } from "../controllers/authController";
-import { verifyToken } from "../middleware/verifyUserToken"
-
+import { verifyToken } from "../middleware/verifyUserToken";
 
 const router: Router = Router();
 
@@ -16,8 +47,6 @@ router.get("/", (req: Request, res: Response) => {
   res.status(200).send("Welcome to the AroundYou API");
   // disconnect
 });
-
-
 
 // AUTH ROUTES
 // REGISTER
@@ -113,38 +142,45 @@ router.post("/user/register", registerUser);
 router.post("/user/login", loginUser);
 
 /**
-* @swagger
-* /user/me:
-*   get:
-*     tags:
-*       - User Routes
-*     summary: Get current authenticated user
-*     description: Returns the user linked to the provided JWT token.
-*     security:
-*       - bearerAuth: []
-*     responses:
-*       200:
-*         description: Successfully retrieved user
-*         content:
-*           application/json:
-*             schema:
-*               type: object
-*               properties:
-*                 _id:
-*                   type: string
-*                 email:
-*                   type: string
-*                 createdAt:
-*                   type: string
-*       401:
-*         description: Unauthorized - Missing or invalid token
-*       404:
-*         description: User not found
-*       500:
-*         description: Server error
-*/
-router.get("/user/me", verifyToken, getCurrentUser);
-
+ * @swagger
+ * /user/me:
+ *   get:
+ *     tags:
+ *       - User Routes
+ *     summary: Get current authenticated user
+ *     description: Returns the user linked to the provided JWT token.
+ *     security:
+ *       - bearerAuth: []
+ *     responses:
+ *       200:
+ *         description: Successfully retrieved user
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 _id:
+ *                   type: string
+ *                 email:
+ *                   type: string
+ *                 createdAt:
+ *                   type: string
+ *       401:
+ *         description: Unauthorized - Missing or invalid token
+ *       404:
+ *         description: User not found
+ *       500:
+ *         description: Server error
+ */
+router.get(
+  "/user/me",
+  verifyToken,
+  (req, res, next) => {
+    console.log("MIDDLEWARE PASSED");
+    next();
+  },
+  getCurrentUser,
+);
 
 // ATTRACTION ROUTES
 // CREATE ATTRACTION
@@ -339,7 +375,11 @@ router.delete("/attractions/:id", deleteAttractionById);
  *       500:
  *         description: Server error
  */
-router.get("/attractions/query/:key/:value", verifyToken, getAttractionsByQuery);
+router.get(
+  "/attractions/query/:key/:value",
+  verifyToken,
+  getAttractionsByQuery,
+);
 
 // GET ATTRACTION BY GENERIC QUERY
 /**
@@ -374,8 +414,6 @@ router.get("/attractions/query/:key/:value", verifyToken, getAttractionsByQuery)
  *         description: Server error
  */
 router.post("/attractions/query", verifyToken, getAttractionsByQueryGeneric);
-
-
 
 // EVENT ROUTES
 // CREATE EVENT
@@ -604,8 +642,6 @@ router.get("/events/query/:key/:value", verifyToken, getEventByQuery);
  *         description: Server error
  */
 router.post("/events/query", verifyToken, getEventByGenericQuery);
-
-
 
 // CITY ROUTES
 // CREATE CITY
@@ -836,8 +872,6 @@ router.get("/city/query/:key/:value", verifyToken, getCityByQuery);
  */
 router.post("/city/query", verifyToken, getCityByGenericQuery);
 
-
-
 // REVIEW ROUTES
 // CREATE REVIEW
 /**
@@ -1066,7 +1100,5 @@ router.get("/reviews/query/:key/:value", verifyToken, getReviewByQuery);
  *         description: Server error
  */
 router.post("/reviews/query", verifyToken, getReviewByGenericQuery);
-
-
 
 export default router;

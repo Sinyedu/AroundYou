@@ -8,7 +8,11 @@ const error = ref<string | null>(null)
 export const useUser = () => {
   const fetchUser = async () => {
     const token = localStorage.getItem('token')
-    if (!token) return
+
+    if (!token) {
+      error.value = 'No token found'
+      return
+    }
 
     loading.value = true
     error.value = null
@@ -24,9 +28,11 @@ export const useUser = () => {
 
   const updateUser = async () => {
     const token = localStorage.getItem('token')
+
     if (!token || !user.value) return
 
     loading.value = true
+    error.value = null
 
     try {
       user.value = await updateUserProfile(token, user.value)
