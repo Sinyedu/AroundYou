@@ -1,0 +1,44 @@
+name: CI
+
+on:
+  push:
+    branches:
+      - "**"
+  pull_request:
+    branches:
+      - "**"
+
+defaults:
+  run:
+    working-directory: frontend/around-you
+
+jobs:
+  test-and-build:
+    runs-on: ubuntu-latest
+
+    strategy:
+      matrix:
+        node-version: [20, 22, 24]
+
+    steps:
+      - name: 📥 Checkout repo
+        uses: actions/checkout@v4
+
+      - name: 🟢 Setup Node.js ${{ matrix.node-version }}
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ matrix.node-version }}
+          cache: "npm"
+          cache-dependency-path: frontend/around-you/package-lock.json
+
+      - name: Clean install
+        run: npm ci
+
+      - name: 🧪 Run tests
+        run: npm run test
+
+      - name: 📊 Coverage
+        run: npm run test:coverage
+
+      - name: 🏗️ Build project
+        run: npm run build

@@ -30,6 +30,10 @@ export const useAuthService = () => {
 
     const data = await response.json()
 
+    if (!data?.token || !data?.user?.userName) {
+      throw new Error('Invalid API response')
+    }
+
     const payload = getJwtPayload(data.token)
     const isAdmin = payloadHasAdminAccess(payload)
 
