@@ -145,7 +145,7 @@
 </template>
 
 <script setup lang="ts">
-import { computed, onBeforeUnmount, onMounted, reactive, ref, watch } from "vue"
+import { computed, onBeforeUnmount, onMounted, reactive, ref, toRefs, watch } from "vue"
 
 type SearchFilters = {
     location: string
@@ -154,27 +154,18 @@ type SearchFilters = {
     categories: string[]
 }
 
-const props = defineProps<{ modelValue: SearchFilters }>()
+const props = withDefaults(
+    defineProps<{
+        modelValue: SearchFilters
+        locationOptions?: string[]
+        categoryOptions?: string[]
+    }>(),
+    {
+        locationOptions: () => [],
+        categoryOptions: () => [],
+    }
+)
 const emit = defineEmits<{ (event: "update:modelValue", value: SearchFilters): void }>()
-
-const locationOptions = [
-    "Aalborg",
-    "Aarhus",
-    "Odense",
-    "Esbjerg",
-    "Ribe",
-    "Kolding",
-    "Skagen",
-]
-
-const categoryOptions = [
-    "Music",
-    "Food",
-    "Art",
-    "Nature",
-    "Family",
-    "Sport",
-]
 
 const isLocationOpen = ref(false)
 const isTypeOpen = ref(false)
@@ -185,6 +176,7 @@ const filterRef = ref<HTMLElement | null>(null)
 const today = new Date()
 const currentMonth = ref(today.getMonth())
 const currentYear = ref(today.getFullYear())
+const { locationOptions, categoryOptions } = toRefs(props)
 
 const draft = reactive<SearchFilters>({
     location: props.modelValue.location,
@@ -315,20 +307,22 @@ const selectLocation = (location: string) => {
 
 const filteredLocationOptions = computed(() => {
     const query = draft.location.trim().toLowerCase()
+    const options = locationOptions.value
     if (!query.length) {
-        return locationOptions
+        return options
     }
-    return locationOptions.filter((location) =>
+    return options.filter((location) =>
         location.toLowerCase().includes(query)
     )
 })
 
 const filteredCategoryOptions = computed(() => {
     const query = categoryQuery.value.trim().toLowerCase()
+    const options = categoryOptions.value
     if (!query.length) {
-        return categoryOptions
+        return options
     }
-    return categoryOptions.filter((category) =>
+    return options.filter((category) =>
         category.toLowerCase().includes(query)
     )
 })
