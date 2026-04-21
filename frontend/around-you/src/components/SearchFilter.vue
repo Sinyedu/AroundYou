@@ -74,16 +74,16 @@
                     </div>
 
                     <div v-if="isDateOpen"
-                        class="absolute left-1/2 top-full z-20 mt-2.5 w-[230px] -translate-x-1/2 rounded-[28px] bg-[#B8C7D4] p-2 shadow-lg">
+                        class="absolute left-1/2 top-full z-20 mt-2.5 w-[230px] -translate-x-1/2 rounded-[28px] bg-[#C1D2DE] p-2 shadow-lg">
                         <div class="flex items-center justify-between rounded-[24px] bg-white px-3 py-2">
                             <button type="button"
-                                class="flex h-7 w-7 items-center justify-center rounded-full text-slate-700 hover:bg-[#B8C7D4]/60"
+                                class="flex h-7 w-7 items-center justify-center rounded-full text-slate-700 hover:bg-[#C1D2DE]/60"
                                 @click="goToPreviousMonth">
                                 <span aria-hidden="true">‹</span>
                             </button>
                             <span class="text-sm font-semibold text-slate-700">{{ monthLabel }}</span>
                             <button type="button"
-                                class="flex h-7 w-7 items-center justify-center rounded-full text-slate-700 hover:bg-[#B8C7D4]/60"
+                                class="flex h-7 w-7 items-center justify-center rounded-full text-slate-700 hover:bg-[#C1D2DE]/60"
                                 @click="goToNextMonth">
                                 <span aria-hidden="true">›</span>
                             </button>
