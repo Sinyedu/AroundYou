@@ -1,7 +1,6 @@
 <template>
   <main class="min-h-screen bg-[#C1D2DE] px-4 py-12">
-    <section
-      class="mx-auto max-w-5xl overflow-hidden rounded-[32px] bg-white shadow-[0_24px_80px_rgba(9,75,123,0.16)]">
+    <section class="mx-auto max-w-5xl overflow-hidden rounded-[32px] bg-white shadow-[0_24px_80px_rgba(9,75,123,0.16)]">
       <div class="border-b border-[#094b7b]/10 bg-[#C1D2DE] px-8 py-8">
         <p class="text-xs font-semibold uppercase tracking-[0.32em] text-[#de5826]">Around You</p>
         <h1 class="mt-3 text-4xl font-black tracking-tight text-[#094b7b]">{{ title }}</h1>
@@ -53,8 +52,7 @@
               Annual event
             </label>
             <textarea v-model="eventForm.description" rows="4"
-              class="rounded-xl border border-slate-200 px-4 py-3 sm:col-span-2"
-              placeholder="Description"></textarea>
+              class="rounded-xl border border-slate-200 px-4 py-3 sm:col-span-2" placeholder="Description"></textarea>
           </template>
 
           <template v-if="selectedType === 'attraction'">
@@ -62,8 +60,8 @@
               placeholder="Name" />
             <input v-model="attractionForm.heroImage" class="rounded-xl border border-slate-200 px-4 py-3"
               placeholder="Hero image URL" />
-            <input v-model="attractionForm.price" type="number"
-              class="rounded-xl border border-slate-200 px-4 py-3" placeholder="Price" />
+            <input v-model="attractionForm.price" type="number" class="rounded-xl border border-slate-200 px-4 py-3"
+              placeholder="Price" />
             <input v-model="attractionForm.link" class="rounded-xl border border-slate-200 px-4 py-3"
               placeholder="Link" />
             <input v-model="attractionForm.gpsPosition" class="rounded-xl border border-slate-200 px-4 py-3"
@@ -77,8 +75,7 @@
             <input v-model="attractionForm.openingHoursText" class="rounded-xl border border-slate-200 px-4 py-3"
               placeholder="Opening hours (comma separated)" />
             <textarea v-model="attractionForm.description" rows="4"
-              class="rounded-xl border border-slate-200 px-4 py-3 sm:col-span-2"
-              placeholder="Description"></textarea>
+              class="rounded-xl border border-slate-200 px-4 py-3 sm:col-span-2" placeholder="Description"></textarea>
           </template>
 
           <template v-if="selectedType === 'city'">
@@ -87,20 +84,20 @@
               placeholder="Hero image URL" />
             <input v-model="cityForm.commune" class="rounded-xl border border-slate-200 px-4 py-3"
               placeholder="Commune" />
-            <input v-model="cityForm.region" class="rounded-xl border border-slate-200 px-4 py-3" placeholder="Region" />
+            <input v-model="cityForm.region" class="rounded-xl border border-slate-200 px-4 py-3"
+              placeholder="Region" />
             <input v-model="cityForm.country" class="rounded-xl border border-slate-200 px-4 py-3"
               placeholder="Country" />
             <input v-model="cityForm.gpsPosition" class="rounded-xl border border-slate-200 px-4 py-3"
               placeholder="GPS (lat,lng)" />
-            <input v-model="cityForm.population" type="number"
-              class="rounded-xl border border-slate-200 px-4 py-3" placeholder="Population" />
+            <input v-model="cityForm.population" type="number" class="rounded-xl border border-slate-200 px-4 py-3"
+              placeholder="Population" />
             <input v-model="cityForm.visitorCenter" class="rounded-xl border border-slate-200 px-4 py-3"
               placeholder="Visitor center" />
             <input v-model="cityForm.rating" type="number" step="0.1"
               class="rounded-xl border border-slate-200 px-4 py-3" placeholder="Rating" />
             <textarea v-model="cityForm.description" rows="4"
-              class="rounded-xl border border-slate-200 px-4 py-3 sm:col-span-2"
-              placeholder="Description"></textarea>
+              class="rounded-xl border border-slate-200 px-4 py-3 sm:col-span-2" placeholder="Description"></textarea>
           </template>
 
           <button type="submit"
@@ -220,15 +217,33 @@ const splitList = (value: string) =>
     .map((item) => item.trim())
     .filter(Boolean)
 
+const getAuthToken = () => localStorage.getItem("token")
+
 const postJson = async <T>(url: string, body: T) => {
+  const token = getAuthToken()
+
   const response = await fetch(url, {
     method: "POST",
-    headers: { "Content-Type": "application/json" },
+    headers: {
+      "Content-Type": "application/json",
+      ...(token ? { Authorization: `Bearer ${token}` } : {}),
+    },
     body: JSON.stringify(body),
   })
 
   if (!response.ok) {
-    throw new Error(`Request failed: ${response.status}`)
+    const fallbackMessage = `Request failed: ${response.status}`
+
+    try {
+      const errorBody = await response.json()
+      const backendMessage =
+        typeof errorBody?.message === "string"
+          ? errorBody.message
+          : fallbackMessage
+      throw new Error(backendMessage)
+    } catch {
+      throw new Error(fallbackMessage)
+    }
   }
 
   return response.json()
@@ -254,6 +269,10 @@ const submitEvent = async () => {
 }
 
 const submitAttraction = async () => {
+  if (!getAuthToken()) {
+    throw new Error("You must be logged in to create an attraction.")
+  }
+
   const payload: AttractionPayload = {
     name: attractionForm.name,
     description: attractionForm.description,
