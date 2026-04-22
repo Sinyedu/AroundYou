@@ -1,150 +1,145 @@
 import { Request, Response } from "express";
-import { UserModel } from "../models/userModel";
 import { AttractionModel } from "../models/attractionModel";
-import {
-  connectionToDatabase,
-  disconnectFromDatabase,
-} from "../repository/database";
-import { buildDynamicQuery } from "./dynamicQueryBuilder";
-
-// CRUD YEAH
+import { buildDynamicQuery } from "../controllers/dynamicQueryBuilder";
 
 /**
- * Add new ATTRACTION to the database
- * @param req
- * @param res
+ * Create new attraction
  */
 export async function createAttraction(
   req: Request,
-  res: Response,
+  res: Response
 ): Promise<void> {
-  const data = req.body;
-
   try {
-    await connectionToDatabase();
-
-    const attraction = new AttractionModel(data);
+    const attraction = new AttractionModel(req.body);
     const result = await attraction.save();
 
     res.status(201).json(result);
   } catch (err) {
-    console.error("Error creating attraction:", err); // Add this line
-
-    res
-      .status(500)
-      .json("An error occurred while creating the attraction." + err);
-  } finally {
-    await disconnectFromDatabase();
+    console.error("Error creating attraction:", err);
+    res.status(500).json({
+      message: "An error occurred while creating the attraction",
+    });
   }
 }
 
 /**
- * Retrieve all ATTRACTIONS from the database
- * @param req
- * @param res
+ * Get all attractions
  */
 export async function getAllAttractions(
   req: Request,
-  res: Response){
+  res: Response
+): Promise<void> {
   try {
-    await connectionToDatabase();
-
     const result = await AttractionModel.find({});
-
     res.status(200).json(result);
   } catch (err) {
-    res.status(500).json("error retrieving the attractions." + err);
-  } finally {
-    await disconnectFromDatabase();
+    console.error("Error retrieving attractions:", err);
+    res.status(500).json({
+      message: "Error retrieving attractions",
+    });
   }
 }
 
 /**
- * Retrieve an ATTRACTION by ID from the database
- * @param req
- * @param res
+ * Get attraction by ID
  */
 export async function getAttractionById(
   req: Request,
-  res: Response){
+  res: Response
+): Promise<void> {
   try {
-    await connectionToDatabase();
-
     const id = req.params.id;
-    const result = await AttractionModel.findById({ _id: id });
+
+    const result = await AttractionModel.findById(id);
+
+    if (!result) {
+      res.status(404).json({ message: "Attraction not found" });
+      return;
+    }
+
     res.status(200).json(result);
   } catch (err) {
-    res.status(500).json("error retrieving attraction by id." + err);
-  } finally {
-    await disconnectFromDatabase();
+    console.error("Error retrieving attraction by id:", err);
+    res.status(500).json({
+      message: "Error retrieving attraction by id",
+    });
   }
 }
 
 /**
- * Update an ATTRACTION by ID from the database
- * @param req
- * @param res
+ * Update attraction by ID
  */
 export async function updateAttractionById(
   req: Request,
-  res: Response){
-  const id = req.params.id;
-
+  res: Response
+): Promise<void> {
   try {
-    await connectionToDatabase();
+    const id = req.params.id;
 
-    const result = await AttractionModel.findByIdAndUpdate(id, req.body);
+    const result = await AttractionModel.findByIdAndUpdate(
+      id,
+      req.body,
+      { new: true }
+    );
+
     if (!result) {
-      res.status(404).send("can not update attraction with the id=" + id);
-    } else {
-      res.status(200).send("attraction was updated successfully.");
+      res.status(404).json({
+        message: `Cannot find attraction with id=${id}`,
+      });
+      return;
     }
+
+    res.status(200).json({
+      message: "Attraction updated successfully",
+      data: result,
+    });
   } catch (err) {
-    res.status(500).json("error updating the attraction by id." + err);
-  } finally {
-    await disconnectFromDatabase();
+    console.error("Error updating attraction:", err);
+    res.status(500).json({
+      message: "Error updating attraction",
+    });
   }
 }
 
 /**
- * Delete an ATTRACTION by ID from the database
- * @param req
- * @param res
+ * Delete attraction by ID
  */
 export async function deleteAttractionById(
   req: Request,
-  res: Response,
+  res: Response
 ): Promise<void> {
-  const id = req.params.id;
-
   try {
-    await connectionToDatabase();
+    const id = req.params.id;
 
     const result = await AttractionModel.findByIdAndDelete(id);
+
     if (!result) {
-      res.status(404).send("can not delete attraction with the id=" + id);
-    } else {
-      res.status(200).send("attraction was deleted successfully.");
+      res.status(404).json({
+        message: `Cannot find attraction with id=${id}`,
+      });
+      return;
     }
+
+    res.status(200).json({
+      message: "Attraction deleted successfully",
+    });
   } catch (err) {
-    res.status(500).json("error deleting the attraction by id." + err);
-  } finally {
-    await disconnectFromDatabase();
+    console.error("Error deleting attraction:", err);
+    res.status(500).json({
+      message: "Error deleting attraction",
+    });
   }
 }
 
 /**
- * Retrieve an ATTRACTION by query from the database
- * @param req
- * @param res
+ * Search attractions by simple query (key/value)
  */
 export async function getAttractionsByQuery(
   req: Request,
-  res: Response){
+  res: Response
+): Promise<void> {
   try {
-    await connectionToDatabase();
 
-    // api/products/key/value
     const key = req.params.key as string;
     const value = req.params.value as string;
 
@@ -154,35 +149,32 @@ export async function getAttractionsByQuery(
 
     res.status(200).json(result);
   } catch (err) {
-    res.status(500).json("error retrieving attraction by query." + err);
-  } finally {
-    await disconnectFromDatabase();
+    console.error("Error querying attractions:", err);
+    res.status(500).json({
+      message: "Error retrieving attractions by query",
+    });
   }
 }
 
 /**
- * Retrieve an ATTRACTION by query from the database with a dynamic query builder
- * @param req
- * @param res
+ * Advanced dynamic query builder
  */
 export async function getAttractionsByQueryGeneric(
   req: Request,
-  res: Response){
+  res: Response
+): Promise<void> {
   try {
-    await connectionToDatabase();
-
-    // api/products/query
-
     const body = req.body;
 
-    const result = await AttractionModel.find(
-      buildDynamicQuery(AttractionModel, body),
-    );
+    const query = buildDynamicQuery(AttractionModel, body);
+
+    const result = await AttractionModel.find(query);
 
     res.status(200).json(result);
   } catch (err) {
-    res.status(500).json("error retrieving attraction by query." + err);
-  } finally {
-    await disconnectFromDatabase();
+    console.error("Error retrieving attractions (generic query):", err);
+    res.status(500).json({
+      message: "Error retrieving attractions by generic query",
+    });
   }
 }
