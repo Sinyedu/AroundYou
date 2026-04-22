@@ -2,45 +2,61 @@ name: CI
 
 on:
   push:
-    branches:
-      - "**"
-
+    branches: ["**"]
   pull_request:
-    branches:
-      - main
-      - development
+    branches: [main, development]
 
 defaults:
   run:
     working-directory: frontend/around-you
 
 jobs:
-  test-and-build:
+  test:
     runs-on: ubuntu-latest
 
     strategy:
+      fail-fast: true
       matrix:
         node-version: [20, 22, 24]
 
     steps:
-      - name: 📥 Checkout repo
-        uses: actions/checkout@v4
+      - uses: actions/checkout@v4
 
-      - name: 🟢 Setup Node.js ${{ matrix.node-version }}
-        uses: actions/setup-node@v4
+      - uses: actions/setup-node@v4
         with:
           node-version: ${{ matrix.node-version }}
-          cache: "npm"
+          cache: npm
           cache-dependency-path: frontend/around-you/package-lock.json
 
-      - name: Clean install
-        run: npm ci
+      - run: npm ci
+
+      - name: 🔍 Type check
+        run: npm run type-check
+
+      - name: 🧹 Lint
+        run: npm run lint
 
       - name: 🧪 Run tests
         run: npm run test
 
-      - name: 📊 Coverage
+      - name: 📊 Coverage (PR only)
+        if: github.event_name == 'pull_request'
         run: npm run test:coverage
+
+  build:
+    needs: test
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+          cache-dependency-path: frontend/around-you/package-lock.json
+
+      - run: npm ci
 
       - name: 🏗️ Build project
         run: npm run build
