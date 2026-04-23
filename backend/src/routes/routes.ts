@@ -39,8 +39,14 @@ import {
 import { getCurrentUser } from "../controllers/userController";
 import { loginUser, registerUser } from "../controllers/authController";
 import { verifyToken } from "../middleware/verifyUserToken";
+import {
+  uploadImage,
+  uploadSingleImage,
+} from "../controllers/uploadController";
 
 const router: Router = Router();
+
+router.post("/upload/image", uploadSingleImage, uploadImage);
 
 router.get("/", (req: Request, res: Response) => {
   // connect

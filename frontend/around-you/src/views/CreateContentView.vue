@@ -30,8 +30,14 @@
         <form class="grid gap-4 sm:grid-cols-2" @submit.prevent="submitSelected">
           <template v-if="selectedType === 'event'">
             <input v-model="eventForm.name" class="rounded-xl border border-slate-200 px-4 py-3" placeholder="Name" />
-            <input v-model="eventForm.heroImage" class="rounded-xl border border-slate-200 px-4 py-3"
-              placeholder="Hero image URL" />
+            <div class="rounded-xl border border-slate-200 px-4 py-3">
+              <label class="mb-2 block text-sm font-semibold text-slate-700">Hero image file</label>
+              <input type="file" accept="image/*" capture="environment"
+                @change="(event) => onHeroImageSelected('event', event)"
+                class="block w-full text-sm text-slate-700 file:mr-3 file:rounded-lg file:border-0 file:bg-[#094b7b] file:px-3 file:py-2 file:font-semibold file:text-white" />
+              <p v-if="eventHeroImageFile" class="mt-2 text-xs text-slate-600 break-all">Selected: {{
+                eventHeroImageFile.name }}</p>
+            </div>
             <input v-model="eventForm.price" type="number" class="rounded-xl border border-slate-200 px-4 py-3"
               placeholder="Price" />
             <input v-model="eventForm.link" class="rounded-xl border border-slate-200 px-4 py-3" placeholder="Link" />
@@ -41,8 +47,13 @@
               class="rounded-xl border border-slate-200 px-4 py-3" placeholder="Rating" />
             <input v-model="eventForm.startDate" type="date" class="rounded-xl border border-slate-200 px-4 py-3" />
             <input v-model="eventForm.endDate" type="date" class="rounded-xl border border-slate-200 px-4 py-3" />
-            <input v-model="eventForm.imageArrayText" class="rounded-xl border border-slate-200 px-4 py-3"
-              placeholder="Image URLs (comma separated)" />
+            <div class="rounded-xl border border-slate-200 px-4 py-3">
+              <label class="mb-2 block text-sm font-semibold text-slate-700">Additional image files</label>
+              <input type="file" multiple accept="image/*" capture="environment"
+                @change="(event) => onImageArraySelected('event', event)"
+                class="block w-full text-sm text-slate-700 file:mr-3 file:rounded-lg file:border-0 file:bg-[#094b7b] file:px-3 file:py-2 file:font-semibold file:text-white" />
+              <p class="mt-2 text-xs text-slate-600">{{ eventImageArrayFiles.length }} image(s) selected</p>
+            </div>
             <input v-model="eventForm.slugArrayText" class="rounded-xl border border-slate-200 px-4 py-3"
               placeholder="Categories (comma separated)" />
             <input v-model="eventForm.openingHoursText" class="rounded-xl border border-slate-200 px-4 py-3"
@@ -58,8 +69,14 @@
           <template v-if="selectedType === 'attraction'">
             <input v-model="attractionForm.name" class="rounded-xl border border-slate-200 px-4 py-3"
               placeholder="Name" />
-            <input v-model="attractionForm.heroImage" class="rounded-xl border border-slate-200 px-4 py-3"
-              placeholder="Hero image URL" />
+            <div class="rounded-xl border border-slate-200 px-4 py-3">
+              <label class="mb-2 block text-sm font-semibold text-slate-700">Hero image file</label>
+              <input type="file" accept="image/*" capture="environment"
+                @change="(event) => onHeroImageSelected('attraction', event)"
+                class="block w-full text-sm text-slate-700 file:mr-3 file:rounded-lg file:border-0 file:bg-[#094b7b] file:px-3 file:py-2 file:font-semibold file:text-white" />
+              <p v-if="attractionHeroImageFile" class="mt-2 text-xs text-slate-600 break-all">Selected: {{
+                attractionHeroImageFile.name }}</p>
+            </div>
             <input v-model="attractionForm.price" type="number" class="rounded-xl border border-slate-200 px-4 py-3"
               placeholder="Price" />
             <input v-model="attractionForm.link" class="rounded-xl border border-slate-200 px-4 py-3"
@@ -68,8 +85,13 @@
               placeholder="GPS (lat,lng)" />
             <input v-model="attractionForm.rating" type="number" step="0.1"
               class="rounded-xl border border-slate-200 px-4 py-3" placeholder="Rating" />
-            <input v-model="attractionForm.imageArrayText" class="rounded-xl border border-slate-200 px-4 py-3"
-              placeholder="Image URLs (comma separated)" />
+            <div class="rounded-xl border border-slate-200 px-4 py-3">
+              <label class="mb-2 block text-sm font-semibold text-slate-700">Additional image files</label>
+              <input type="file" multiple accept="image/*" capture="environment"
+                @change="(event) => onImageArraySelected('attraction', event)"
+                class="block w-full text-sm text-slate-700 file:mr-3 file:rounded-lg file:border-0 file:bg-[#094b7b] file:px-3 file:py-2 file:font-semibold file:text-white" />
+              <p class="mt-2 text-xs text-slate-600">{{ attractionImageArrayFiles.length }} image(s) selected</p>
+            </div>
             <input v-model="attractionForm.slugArrayText" class="rounded-xl border border-slate-200 px-4 py-3"
               placeholder="Categories (comma separated)" />
             <input v-model="attractionForm.openingHoursText" class="rounded-xl border border-slate-200 px-4 py-3"
@@ -80,8 +102,14 @@
 
           <template v-if="selectedType === 'city'">
             <input v-model="cityForm.name" class="rounded-xl border border-slate-200 px-4 py-3" placeholder="Name" />
-            <input v-model="cityForm.heroImage" class="rounded-xl border border-slate-200 px-4 py-3"
-              placeholder="Hero image URL" />
+            <div class="rounded-xl border border-slate-200 px-4 py-3">
+              <label class="mb-2 block text-sm font-semibold text-slate-700">Hero image file</label>
+              <input type="file" accept="image/*" capture="environment"
+                @change="(event) => onHeroImageSelected('city', event)"
+                class="block w-full text-sm text-slate-700 file:mr-3 file:rounded-lg file:border-0 file:bg-[#094b7b] file:px-3 file:py-2 file:font-semibold file:text-white" />
+              <p v-if="cityHeroImageFile" class="mt-2 text-xs text-slate-600 break-all">Selected: {{
+                cityHeroImageFile.name }}</p>
+            </div>
             <input v-model="cityForm.commune" class="rounded-xl border border-slate-200 px-4 py-3"
               placeholder="Commune" />
             <input v-model="cityForm.region" class="rounded-xl border border-slate-200 px-4 py-3"
@@ -102,8 +130,8 @@
 
           <button type="submit"
             class="rounded-full bg-[#094b7b] px-6 py-3 text-sm font-semibold text-white sm:col-span-2"
-            :disabled="isSubmitting">
-            Save {{ selectedType }}
+            :disabled="isSubmitting || isUploadingImage">
+            {{ isUploadingImage ? "Uploading image..." : `Save ${selectedType}` }}
           </button>
         </form>
       </div>
@@ -167,13 +195,18 @@ const { title, description } = defineProps<{
 
 const selectedType = ref<ContentType>("event")
 const isSubmitting = ref(false)
+const isUploadingImage = ref(false)
 const message = ref("")
+
+const eventHeroImageFile = ref<File | null>(null)
+const attractionHeroImageFile = ref<File | null>(null)
+const cityHeroImageFile = ref<File | null>(null)
+const eventImageArrayFiles = ref<File[]>([])
+const attractionImageArrayFiles = ref<File[]>([])
 
 const eventForm = reactive({
   name: "",
   description: "",
-  heroImage: "",
-  imageArrayText: "",
   price: "",
   link: "",
   gpsPosition: "",
@@ -188,8 +221,6 @@ const eventForm = reactive({
 const attractionForm = reactive({
   name: "",
   description: "",
-  heroImage: "",
-  imageArrayText: "",
   price: "",
   link: "",
   gpsPosition: "",
@@ -201,7 +232,6 @@ const attractionForm = reactive({
 const cityForm = reactive({
   name: "",
   description: "",
-  heroImage: "",
   commune: "",
   region: "",
   country: "",
@@ -218,6 +248,80 @@ const splitList = (value: string) =>
     .filter(Boolean)
 
 const getAuthToken = () => localStorage.getItem("token")
+
+const uploadImageFile = async (file: File) => {
+  const token = getAuthToken()
+  const formData = new FormData()
+
+  formData.append("image", file)
+
+  const response = await fetch(`${API_BASE_URL}/upload/image`, {
+    method: "POST",
+    headers: {
+      ...(token ? { Authorization: `Bearer ${token}` } : {}),
+    },
+    body: formData,
+  })
+
+  if (!response.ok) {
+    const fallbackMessage = `Image upload failed: ${response.status}`
+
+    try {
+      const errorBody = await response.json()
+      const backendMessage =
+        typeof errorBody?.message === "string"
+          ? errorBody.message
+          : fallbackMessage
+      throw new Error(backendMessage)
+    } catch {
+      throw new Error(fallbackMessage)
+    }
+  }
+
+  const body = await response.json() as { imageUrl?: string }
+
+  if (!body.imageUrl) {
+    throw new Error("Image upload returned no image URL")
+  }
+
+  return body.imageUrl
+}
+
+const onHeroImageSelected = (contentType: ContentType, event: Event) => {
+  const target = event.target as HTMLInputElement | null
+  const file = target?.files?.[0]
+
+  if (!file) {
+    return
+  }
+
+  if (contentType === "event") {
+    eventHeroImageFile.value = file
+  } else if (contentType === "attraction") {
+    attractionHeroImageFile.value = file
+  } else {
+    cityHeroImageFile.value = file
+  }
+
+  message.value = ""
+}
+
+const onImageArraySelected = (contentType: "event" | "attraction", event: Event) => {
+  const target = event.target as HTMLInputElement | null
+  const files = target?.files ? Array.from(target.files) : []
+
+  if (!files.length) {
+    return
+  }
+
+  if (contentType === "event") {
+    eventImageArrayFiles.value = files
+  } else {
+    attractionImageArrayFiles.value = files
+  }
+
+  message.value = ""
+}
 
 const postJson = async <T>(url: string, body: T) => {
   const token = getAuthToken()
@@ -250,11 +354,20 @@ const postJson = async <T>(url: string, body: T) => {
 }
 
 const submitEvent = async () => {
+  if (!eventHeroImageFile.value) {
+    throw new Error("Please upload an image for this event.")
+  }
+
+  isUploadingImage.value = true
+
+  const heroImage = await uploadImageFile(eventHeroImageFile.value)
+  const imageArray = await Promise.all(eventImageArrayFiles.value.map((file) => uploadImageFile(file)))
+
   const payload: EventPayload = {
     name: eventForm.name,
     description: eventForm.description,
-    heroImage: eventForm.heroImage,
-    imageArray: splitList(eventForm.imageArrayText),
+    heroImage,
+    imageArray,
     price: Number(eventForm.price) || 0,
     link: eventForm.link,
     gpsPosition: eventForm.gpsPosition,
@@ -273,11 +386,22 @@ const submitAttraction = async () => {
     throw new Error("You must be logged in to create an attraction.")
   }
 
+  if (!attractionHeroImageFile.value) {
+    throw new Error("Please upload an image for this attraction.")
+  }
+
+  isUploadingImage.value = true
+
+  const heroImage = await uploadImageFile(attractionHeroImageFile.value)
+  const imageArray = await Promise.all(
+    attractionImageArrayFiles.value.map((file) => uploadImageFile(file)),
+  )
+
   const payload: AttractionPayload = {
     name: attractionForm.name,
     description: attractionForm.description,
-    heroImage: attractionForm.heroImage,
-    imageArray: splitList(attractionForm.imageArrayText),
+    heroImage,
+    imageArray,
     price: Number(attractionForm.price) || 0,
     link: attractionForm.link,
     gpsPosition: attractionForm.gpsPosition,
@@ -289,10 +413,18 @@ const submitAttraction = async () => {
 }
 
 const submitCity = async () => {
+  if (!cityHeroImageFile.value) {
+    throw new Error("Please upload an image for this city.")
+  }
+
+  isUploadingImage.value = true
+
+  const heroImage = await uploadImageFile(cityHeroImageFile.value)
+
   const payload: CityPayload = {
     name: cityForm.name,
     description: cityForm.description,
-    heroImage: cityForm.heroImage,
+    heroImage,
     commune: cityForm.commune,
     region: cityForm.region,
     country: cityForm.country,
@@ -321,6 +453,7 @@ const submitSelected = async () => {
   } catch (error) {
     message.value = error instanceof Error ? error.message : "Save failed."
   } finally {
+    isUploadingImage.value = false
     isSubmitting.value = false
   }
 }
