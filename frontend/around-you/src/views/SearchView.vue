@@ -27,22 +27,8 @@
                                 class="rounded-2xl bg-rose-50 p-6 text-sm font-semibold text-rose-700">
                                 {{ errorMessage }}
                             </div>
-                            <div v-else class="grid gap-6 sm:grid-cols-2">
-                                <article v-for="item in filteredResults" :key="item.id"
-                                    class="rounded-3xl bg-slate-50 p-4 shadow-sm transition hover:-translate-y-1 hover:shadow-md">
-                                    <div class="h-40 rounded-2xl bg-cover bg-center"
-                                        :style="{ backgroundImage: `url(${item.image})` }" />
-                                    <div class="mt-4 space-y-2">
-                                        <div
-                                            class="flex items-center justify-between text-xs font-semibold uppercase tracking-wide text-slate-400">
-                                            <span>{{ item.type }}</span>
-                                            <span>{{ item.location }}</span>
-                                        </div>
-                                        <h3 class="text-base font-semibold text-slate-900">
-                                            {{ item.title }}
-                                        </h3>
-                                    </div>
-                                </article>
+                            <div v-else class="grid gap-4 sm:grid-cols-2 xl:grid-cols-2">
+                                <AttractionCard v-for="card in searchCards" :key="card.id" :card="card" />
                             </div>
                         </div>
                     </div>
@@ -52,9 +38,11 @@
     </main>
 </template>
 <script setup lang="ts">
-import { ref } from "vue"
+import { computed, ref } from "vue"
+import AttractionCard from "@/components/AttractionCard.vue"
 import SearchFilter from "@/components/SearchFilter.vue"
 import { useSearchResults } from "@/composables/useSearchResults"
+import type { ExperienceCard } from "@/types/attractions"
 import type { SearchFilters } from "@/types/search"
 
 const filters = ref<SearchFilters>({
@@ -71,4 +59,17 @@ const {
     isLoading,
     errorMessage,
 } = useSearchResults(filters)
+
+const searchCards = computed<ExperienceCard[]>(() => {
+    return filteredResults.value.map((item) => ({
+        id: item.id,
+        name: item.title,
+        description: item.description,
+        image: item.image,
+        rating: item.rating,
+        reviews: item.reviews,
+        tags: [item.type, item.location, ...item.categories].filter(Boolean),
+        metaText: item.date || item.location,
+    }))
+})
 </script>

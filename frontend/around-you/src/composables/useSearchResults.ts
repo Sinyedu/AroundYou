@@ -74,6 +74,7 @@ const mapEvent = (event: ApiEvent, cities: City[]): SearchResult => {
   return {
     id: event._id,
     title: event.name,
+    description: event.description,
     location: getNearestCityName(event.gpsPosition, cities),
     type: 'event',
     date: toDateOnly(event.startDate),
@@ -88,6 +89,7 @@ const mapAttraction = (attraction: ApiAttraction, cities: City[]): SearchResult 
   return {
     id: attraction._id,
     title: attraction.name,
+    description: attraction.description,
     location: getNearestCityName(attraction.gpsPosition, cities),
     type: 'attraction',
     date: toDateOnly(attraction.updateAt),
