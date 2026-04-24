@@ -30,16 +30,16 @@ jobs:
 
       - run: npm ci
 
-      - name: 🔍 Type check
+      - name: Type check
         run: npm run type-check
 
       # - name: 🧹 Lint
       #   run: npm run lint
 
-      - name: 🧪 Run tests
+      - name: Run tests
         run: npm run test
 
-      - name: 📊 Coverage (PR only)
+      - name: Coverage (PR only)
         if: github.event_name == 'pull_request'
         run: npm run test:coverage
 
@@ -58,5 +58,5 @@ jobs:
 
       - run: npm ci
 
-      - name: 🏗️ Build project
+      - name: Build project
         run: npm run build
