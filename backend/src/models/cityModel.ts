@@ -11,7 +11,7 @@ const citySchema = new Schema<City>({
   gpsPosition: { type: String, required: true },
   population: { type: Number, required: true, min: 0 },
   visitorCenter: { type: String, required: true },
-  rating: { type: Number, required: true, min: 0, max: 5, default: 0 },
+  rating: { type: Number, min: 0, max: 5, default: 0 },
 });
 
 export const CityModel = model<City>("City", citySchema);

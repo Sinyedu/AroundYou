@@ -7,7 +7,7 @@ export interface Attraction extends Document {
     price: number;
     link: string;
     gpsPosition: string;
-    rating: number;
+    rating?: number;
     slugArray: string[];
     updateAt: Date;
     openingHours: string[];

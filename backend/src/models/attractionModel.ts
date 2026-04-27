@@ -9,7 +9,7 @@ const attractionSchema = new Schema<Attraction>({
   price: { type: Number, required: true, min: 0 },
   link: { type: String, required: true },
   gpsPosition: { type: String, required: true },
-  rating: { type: Number, required: true, min: 0, max: 5, default: 0 },
+  rating: { type: Number, min: 0, max: 5, default: 0 },
   slugArray: { type: [String], default: [] },
   updateAt: { type: Date, default: Date.now },
   openingHours: { type: [String], default: [] },

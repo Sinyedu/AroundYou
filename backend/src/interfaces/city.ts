@@ -9,5 +9,5 @@ export interface City extends Document {
   gpsPosition: string;
   population: number;
   visitorCenter: string;
-  rating: number;
+  rating?: number;
 }
