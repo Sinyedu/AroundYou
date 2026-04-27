@@ -33,8 +33,9 @@
                         </div>
                         <aside class="hidden lg:block">
                             <div class="sticky top-24 rounded-2xl bg-white p-3 shadow-sm">
-                                <LocationMap :show-location-button="false" :show-user-marker="false" :center="selectedCityCenter"
-                                    :markers="mapMarkers" map-class="h-[520px] w-full rounded-xl" />
+                                <LocationMap :show-location-button="false" :show-user-marker="false"
+                                    :center="selectedCityCenter" :markers="mapMarkers"
+                                    map-class="h-[520px] w-full rounded-xl" />
                             </div>
                         </aside>
                     </div>
