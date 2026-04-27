@@ -76,6 +76,7 @@ const mapEvent = (event: ApiEvent, cities: City[]): SearchResult => {
     title: event.name,
     description: event.description,
     location: getNearestCityName(event.gpsPosition, cities),
+    coordinates: parseGpsPosition(event.gpsPosition),
     type: 'event',
     date: toDateOnly(event.startDate),
     rating: event.rating ?? 0,
@@ -91,6 +92,7 @@ const mapAttraction = (attraction: ApiAttraction, cities: City[]): SearchResult 
     title: attraction.name,
     description: attraction.description,
     location: getNearestCityName(attraction.gpsPosition, cities),
+    coordinates: parseGpsPosition(attraction.gpsPosition),
     type: 'attraction',
     date: toDateOnly(attraction.updateAt),
     rating: attraction.rating ?? 0,
@@ -102,6 +104,7 @@ const mapAttraction = (attraction: ApiAttraction, cities: City[]): SearchResult 
 
 export const useSearchResults = (filters: Ref<SearchFilters>) => {
   const results = ref<SearchResult[]>([])
+  const cityCoordinates = ref<Record<string, Coordinates>>({})
   const isLoading = ref(true)
   const errorMessage = ref('')
 
@@ -115,6 +118,20 @@ export const useSearchResults = (filters: Ref<SearchFilters>) => {
         fetchAttractions(),
         fetchCities(),
       ])
+
+      cityCoordinates.value = cities.reduce<Record<string, Coordinates>>((accumulator, city) => {
+        if (!city.name) {
+          return accumulator
+        }
+
+        const parsed = parseGpsPosition(city.gpsPosition)
+        if (!parsed) {
+          return accumulator
+        }
+
+        accumulator[city.name.toLowerCase()] = parsed
+        return accumulator
+      }, {})
 
       results.value = [
         ...events.map((event) => mapEvent(event, cities)),
@@ -165,6 +182,7 @@ export const useSearchResults = (filters: Ref<SearchFilters>) => {
   return {
     results,
     filteredResults,
+    cityCoordinates,
     locationOptions,
     categoryOptions,
     isLoading,

@@ -31,6 +31,12 @@
                                 <AttractionCard v-for="card in searchCards" :key="card.id" :card="card" />
                             </div>
                         </div>
+                        <aside class="hidden lg:block">
+                            <div class="sticky top-24 rounded-2xl bg-white p-3 shadow-sm">
+                                <LocationMap :show-location-button="false" :show-user-marker="false" :center="selectedCityCenter"
+                                    :markers="mapMarkers" map-class="h-[520px] w-full rounded-xl" />
+                            </div>
+                        </aside>
                     </div>
                 </div>
             </div>
@@ -40,9 +46,11 @@
 <script setup lang="ts">
 import { computed, ref } from "vue"
 import AttractionCard from "@/components/AttractionCard.vue"
+import LocationMap from "@/components/LocationMap.vue"
 import SearchFilter from "@/components/SearchFilter.vue"
 import { useSearchResults } from "@/composables/useSearchResults"
 import type { ExperienceCard } from "@/types/attractions"
+import type { Coordinates as MapCoordinates } from "@/types/coordinates"
 import type { SearchFilters } from "@/types/search"
 
 const filters = ref<SearchFilters>({
@@ -54,11 +62,43 @@ const filters = ref<SearchFilters>({
 
 const {
     filteredResults,
+    cityCoordinates,
     locationOptions,
     categoryOptions,
     isLoading,
     errorMessage,
 } = useSearchResults(filters)
+
+const selectedCityCenter = computed<MapCoordinates | null>(() => {
+    const selectedLocation = filters.value.location.trim().toLowerCase()
+
+    if (!selectedLocation) {
+        return null
+    }
+
+    const city = cityCoordinates.value[selectedLocation]
+
+    if (!city) {
+        return null
+    }
+
+    return {
+        latitude: city.lat,
+        longitude: city.lng,
+    }
+})
+
+const mapMarkers = computed(() => {
+    return filteredResults.value
+        .filter((item) => item.coordinates)
+        .map((item) => ({
+            id: item.id,
+            title: item.title,
+            type: item.type,
+            latitude: item.coordinates!.lat,
+            longitude: item.coordinates!.lng,
+        }))
+})
 
 const searchCards = computed<ExperienceCard[]>(() => {
     return filteredResults.value.map((item) => ({

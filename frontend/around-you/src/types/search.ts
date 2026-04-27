@@ -1,4 +1,4 @@
- export type SearchFilters = {
+export type SearchFilters = {
   location: string
   type: 'all' | 'event' | 'attraction'
   date: string
@@ -10,6 +10,7 @@ export type SearchResult = {
   title: string
   description: string
   location: string
+  coordinates: Coordinates | null
   type: 'event' | 'attraction'
   date: string
   rating: number

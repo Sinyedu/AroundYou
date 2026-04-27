@@ -187,9 +187,30 @@ const draft = reactive<SearchFilters>({
 
 let isSyncingFromParent = false
 
+const hasSameFilters = (first: SearchFilters, second: SearchFilters) => {
+    return (
+        first.location === second.location &&
+        first.type === second.type &&
+        first.date === second.date &&
+        first.categories.length === second.categories.length &&
+        first.categories.every((category, index) => category === second.categories[index])
+    )
+}
+
 watch(
     () => props.modelValue,
     (value) => {
+        if (
+            hasSameFilters(value, {
+                location: draft.location,
+                type: draft.type,
+                date: draft.date,
+                categories: draft.categories,
+            })
+        ) {
+            return
+        }
+
         isSyncingFromParent = true
         draft.location = value.location
         draft.type = value.type
@@ -206,12 +227,19 @@ watch(
         if (isSyncingFromParent) {
             return
         }
-        emit("update:modelValue", {
+
+        const nextValue: SearchFilters = {
             location: draft.location,
             type: draft.type,
             date: draft.date,
             categories: [...draft.categories],
-        })
+        }
+
+        if (hasSameFilters(nextValue, props.modelValue)) {
+            return
+        }
+
+        emit("update:modelValue", nextValue)
     },
     { deep: true }
 )
