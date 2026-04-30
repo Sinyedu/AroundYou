@@ -6,6 +6,7 @@ import Joi, { ValidationResult } from "joi";
 import { UserModel } from "../models/userModel";
 import { User } from "../interfaces/user";
 import { getEffectivePermissions } from "../utils/accessControl";
+import { pickTrimmedStringFields } from "../utils/stringFields";
 
 /**
  * REGISTER USER
@@ -190,32 +191,18 @@ export async function updateMe(req: Request, res: Response): Promise<void> {
       return;
     }
 
-    const {
-      userName,
-      email,
-      firstName,
-      lastName,
-      userAvatar,
-      country,
-      city,
-      street,
-      streetNumber,
-      postalCode,
-    } = req.body as Record<string, unknown>;
-
-    const updates: Record<string, unknown> = {};
-
-    if (typeof userName === "string") updates.userName = userName.trim();
-    if (typeof email === "string") updates.email = email.trim();
-    if (typeof firstName === "string") updates.firstName = firstName.trim();
-    if (typeof lastName === "string") updates.lastName = lastName.trim();
-    if (typeof userAvatar === "string") updates.userAvatar = userAvatar.trim();
-    if (typeof country === "string") updates.country = country.trim();
-    if (typeof city === "string") updates.city = city.trim();
-    if (typeof street === "string") updates.street = street.trim();
-    if (typeof streetNumber === "string")
-      updates.streetNumber = streetNumber.trim();
-    if (typeof postalCode === "string") updates.postalCode = postalCode.trim();
+    const updates = pickTrimmedStringFields(req.body as Record<string, unknown>, [
+      "userName",
+      "email",
+      "firstName",
+      "lastName",
+      "userAvatar",
+      "country",
+      "city",
+      "street",
+      "streetNumber",
+      "postalCode",
+    ]);
 
     const updatedUser = await UserModel.findByIdAndUpdate(userID, updates, {
       new: true,

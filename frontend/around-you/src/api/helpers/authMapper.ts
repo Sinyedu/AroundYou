@@ -1,5 +1,6 @@
 import type { User } from '@/types/user'
 import { USER_PERMISSIONS, USER_ROLES } from '@/types/access-control'
+import { optionalString } from './stringFields'
 
 function isUserRole(value: unknown): value is User['role'] {
   return typeof value === 'string' && USER_ROLES.includes(value as User['role'])
@@ -30,9 +31,9 @@ export function toAuthenticatedUser(payload: unknown): User | null {
   return {
     userName,
     email,
-    firstName: typeof rawUser.firstName === 'string' ? rawUser.firstName : undefined,
-    lastName: typeof rawUser.lastName === 'string' ? rawUser.lastName : undefined,
-    userAvatar: typeof rawUser.userAvatar === 'string' ? rawUser.userAvatar : undefined,
+    firstName: optionalString(rawUser, 'firstName'),
+    lastName: optionalString(rawUser, 'lastName'),
+    userAvatar: optionalString(rawUser, 'userAvatar'),
     role,
     permissions: toUserPermissions(rawUser.permissions),
   }
