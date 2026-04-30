@@ -28,7 +28,28 @@
                                 {{ errorMessage }}
                             </div>
                             <div v-else class="grid gap-4 sm:grid-cols-2 xl:grid-cols-2">
-                                <AttractionCard v-for="card in searchCards" :key="card.id" :card="card" />
+                                <template v-for="item in filteredResults" :key="item.id">
+                                    <CityCard v-if="item.type === 'city'" :card="{
+                                        id: item.id,
+                                        name: item.title,
+                                        description: item.description,
+                                        image: item.image,
+                                        rating: item.rating,
+                                        reviews: item.reviews,
+                                        tags: [item.type, item.location, ...item.categories].filter(Boolean),
+                                        metaText: item.date || item.location,
+                                    }" />
+                                    <AttractionCard v-else :card="{
+                                        id: item.id,
+                                        name: item.title,
+                                        description: item.description,
+                                        image: item.image,
+                                        rating: item.rating,
+                                        reviews: item.reviews,
+                                        tags: [item.type, item.location, ...item.categories].filter(Boolean),
+                                        metaText: item.date || item.location,
+                                    }" />
+                                </template>
                             </div>
                         </div>
                         <aside class="hidden lg:block">
@@ -47,6 +68,7 @@
 <script setup lang="ts">
 import { computed, ref } from "vue"
 import AttractionCard from "@/components/AttractionCard.vue"
+import CityCard from "@/components/CityCard.vue"
 import LocationMap from "@/components/LocationMap.vue"
 import SearchFilter from "@/components/SearchFilter.vue"
 import { useSearchResults } from "@/composables/useSearchResults"

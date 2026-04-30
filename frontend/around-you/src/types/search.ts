@@ -1,6 +1,6 @@
 export type SearchFilters = {
   location: string
-  type: 'all' | 'event' | 'attraction'
+  type: 'all' | 'event' | 'attraction' | 'city'
   date: string
   categories: string[]
 }
@@ -11,7 +11,7 @@ export type SearchResult = {
   description: string
   location: string
   coordinates: Coordinates | null
-  type: 'event' | 'attraction'
+  type: 'event' | 'attraction' | 'city'
   date: string
   rating: number
   reviews: number
@@ -44,7 +44,10 @@ export type ApiAttraction = {
 export type City = {
   _id: string
   name?: string
+  description?: string
+  heroImage?: string
   gpsPosition: string
+  rating?: number
 }
 
 export type Coordinates = {

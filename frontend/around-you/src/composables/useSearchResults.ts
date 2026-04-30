@@ -102,6 +102,22 @@ const mapAttraction = (attraction: ApiAttraction, cities: City[]): SearchResult 
   }
 }
 
+const mapCity = (city: City): SearchResult => {
+  return {
+    id: city._id,
+    title: city.name || 'Ukendt',
+    description: city.description || '',
+    location: city.name || 'Ukendt',
+    coordinates: parseGpsPosition(city.gpsPosition),
+    type: 'city',
+    date: '',
+    rating: city.rating ?? 0,
+    reviews: 0,
+    image: city.heroImage || '',
+    categories: [],
+  }
+}
+
 export const useSearchResults = (filters: Ref<SearchFilters>) => {
   const results = ref<SearchResult[]>([])
   const cityCoordinates = ref<Record<string, Coordinates>>({})
@@ -136,6 +152,7 @@ export const useSearchResults = (filters: Ref<SearchFilters>) => {
       results.value = [
         ...events.map((event) => mapEvent(event, cities)),
         ...attractions.map((attraction) => mapAttraction(attraction, cities)),
+        ...cities.map((city) => mapCity(city)),
       ]
     } catch (error) {
       const message = error instanceof Error ? error.message : 'Unexpected error.'
