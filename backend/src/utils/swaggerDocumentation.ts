@@ -22,15 +22,15 @@ export function setupDocs(app: Application) {
     ],
     security: [
       {
-        ApiKeyAuth: []
-      }
+        bearerAuth: [],
+      },
     ],
     components: {
       securitySchemes: {
-        ApiKeyAuth: {
-          type: "apiKey",
-          in: "header",
-          name: "auth-token",
+        bearerAuth: {
+          type: "http",
+          scheme: "bearer",
+          bearerFormat: "JWT",
         },
       },
       schemas: {

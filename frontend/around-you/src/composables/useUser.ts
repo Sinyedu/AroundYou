@@ -1,5 +1,6 @@
 import { ref } from 'vue'
-import { getUserProfile, updateUserProfile, type User } from '@/api/user'
+import { getUserProfile, updateUserProfile, type UserProfileUpdate } from '@/api/user'
+import type { User } from '@/types/user'
 
 const user = ref<User | null>(null)
 const loading = ref(false)
@@ -19,8 +20,8 @@ export const useUser = () => {
 
     try {
       user.value = await getUserProfile(token)
-    } catch (err: any) {
-      error.value = err.message
+    } catch (err: unknown) {
+      error.value = err instanceof Error ? err.message : 'Unknown error'
     } finally {
       loading.value = false
     }
@@ -35,9 +36,16 @@ export const useUser = () => {
     error.value = null
 
     try {
-      user.value = await updateUserProfile(token, user.value)
-    } catch (err: any) {
-      error.value = err.message
+      const updates: UserProfileUpdate = {
+        userName: user.value.userName,
+        email: user.value.email,
+        firstName: user.value.firstName,
+        lastName: user.value.lastName,
+        userAvatar: user.value.userAvatar,
+      }
+      user.value = await updateUserProfile(token, updates)
+    } catch (err: unknown) {
+      error.value = err instanceof Error ? err.message : 'Unknown error'
     } finally {
       loading.value = false
     }

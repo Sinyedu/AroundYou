@@ -36,9 +36,14 @@ import {
   getReviewByQuery,
   getReviewByGenericQuery,
 } from "../controllers/reviewController";
-import { getCurrentUser } from "../controllers/userController";
-import { loginUser, registerUser } from "../controllers/authController";
+import {
+  getMe,
+  loginUser,
+  registerUser,
+  updateMe,
+} from "../controllers/authController";
 import { verifyToken } from "../middleware/verifyUserToken";
+import { requirePermission } from "../middleware/requirePermission";
 
 const router: Router = Router();
 
@@ -113,8 +118,8 @@ router.post("/user/register", registerUser);
  *       200:
  *         description: Login successful
  *         headers:
- *           auth-token:
- *             description: JWT authentication token
+ *           Authorization:
+ *             description: JWT authentication token in Bearer format
  *             schema:
  *               type: string
  *         content:
@@ -175,12 +180,9 @@ router.post("/user/login", loginUser);
 router.get(
   "/user/me",
   verifyToken,
-  (req, res, next) => {
-    console.log("MIDDLEWARE PASSED");
-    next();
-  },
-  getCurrentUser,
+  getMe,
 );
+router.put("/user/me", verifyToken, updateMe);
 
 // ATTRACTION ROUTES
 // CREATE ATTRACTION
@@ -214,7 +216,12 @@ router.get(
  *       500:
  *         description: Server error
  */
-router.post("/attractions", verifyToken, createAttraction);
+router.post(
+  "/attractions",
+  verifyToken,
+  requirePermission("attraction:create"),
+  createAttraction,
+);
 
 // GET ALL ATTRACTIONS
 /**
@@ -307,7 +314,12 @@ router.get("/attractions/:id", getAttractionById);
  *       500:
  *         description: Server error
  */
-router.put("/attractions/:id", updateAttractionById);
+router.put(
+  "/attractions/:id",
+  verifyToken,
+  requirePermission("attraction:update"),
+  updateAttractionById,
+);
 
 // DELETE ATTRACTION BY ID
 /**
@@ -335,7 +347,12 @@ router.put("/attractions/:id", updateAttractionById);
  *       500:
  *         description: Server error
  */
-router.delete("/attractions/:id", deleteAttractionById);
+router.delete(
+  "/attractions/:id",
+  verifyToken,
+  requirePermission("attraction:delete"),
+  deleteAttractionById,
+);
 
 // GET ATTRACTION BY QUERY
 /**
@@ -446,7 +463,12 @@ router.post("/attractions/query", verifyToken, getAttractionsByQueryGeneric);
  *       500:
  *         description: Server error
  */
-router.post("/events", createEvent);
+router.post(
+  "/events",
+  verifyToken,
+  requirePermission("event:create"),
+  createEvent,
+);
 
 // GET ALL EVENTS
 /**
@@ -539,7 +561,12 @@ router.get("/events/:id", getEventById);
  *       500:
  *         description: Server error
  */
-router.put("/events/:id", updateEventById);
+router.put(
+  "/events/:id",
+  verifyToken,
+  requirePermission("event:update"),
+  updateEventById,
+);
 
 // DELETE EVENT BY ID
 /**
@@ -567,7 +594,12 @@ router.put("/events/:id", updateEventById);
  *       500:
  *         description: Server error
  */
-router.delete("/events/:id", deleteEventById);
+router.delete(
+  "/events/:id",
+  verifyToken,
+  requirePermission("event:delete"),
+  deleteEventById,
+);
 
 // GET EVENT BY QUERY
 /**
@@ -675,7 +707,7 @@ router.post("/events/query", verifyToken, getEventByGenericQuery);
  *       500:
  *         description: Server error
  */
-router.post("/city", createCity);
+router.post("/city", verifyToken, requirePermission("city:create"), createCity);
 
 // GET ALL CITIES
 /**
@@ -768,7 +800,12 @@ router.get("/city/:id", getCityById);
  *       500:
  *         description: Server error
  */
-router.put("/city/:id", updateCityById);
+router.put(
+  "/city/:id",
+  verifyToken,
+  requirePermission("city:update"),
+  updateCityById,
+);
 
 // DELETE CITY BY ID
 /**
@@ -796,7 +833,12 @@ router.put("/city/:id", updateCityById);
  *       500:
  *         description: Server error
  */
-router.delete("/city/:id", deleteCityById);
+router.delete(
+  "/city/:id",
+  verifyToken,
+  requirePermission("city:delete"),
+  deleteCityById,
+);
 
 // GET CITY BY QUERY
 /**
@@ -904,7 +946,12 @@ router.post("/city/query", verifyToken, getCityByGenericQuery);
  *       500:
  *         description: Server error
  */
-router.post("/reviews", createReview);
+router.post(
+  "/reviews",
+  verifyToken,
+  requirePermission("review:create"),
+  createReview,
+);
 
 // GET ALL REVIEWS
 /**
@@ -997,7 +1044,12 @@ router.get("/reviews/:id", getReviewById);
  *       500:
  *         description: Server error
  */
-router.put("/reviews/:id", updateReviewById);
+router.put(
+  "/reviews/:id",
+  verifyToken,
+  requirePermission("review:update"),
+  updateReviewById,
+);
 
 // DELETE REVIEW BY ID
 /**
@@ -1025,7 +1077,12 @@ router.put("/reviews/:id", updateReviewById);
  *       500:
  *         description: Server error
  */
-router.delete("/reviews/:id", deleteReviewById);
+router.delete(
+  "/reviews/:id",
+  verifyToken,
+  requirePermission("review:delete"),
+  deleteReviewById,
+);
 
 // GET REVIEW BY QUERY
 /**

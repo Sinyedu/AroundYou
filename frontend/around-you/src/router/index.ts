@@ -2,7 +2,7 @@ import { createRouter, createWebHistory } from 'vue-router'
 import HomeView from '../views/HomeView.vue'
 import AdminView from '../views/AdminView.vue'
 import ContentPlaceholderView from '../views/ContentPlaceholderView.vue'
-import { hasAdminAccess } from '@/utils/auth'
+import { useAuthService } from '@/api/authService'
 
 const router = createRouter({
   history: createWebHistory(import.meta.env.BASE_URL),
@@ -21,12 +21,14 @@ const router = createRouter({
       path: '/user/user-profile',
       name: 'user-profile',
       component: () => import('../views/UserProfileView.vue'),
+      meta: { requiresAuth: true },
     },
 
     {
       path: '/create',
       name: 'create',
       component: ContentPlaceholderView,
+      meta: { requiresAuth: true },
       props: {
         title: 'Tilføj nye oplevelser',
         description: 'Opret attraktioner, events eller lokationer.',
@@ -43,6 +45,7 @@ const router = createRouter({
       path: '/settings',
       name: 'settings',
       component: ContentPlaceholderView,
+      meta: { requiresAuth: true },
     },
 
     {
@@ -60,8 +63,19 @@ const router = createRouter({
   ],
 })
 
-router.beforeEach((to) => {
-  if (to.meta.requiresAdmin && !hasAdminAccess()) {
+router.beforeEach(async (to) => {
+  const auth = useAuthService()
+
+  if (!to.meta.requiresAuth && !to.meta.requiresAdmin) {
+    return true
+  }
+
+  const isValidSession = await auth.checkSession()
+  if (!isValidSession) {
+    return { name: 'login' }
+  }
+
+  if (to.meta.requiresAdmin && !auth.isAdmin.value) {
     return { name: 'home' }
   }
 

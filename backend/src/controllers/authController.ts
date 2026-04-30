@@ -5,6 +5,7 @@ import Joi, { ValidationResult } from "joi";
 
 import { UserModel } from "../models/userModel";
 import { User } from "../interfaces/user";
+import { getEffectivePermissions } from "../utils/accessControl";
 
 /**
  * REGISTER USER
@@ -49,7 +50,7 @@ export async function registerUser(req: Request, res: Response): Promise<void> {
     res.status(201).json({
       error: null,
       data: {
-        userId: savedUser._id,
+        userName: savedUser.userName,
       },
     });
   } catch (err) {
@@ -95,6 +96,8 @@ export async function loginUser(req: Request, res: Response): Promise<void> {
         email: user.email,
         firstName: user.firstName,
         lastName: user.lastName,
+        role: user.role,
+        permissions: getEffectivePermissions(user.role, user.permissions),
       },
       process.env.TOKEN_SECRET as string,
       { expiresIn: "1h" },
@@ -103,9 +106,13 @@ export async function loginUser(req: Request, res: Response): Promise<void> {
     res.status(200).json({
       token,
       user: {
-        id: user._id,
         userName: user.userName,
         email: user.email,
+        firstName: user.firstName,
+        lastName: user.lastName,
+        userAvatar: user.userAvatar,
+        role: user.role,
+        permissions: getEffectivePermissions(user.role, user.permissions),
       },
     });
   } catch (err) {
@@ -160,15 +167,80 @@ export async function getMe(req: Request, res: Response): Promise<void> {
     }
 
     res.status(200).json({
-      id: user._id,
       userName: user.userName,
       email: user.email,
       firstName: user.firstName,
       lastName: user.lastName,
       userAvatar: user.userAvatar,
+      role: user.role,
+      permissions: getEffectivePermissions(user.role, user.permissions),
     });
   } catch (err) {
     console.error("GetMe error:", err);
+    res.status(500).json({ error: "Internal server error" });
+  }
+}
+
+export async function updateMe(req: Request, res: Response): Promise<void> {
+  try {
+    const userID = req.user?.userID;
+
+    if (!userID) {
+      res.status(401).json({ error: "Unauthorized" });
+      return;
+    }
+
+    const {
+      userName,
+      email,
+      firstName,
+      lastName,
+      userAvatar,
+      country,
+      city,
+      street,
+      streetNumber,
+      postalCode,
+    } = req.body as Record<string, unknown>;
+
+    const updates: Record<string, unknown> = {};
+
+    if (typeof userName === "string") updates.userName = userName.trim();
+    if (typeof email === "string") updates.email = email.trim();
+    if (typeof firstName === "string") updates.firstName = firstName.trim();
+    if (typeof lastName === "string") updates.lastName = lastName.trim();
+    if (typeof userAvatar === "string") updates.userAvatar = userAvatar.trim();
+    if (typeof country === "string") updates.country = country.trim();
+    if (typeof city === "string") updates.city = city.trim();
+    if (typeof street === "string") updates.street = street.trim();
+    if (typeof streetNumber === "string")
+      updates.streetNumber = streetNumber.trim();
+    if (typeof postalCode === "string") updates.postalCode = postalCode.trim();
+
+    const updatedUser = await UserModel.findByIdAndUpdate(userID, updates, {
+      new: true,
+      runValidators: true,
+    }).select("userName email firstName lastName userAvatar role permissions");
+
+    if (!updatedUser) {
+      res.status(404).json({ error: "User not found" });
+      return;
+    }
+
+    res.status(200).json({
+      userName: updatedUser.userName,
+      email: updatedUser.email,
+      firstName: updatedUser.firstName,
+      lastName: updatedUser.lastName,
+      userAvatar: updatedUser.userAvatar,
+      role: updatedUser.role,
+      permissions: getEffectivePermissions(
+        updatedUser.role,
+        updatedUser.permissions,
+      ),
+    });
+  } catch (err) {
+    console.error("UpdateMe error:", err);
     res.status(500).json({ error: "Internal server error" });
   }
 }

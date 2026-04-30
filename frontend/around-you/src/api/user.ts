@@ -1,16 +1,12 @@
+import type { User } from '@/types/user'
 const API_URL = 'http://localhost:4000/api/user'
 
-export type User = {
-  id: string
-  userName: string
-  email: string
-  firstName?: string
-  lastName?: string
-  userAvatar?: string
-}
+export type UserProfileUpdate = Partial<
+  Pick<User, 'userName' | 'email' | 'firstName' | 'lastName' | 'userAvatar'>
+>
 
-export const getUserProfile = async (token: string) => {
-  const res = await fetch('http://localhost:4000/api/user/me', {
+export const getUserProfile = async (token: string): Promise<User> => {
+  const res = await fetch(`${API_URL}/me`, {
     method: 'GET',
     headers: {
       Authorization: `Bearer ${token}`,
@@ -22,10 +18,13 @@ export const getUserProfile = async (token: string) => {
     throw new Error('Unauthorized / Failed fetching user')
   }
 
-  return res.json()
+  return (await res.json()) as User
 }
 
-export const updateUserProfile = async (token: string, user: User): Promise<User> => {
+export const updateUserProfile = async (
+  token: string,
+  user: UserProfileUpdate,
+): Promise<User> => {
   const res = await fetch(`${API_URL}/me`, {
     method: 'PUT',
     headers: {

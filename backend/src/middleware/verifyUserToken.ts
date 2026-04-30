@@ -1,12 +1,18 @@
 import { Request, Response, NextFunction } from "express";
 import jwt from "jsonwebtoken";
 import { JwtUser } from "../types/auth";
+import { UserModel } from "../models/userModel";
+import {
+  getEffectivePermissions,
+  normalizePermissions,
+  normalizeRole,
+} from "../utils/accessControl";
 
-export function verifyToken(
+export async function verifyToken(
   req: Request,
   res: Response,
   next: NextFunction,
-): void {
+): Promise<void> {
   const authHeader = req.headers.authorization;
 
   if (!authHeader?.startsWith("Bearer ")) {
@@ -24,13 +30,34 @@ export function verifyToken(
       return;
     }
 
-    req.user = decoded as JwtUser;
+    const payload = decoded as JwtUser;
+    const user = await UserModel.findById(payload.userID).select(
+      "userName email firstName lastName role permissions isRestricted",
+    );
 
-    console.log("✔ USER SET:", req.user);
+    if (!user || user.isRestricted) {
+      res.status(401).json({ message: "Unauthorized" });
+      return;
+    }
+
+    const role = normalizeRole(user.role);
+    const permissions = getEffectivePermissions(
+      role,
+      normalizePermissions(user.permissions),
+    );
+
+    req.user = {
+      userID: payload.userID,
+      userName: user.userName,
+      email: user.email,
+      firstName: user.firstName,
+      lastName: user.lastName,
+      role,
+      permissions,
+    };
 
     next();
   } catch (err) {
-    console.log("JWT ERROR:", err);
     res.status(401).json({ message: "Invalid token" });
   }
 }

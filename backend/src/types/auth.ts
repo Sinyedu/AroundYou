@@ -1,4 +1,5 @@
 import { Request } from "express";
+import { UserPermission, UserRole } from "../constants/enums";
 
 export interface JwtPayload {
   userID: string;
@@ -14,5 +15,6 @@ export interface JwtUser {
   email: string;
   firstName?: string;
   lastName?: string;
-  role?: "user" | "admin";
+  role: UserRole;
+  permissions: UserPermission[];
 }

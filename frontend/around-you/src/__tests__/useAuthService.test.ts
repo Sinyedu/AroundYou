@@ -3,8 +3,8 @@ import { useAuthService } from '../api/authService'
 
 // Mock utils
 vi.mock('@/utils/auth', () => ({
-  getJwtPayload: vi.fn(() => ({ role: 'user' })),
-  payloadHasAdminAccess: vi.fn(() => false),
+  getStoredUserName: vi.fn(() => 'Guest'),
+  getStoredUserAvatar: vi.fn(() => null),
 }))
 
 describe('useAuthService', () => {
@@ -35,10 +35,11 @@ describe('useAuthService', () => {
     const mockResponse = {
       token: 'fake-jwt-token',
       user: {
-        id: '1',
         userName: 'testUser',
         email: 'test@test.com',
         userAvatar: 'avatar.png',
+        role: 'user',
+        permissions: [],
       },
     }
 
@@ -49,7 +50,7 @@ describe('useAuthService', () => {
       }),
     )
 
-    vi.stubGlobal('fetch', fetchMock as any)
+    vi.stubGlobal('fetch', fetchMock as unknown as typeof fetch)
 
     const result = await auth.login('testUser', 'password')
 
@@ -75,9 +76,10 @@ describe('useAuthService', () => {
     const mockResponse = {
       token: 'fake-jwt-token',
       user: {
-        id: '1',
         userName: 'testUser',
         email: 'test@test.com',
+        role: 'user',
+        permissions: [],
       },
     }
 
@@ -88,7 +90,7 @@ describe('useAuthService', () => {
           ok: true,
           json: () => Promise.resolve(mockResponse),
         }),
-      ) as any,
+      ) as unknown as typeof fetch,
     )
 
     await auth.login('testUser', 'password')
@@ -104,7 +106,7 @@ describe('useAuthService', () => {
           ok: false,
           json: () => Promise.resolve({ message: 'Invalid credentials' }),
         }),
-      ) as any,
+      ) as unknown as typeof fetch,
     )
 
     await expect(auth.login('wrong', 'wrong')).rejects.toThrow('Invalid credentials')
@@ -130,7 +132,7 @@ describe('useAuthService', () => {
               user: {},
             }),
         }),
-      ) as any,
+      ) as unknown as typeof fetch,
     )
 
     await expect(auth.login('test', 'test')).rejects.toThrow('Invalid API response')
@@ -150,7 +152,7 @@ describe('useAuthService', () => {
         Promise.resolve({
           ok: true,
         }),
-      ) as any,
+      ) as unknown as typeof fetch,
     )
 
     await expect(auth.register('a', 'b', 'user', 'test@test.com', '123')).resolves.toBeUndefined()
@@ -163,7 +165,7 @@ describe('useAuthService', () => {
         Promise.resolve({
           ok: false,
         }),
-      ) as any,
+      ) as unknown as typeof fetch,
     )
 
     await expect(auth.register('a', 'b', 'user', 'test@test.com', '123')).rejects.toThrow(
