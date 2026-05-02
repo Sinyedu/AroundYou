@@ -24,7 +24,7 @@ export type ApiEvent = {
   name: string
   description: string
   heroImage: string
-  rating: number
+  rating?: number
   startDate: string
   gpsPosition?: string
   slugArray?: string[]
@@ -35,7 +35,7 @@ export type ApiAttraction = {
   name: string
   description: string
   heroImage: string
-  rating: number
+  rating?: number
   updateAt?: string
   gpsPosition?: string
   slugArray?: string[]

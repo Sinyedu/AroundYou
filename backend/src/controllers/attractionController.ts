@@ -42,7 +42,7 @@ export async function getAllAttractions(
   res: Response,
 ): Promise<void> {
   try {
-    const result = await AttractionModel.find({});
+    const result = await AttractionModel.find({}).sort({ updateAt: -1 });
     res.status(200).json(result);
   } catch (err) {
     console.error("Error retrieving attractions:", err);

@@ -43,8 +43,6 @@
             <input v-model="eventForm.link" class="rounded-xl border border-slate-200 px-4 py-3" placeholder="Link" />
             <input v-model="eventForm.gpsPosition" class="rounded-xl border border-slate-200 px-4 py-3"
               placeholder="GPS (lat,lng)" />
-            <input v-model="eventForm.rating" type="number" step="0.1"
-              class="rounded-xl border border-slate-200 px-4 py-3" placeholder="Rating" />
             <input v-model="eventForm.startDate" type="date" class="rounded-xl border border-slate-200 px-4 py-3" />
             <input v-model="eventForm.endDate" type="date" class="rounded-xl border border-slate-200 px-4 py-3" />
             <div class="rounded-xl border border-slate-200 px-4 py-3">
@@ -83,8 +81,6 @@
               placeholder="Link" />
             <input v-model="attractionForm.gpsPosition" class="rounded-xl border border-slate-200 px-4 py-3"
               placeholder="GPS (lat,lng)" />
-            <input v-model="attractionForm.rating" type="number" step="0.1"
-              class="rounded-xl border border-slate-200 px-4 py-3" placeholder="Rating" />
             <div class="rounded-xl border border-slate-200 px-4 py-3">
               <label class="mb-2 block text-sm font-semibold text-slate-700">Additional image files</label>
               <input type="file" multiple accept="image/*" capture="environment"
@@ -122,8 +118,6 @@
               placeholder="Population" />
             <input v-model="cityForm.visitorCenter" class="rounded-xl border border-slate-200 px-4 py-3"
               placeholder="Visitor center" />
-            <input v-model="cityForm.rating" type="number" step="0.1"
-              class="rounded-xl border border-slate-200 px-4 py-3" placeholder="Rating" />
             <textarea v-model="cityForm.description" rows="4"
               class="rounded-xl border border-slate-200 px-4 py-3 sm:col-span-2" placeholder="Description"></textarea>
           </template>

@@ -91,6 +91,7 @@
 </template>
 <script setup lang="ts">
 import { computed, ref, watch } from "vue"
+import { useRoute } from "vue-router"
 import AttractionCard from "@/components/AttractionCard.vue"
 import CityCard from "@/components/CityCard.vue"
 import LocationMap from "@/components/LocationMap.vue"
@@ -100,10 +101,15 @@ import type { Coordinates as MapCoordinates } from "@/types/coordinates"
 import type { SearchFilters } from "@/types/search"
 
 const RESULTS_PER_PAGE = 8
+const route = useRoute()
+
+const routeType = Array.isArray(route.query.type) ? route.query.type[0] : route.query.type
+const initialType: SearchFilters["type"] =
+    routeType === "event" || routeType === "attraction" ? routeType : "all"
 
 const filters = ref<SearchFilters>({
     location: "",
-    type: "all",
+    type: initialType,
     date: "",
     categories: [],
 })

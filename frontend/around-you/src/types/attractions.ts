@@ -4,7 +4,7 @@ export type AttractionApiItem = {
   description: string
   heroImage: string
   gpsPosition: string
-  rating: number
+  rating?: number
   slugArray: string[]
 }
 
@@ -13,7 +13,7 @@ export type EventApiItem = {
   name: string
   description: string
   heroImage: string
-  rating: number
+  rating?: number
   slugArray: string[]
 }
 
@@ -26,7 +26,7 @@ export type CityApiItem = {
   region: string
   gpsPosition: string
   population: number
-  rating: number
+  rating?: number
 }
 
 export type ExperienceCard = {
@@ -57,7 +57,7 @@ export type NatureExperienceSource = {
   name: string
   description: string
   heroImage: string
-  rating: number
+  rating?: number
   slugArray: string[]
   type: 'Seværdighed' | 'Event'
 }

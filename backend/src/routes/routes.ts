@@ -220,7 +220,7 @@ router.get(
  *       500:
  *         description: Server error
  */
-router.post("/attractions", verifyToken, createAttraction);
+router.post("/attractions", createAttraction);
 
 // GET ALL ATTRACTIONS
 /**
@@ -1046,7 +1046,7 @@ router.delete("/reviews/:id", deleteReviewById);
  *       - name: key
  *         in: path
  *         required: true
- *         description: The field to query (e.g., rating, city)
+ *         description: The field to query (e.g., name, city)
  *         schema:
  *           type: string
  *       - name: value

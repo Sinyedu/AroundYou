@@ -9,7 +9,6 @@ const eventSchema = new Schema<Event>({
   price: { type: Number, required: true, min: 0 },
   link: { type: String, required: true },
   gpsPosition: { type: String, required: true },
-  rating: { type: Number, min: 0, max: 5, default: 0 },
   slugArray: { type: [String], default: [] },
   updateAt: { type: Date, default: Date.now },
   isAnnual: { type: Boolean, required: true, default: false },

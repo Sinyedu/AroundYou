@@ -103,6 +103,10 @@ const mapAttraction = (attraction: ApiAttraction, cities: City[]): SearchResult 
   }
 }
 
+const byNewestDate = (first: SearchResult, second: SearchResult) => {
+  return second.date.localeCompare(first.date)
+}
+
 const mapCity = (city: City): SearchResult => {
   return {
     id: city._id,
@@ -161,7 +165,7 @@ export const useSearchResults = (filters: Ref<SearchFilters>) => {
       results.value = [
         ...sortedCities.map((city) => mapCity(city)),
         ...events.map((event) => mapEvent(event, cities)),
-        ...attractions.map((attraction) => mapAttraction(attraction, cities)),
+        ...attractions.map((attraction) => mapAttraction(attraction, cities)).sort(byNewestDate),
       ]
     } catch (error) {
       const message = error instanceof Error ? error.message : 'Unexpected error.'

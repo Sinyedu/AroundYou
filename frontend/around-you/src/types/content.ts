@@ -8,7 +8,6 @@ export type EventPayload = {
   price: number
   link: string
   gpsPosition: string
-  rating?: number
   slugArray: string[]
   isAnnual: boolean
   startDate: string
@@ -24,7 +23,6 @@ export type AttractionPayload = {
   price: number
   link: string
   gpsPosition: string
-  rating?: number
   slugArray: string[]
   openingHours: string[]
 }
@@ -39,7 +37,6 @@ export type CityPayload = {
   gpsPosition: string
   population: number
   visitorCenter: string
-  rating?: number
 }
 
 export type UploadedImageResponse = {

@@ -1,8 +1,6 @@
-import { User } from "./user";
-
 export interface Review extends Document {
     reviewID: string;
-    author: User['userID'];
+    author: string;
     title: string;
     description: string;
     rating: number;

@@ -1,4 +1,5 @@
 import { onMounted, reactive, ref } from 'vue'
+import { useRouter } from 'vue-router'
 
 import {
   createAttraction,
@@ -15,19 +16,10 @@ const splitList = (value: string) =>
     .map((item) => item.trim())
     .filter(Boolean)
 
-const toOptionalNumber = (value: string) => {
-  const trimmed = value.trim()
-  if (!trimmed) {
-    return undefined
-  }
-
-  const parsed = Number(trimmed)
-  return Number.isFinite(parsed) ? parsed : undefined
-}
-
 const getAuthToken = () => localStorage.getItem('token')
 
 export const useCreateContent = () => {
+  const router = useRouter()
   const selectedType = ref<ContentType>('event')
   const isSubmitting = ref(false)
   const isUploadingImage = ref(false)
@@ -46,7 +38,6 @@ export const useCreateContent = () => {
     price: '',
     link: '',
     gpsPosition: '',
-    rating: '',
     slugArray: [] as string[],
     isAnnual: false,
     startDate: '',
@@ -60,7 +51,6 @@ export const useCreateContent = () => {
     price: '',
     link: '',
     gpsPosition: '',
-    rating: '',
     slugArray: [] as string[],
     openingHoursText: '',
   })
@@ -74,7 +64,6 @@ export const useCreateContent = () => {
     gpsPosition: '',
     population: '',
     visitorCenter: '',
-    rating: '',
   })
 
   const onHeroImageSelected = (contentType: ContentType, event: Event) => {
@@ -134,9 +123,6 @@ export const useCreateContent = () => {
       price: Number(eventForm.price) || 0,
       link: eventForm.link,
       gpsPosition: eventForm.gpsPosition,
-      ...(toOptionalNumber(eventForm.rating) !== undefined
-        ? { rating: toOptionalNumber(eventForm.rating) }
-        : {}),
       slugArray: eventForm.slugArray,
       isAnnual: eventForm.isAnnual,
       startDate: eventForm.startDate,
@@ -148,10 +134,6 @@ export const useCreateContent = () => {
   }
 
   const submitAttraction = async () => {
-    if (!getAuthToken()) {
-      throw new Error('You must be logged in to create an attraction.')
-    }
-
     if (!attractionHeroImageFile.value) {
       throw new Error('Please upload an image for this attraction.')
     }
@@ -172,9 +154,6 @@ export const useCreateContent = () => {
       price: Number(attractionForm.price) || 0,
       link: attractionForm.link,
       gpsPosition: attractionForm.gpsPosition,
-      ...(toOptionalNumber(attractionForm.rating) !== undefined
-        ? { rating: toOptionalNumber(attractionForm.rating) }
-        : {}),
       slugArray: attractionForm.slugArray,
       openingHours: splitList(attractionForm.openingHoursText),
     }
@@ -202,9 +181,6 @@ export const useCreateContent = () => {
       gpsPosition: cityForm.gpsPosition,
       population: Number(cityForm.population) || 0,
       visitorCenter: cityForm.visitorCenter,
-      ...(toOptionalNumber(cityForm.rating) !== undefined
-        ? { rating: toOptionalNumber(cityForm.rating) }
-        : {}),
     }
 
     await createCity(payload, token)
@@ -224,6 +200,10 @@ export const useCreateContent = () => {
       }
 
       message.value = `${selectedType.value} saved successfully.`
+
+      if (selectedType.value === 'attraction') {
+        await router.push({ name: 'search', query: { type: 'attraction' } })
+      }
     } catch (error) {
       message.value = error instanceof Error ? error.message : 'Save failed.'
     } finally {
