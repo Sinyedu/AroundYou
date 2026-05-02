@@ -1,4 +1,4 @@
-import { reactive, ref } from 'vue'
+import { onMounted, reactive, ref } from 'vue'
 
 import {
   createAttraction,
@@ -6,6 +6,7 @@ import {
   createEvent,
   uploadImageFile,
 } from '@/api/contentApi'
+import { fetchAttractions, fetchEvents } from '@/api/searchApi'
 import type { AttractionPayload, CityPayload, ContentType, EventPayload } from '@/types/content'
 
 const splitList = (value: string) =>
@@ -31,6 +32,7 @@ export const useCreateContent = () => {
   const isSubmitting = ref(false)
   const isUploadingImage = ref(false)
   const message = ref('')
+  const categoryOptions = ref<string[]>([])
 
   const eventHeroImageFile = ref<File | null>(null)
   const attractionHeroImageFile = ref<File | null>(null)
@@ -45,7 +47,7 @@ export const useCreateContent = () => {
     link: '',
     gpsPosition: '',
     rating: '',
-    slugArrayText: '',
+    slugArray: [] as string[],
     isAnnual: false,
     startDate: '',
     endDate: '',
@@ -59,7 +61,7 @@ export const useCreateContent = () => {
     link: '',
     gpsPosition: '',
     rating: '',
-    slugArrayText: '',
+    slugArray: [] as string[],
     openingHoursText: '',
   })
 
@@ -135,7 +137,7 @@ export const useCreateContent = () => {
       ...(toOptionalNumber(eventForm.rating) !== undefined
         ? { rating: toOptionalNumber(eventForm.rating) }
         : {}),
-      slugArray: splitList(eventForm.slugArrayText),
+      slugArray: eventForm.slugArray,
       isAnnual: eventForm.isAnnual,
       startDate: eventForm.startDate,
       endDate: eventForm.endDate,
@@ -173,7 +175,7 @@ export const useCreateContent = () => {
       ...(toOptionalNumber(attractionForm.rating) !== undefined
         ? { rating: toOptionalNumber(attractionForm.rating) }
         : {}),
-      slugArray: splitList(attractionForm.slugArrayText),
+      slugArray: attractionForm.slugArray,
       openingHours: splitList(attractionForm.openingHoursText),
     }
 
@@ -237,6 +239,25 @@ export const useCreateContent = () => {
       : 'bg-white text-[#094b7b] border border-[#094b7b]/20'
   }
 
+  const fetchCategoryOptions = async () => {
+    try {
+      const [events, attractions] = await Promise.all([fetchEvents(), fetchAttractions()])
+      const unique = new Set(
+        [...events, ...attractions]
+          .flatMap((item) => item.slugArray ?? [])
+          .map((slug) => slug.trim().toLowerCase())
+          .filter(Boolean),
+      )
+      categoryOptions.value = Array.from(unique).sort()
+    } catch (error) {
+      console.error('Could not fetch category options:', error)
+    }
+  }
+
+  onMounted(() => {
+    void fetchCategoryOptions()
+  })
+
   return {
     selectedType,
     isSubmitting,
@@ -247,6 +268,7 @@ export const useCreateContent = () => {
     cityHeroImageFile,
     eventImageArrayFiles,
     attractionImageArrayFiles,
+    categoryOptions,
     eventForm,
     attractionForm,
     cityForm,

@@ -54,8 +54,8 @@
                 class="block w-full text-sm text-slate-700 file:mr-3 file:rounded-lg file:border-0 file:bg-[#094b7b] file:px-3 file:py-2 file:font-semibold file:text-white" />
               <p class="mt-2 text-xs text-slate-600">{{ eventImageArrayFiles.length }} image(s) selected</p>
             </div>
-            <input v-model="eventForm.slugArrayText" class="rounded-xl border border-slate-200 px-4 py-3"
-              placeholder="Categories (comma separated)" />
+            <CategorySlugPicker v-model="eventForm.slugArray" :options="categoryOptions" label="Categories"
+              placeholder="Search or create category" />
             <input v-model="eventForm.openingHoursText" class="rounded-xl border border-slate-200 px-4 py-3"
               placeholder="Opening hours (comma separated)" />
             <label class="flex items-center gap-2 rounded-xl border border-slate-200 px-4 py-3 text-sm text-slate-600">
@@ -92,8 +92,8 @@
                 class="block w-full text-sm text-slate-700 file:mr-3 file:rounded-lg file:border-0 file:bg-[#094b7b] file:px-3 file:py-2 file:font-semibold file:text-white" />
               <p class="mt-2 text-xs text-slate-600">{{ attractionImageArrayFiles.length }} image(s) selected</p>
             </div>
-            <input v-model="attractionForm.slugArrayText" class="rounded-xl border border-slate-200 px-4 py-3"
-              placeholder="Categories (comma separated)" />
+            <CategorySlugPicker v-model="attractionForm.slugArray" :options="categoryOptions" label="Categories"
+              placeholder="Search or create category" />
             <input v-model="attractionForm.openingHoursText" class="rounded-xl border border-slate-200 px-4 py-3"
               placeholder="Opening hours (comma separated)" />
             <textarea v-model="attractionForm.description" rows="4"
@@ -140,6 +140,7 @@
 </template>
 
 <script setup lang="ts">
+import CategorySlugPicker from '@/components/CategorySlugPicker.vue'
 import { useCreateContent } from '@/composables/useCreateContent'
 
 const { title, description } = defineProps<{
@@ -157,6 +158,7 @@ const {
   cityHeroImageFile,
   eventImageArrayFiles,
   attractionImageArrayFiles,
+  categoryOptions,
   eventForm,
   attractionForm,
   cityForm,
