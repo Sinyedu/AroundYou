@@ -16,6 +16,7 @@ export const useGeolocationStore = defineStore('geolocation', () => {
     }
 
     loading.value = true
+    error.value = null
 
     navigator.geolocation.getCurrentPosition(
       (position) => {

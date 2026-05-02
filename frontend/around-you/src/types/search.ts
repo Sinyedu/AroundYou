@@ -47,6 +47,7 @@ export type City = {
   description?: string
   heroImage?: string
   gpsPosition: string
+  population?: number
   rating?: number
 }
 

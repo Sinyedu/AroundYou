@@ -9,7 +9,7 @@
                                 Find ting at lave omkring dig
                             </h1>
                             <p class="text-sm text-slate-500">
-                                Der er over 1,000 ting at se og erkende omkring dig.
+                                {{ resultDescription }}
                             </p>
                         </div>
 
@@ -27,29 +27,53 @@
                                 class="rounded-2xl bg-rose-50 p-6 text-sm font-semibold text-rose-700">
                                 {{ errorMessage }}
                             </div>
-                            <div v-else class="grid gap-4 sm:grid-cols-2 xl:grid-cols-2">
-                                <template v-for="item in filteredResults" :key="item.id">
-                                    <CityCard v-if="item.type === 'city'" :card="{
-                                        id: item.id,
-                                        name: item.title,
-                                        description: item.description,
-                                        image: item.image,
-                                        rating: item.rating,
-                                        reviews: item.reviews,
-                                        tags: [item.type, item.location, ...item.categories].filter(Boolean),
-                                        metaText: item.date || item.location,
-                                    }" />
-                                    <AttractionCard v-else :card="{
-                                        id: item.id,
-                                        name: item.title,
-                                        description: item.description,
-                                        image: item.image,
-                                        rating: item.rating,
-                                        reviews: item.reviews,
-                                        tags: [item.type, item.location, ...item.categories].filter(Boolean),
-                                        metaText: item.date || item.location,
-                                    }" />
-                                </template>
+                            <div v-else class="space-y-5">
+                                <div class="grid gap-4 sm:grid-cols-2 xl:grid-cols-2">
+                                    <template v-for="item in paginatedResults" :key="item.id">
+                                        <CityCard v-if="item.type === 'city'" :card="{
+                                            id: item.id,
+                                            name: item.title,
+                                            description: item.description,
+                                            image: item.image,
+                                            rating: item.rating,
+                                            reviews: item.reviews,
+                                            tags: [item.type, item.location, ...item.categories].filter(Boolean),
+                                            metaText: item.date || item.location,
+                                        }" />
+                                        <AttractionCard v-else :card="{
+                                            id: item.id,
+                                            name: item.title,
+                                            description: item.description,
+                                            image: item.image,
+                                            rating: item.rating,
+                                            reviews: item.reviews,
+                                            tags: [item.type, item.location, ...item.categories].filter(Boolean),
+                                            metaText: item.date || item.location,
+                                        }" />
+                                    </template>
+                                </div>
+
+                                <nav v-if="totalPages > 1" class="flex flex-wrap items-center justify-center gap-2"
+                                    aria-label="Resultatsider">
+                                    <button type="button"
+                                        class="rounded-lg border border-slate-200 px-3 py-2 text-sm font-semibold text-slate-600 transition hover:bg-slate-100 disabled:cursor-not-allowed disabled:opacity-40"
+                                        :disabled="currentPage === 1" @click="goToPage(currentPage - 1)">
+                                        Forrige
+                                    </button>
+                                    <button v-for="page in pageNumbers" :key="page" type="button"
+                                        class="h-10 min-w-10 rounded-lg border px-3 text-sm font-semibold transition"
+                                        :class="page === currentPage
+                                            ? 'border-[#1E5A88] bg-[#1E5A88] text-white'
+                                            : 'border-slate-200 text-slate-600 hover:bg-slate-100'"
+                                        @click="goToPage(page)">
+                                        {{ page }}
+                                    </button>
+                                    <button type="button"
+                                        class="rounded-lg border border-slate-200 px-3 py-2 text-sm font-semibold text-slate-600 transition hover:bg-slate-100 disabled:cursor-not-allowed disabled:opacity-40"
+                                        :disabled="currentPage === totalPages" @click="goToPage(currentPage + 1)">
+                                        Næste
+                                    </button>
+                                </nav>
                             </div>
                         </div>
                         <aside class="hidden lg:block">
@@ -66,15 +90,16 @@
     </main>
 </template>
 <script setup lang="ts">
-import { computed, ref } from "vue"
+import { computed, ref, watch } from "vue"
 import AttractionCard from "@/components/AttractionCard.vue"
 import CityCard from "@/components/CityCard.vue"
 import LocationMap from "@/components/LocationMap.vue"
 import SearchFilter from "@/components/SearchFilter.vue"
 import { useSearchResults } from "@/composables/useSearchResults"
-import type { ExperienceCard } from "@/types/attractions"
 import type { Coordinates as MapCoordinates } from "@/types/coordinates"
 import type { SearchFilters } from "@/types/search"
+
+const RESULTS_PER_PAGE = 8
 
 const filters = ref<SearchFilters>({
     location: "",
@@ -88,9 +113,58 @@ const {
     cityCoordinates,
     locationOptions,
     categoryOptions,
+    isUsingLocationResults,
+    isShowingLargestCities,
     isLoading,
     errorMessage,
 } = useSearchResults(filters)
+
+const currentPage = ref(1)
+
+const totalPages = computed(() => Math.ceil(filteredResults.value.length / RESULTS_PER_PAGE))
+
+const pageNumbers = computed(() => {
+    return Array.from({ length: totalPages.value }, (_, index) => index + 1)
+})
+
+const paginatedResults = computed(() => {
+    const start = (currentPage.value - 1) * RESULTS_PER_PAGE
+    return filteredResults.value.slice(start, start + RESULTS_PER_PAGE)
+})
+
+const goToPage = (page: number) => {
+    currentPage.value = Math.min(Math.max(page, 1), totalPages.value)
+}
+
+watch(
+    filters,
+    () => {
+        currentPage.value = 1
+    },
+    { deep: true },
+)
+
+watch(totalPages, (pages) => {
+    if (pages > 0 && currentPage.value > pages) {
+        currentPage.value = pages
+    }
+})
+
+const resultDescription = computed(() => {
+    if (filters.value.location || filters.value.type !== "all" || filters.value.date || filters.value.categories.length) {
+        return "Søg blandt byer, events og attraktioner i hele Danmark."
+    }
+
+    if (isUsingLocationResults.value) {
+        return "Vi viser de nærmeste events og attraktioner ud fra din lokation."
+    }
+
+    if (isShowingLargestCities.value) {
+        return "Del din lokation for at se oplevelser tæt på dig, eller udforsk Danmarks seks største byer her."
+    }
+
+    return "Der er over 1.000 ting at se og opleve omkring dig."
+})
 
 const selectedCityCenter = computed<MapCoordinates | null>(() => {
     const selectedLocation = filters.value.location.trim().toLowerCase()
@@ -112,7 +186,7 @@ const selectedCityCenter = computed<MapCoordinates | null>(() => {
 })
 
 const mapMarkers = computed(() => {
-    return filteredResults.value
+    return paginatedResults.value
         .filter((item) => item.coordinates)
         .map((item) => ({
             id: item.id,
@@ -121,18 +195,5 @@ const mapMarkers = computed(() => {
             latitude: item.coordinates!.lat,
             longitude: item.coordinates!.lng,
         }))
-})
-
-const searchCards = computed<ExperienceCard[]>(() => {
-    return filteredResults.value.map((item) => ({
-        id: item.id,
-        name: item.title,
-        description: item.description,
-        image: item.image,
-        rating: item.rating,
-        reviews: item.reviews,
-        tags: [item.type, item.location, ...item.categories].filter(Boolean),
-        metaText: item.date || item.location,
-    }))
 })
 </script>
