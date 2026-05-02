@@ -20,7 +20,13 @@ type LocationMapMarker = {
     latitude: number
     longitude: number
     title: string
-    type: 'event' | 'attraction'
+    type: 'event' | 'attraction' | 'city'
+}
+
+const markerTypeLabels: Record<LocationMapMarker['type'], string> = {
+    event: 'Event',
+    attraction: 'Attraktion',
+    city: 'By',
 }
 
 const props = withDefaults(
@@ -93,7 +99,7 @@ const renderResultMarkers = () => {
     resultMarkersLayer.clearLayers()
 
     for (const item of props.markers) {
-        const label = `${item.type === 'event' ? 'Event' : 'Attraktion'}: ${item.title}`
+        const label = `${markerTypeLabels[item.type]}: ${item.title}`
         L.marker([item.latitude, item.longitude]).bindPopup(label).addTo(resultMarkersLayer)
     }
 }

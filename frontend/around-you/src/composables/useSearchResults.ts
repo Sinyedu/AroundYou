@@ -150,9 +150,9 @@ export const useSearchResults = (filters: Ref<SearchFilters>) => {
       }, {})
 
       results.value = [
+        ...cities.map((city) => mapCity(city)),
         ...events.map((event) => mapEvent(event, cities)),
         ...attractions.map((attraction) => mapAttraction(attraction, cities)),
-        ...cities.map((city) => mapCity(city)),
       ]
     } catch (error) {
       const message = error instanceof Error ? error.message : 'Unexpected error.'

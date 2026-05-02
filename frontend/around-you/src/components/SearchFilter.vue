@@ -146,13 +146,7 @@
 
 <script setup lang="ts">
 import { computed, onBeforeUnmount, onMounted, reactive, ref, toRefs, watch } from "vue"
-
-type SearchFilters = {
-    location: string
-    type: "all" | "event" | "attraction"
-    date: string
-    categories: string[]
-}
+import type { SearchFilters } from "@/types/search"
 
 const props = withDefaults(
     defineProps<{
