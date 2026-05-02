@@ -1,6 +1,8 @@
+export type SearchFilterType = 'event' | 'attraction'
+
 export type SearchFilters = {
   location: string
-  type: 'all' | 'event' | 'attraction' | 'city'
+  types: SearchFilterType[]
   date: string
   categories: string[]
 }

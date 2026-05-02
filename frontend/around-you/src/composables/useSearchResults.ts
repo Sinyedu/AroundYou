@@ -186,7 +186,7 @@ export const useSearchResults = (filters: Ref<SearchFilters>) => {
   const hasActiveFilters = computed(() => {
     return (
       filters.value.location.trim().length > 0 ||
-      filters.value.type !== 'all' ||
+      filters.value.types.length > 0 ||
       filters.value.date.length > 0 ||
       filters.value.categories.length > 0
     )
@@ -251,7 +251,9 @@ export const useSearchResults = (filters: Ref<SearchFilters>) => {
 
     return visibleResults.value.filter((item) => {
       const matchesLocation = hasQuery ? item.location.toLowerCase().includes(query) : true
-      const matchesType = filters.value.type === 'all' || item.type === filters.value.type
+      const matchesType =
+        filters.value.types.length === 0 ||
+        filters.value.types.includes(item.type as SearchFilters['types'][number])
       const matchesDate = filters.value.date ? item.date === filters.value.date : true
       const matchesCategories = filters.value.categories.length
         ? filters.value.categories.some((category) => item.categories.includes(category))

@@ -41,19 +41,19 @@
                         class="absolute top-full z-20 mt-2.5 w-56 rounded-2xl  bg-[#C1D2DE] p-3 shadow-lg">
                         <div class="flex items-center justify-between rounded-xl bg-[#C1D2DE] px-4 py-2">
                             <button type="button" class="flex items-center gap-2 text-sm font-semibold text-slate-700"
-                                @click="draft.type = 'event'">
+                                @click="toggleTypeFilter('event')">
                                 <span :class="typeDotClass('event')" />
                                 Event
                             </button>
                             <button type="button" class="flex items-center gap-2 text-sm font-semibold text-slate-700"
-                                @click="draft.type = 'attraction'">
+                                @click="toggleTypeFilter('attraction')">
                                 <span :class="typeDotClass('attraction')" />
                                 Attraction
                             </button>
                         </div>
                         <button type="button"
                             class="mt-2 w-full rounded-xl border border-slate-200 bg-white px-3 py-2 text-sm font-semibold text-slate-500"
-                            @click="draft.type = 'all'">
+                            @click="draft.types = []">
                             Ryd type
                         </button>
                     </div>
@@ -174,7 +174,7 @@ const { locationOptions, categoryOptions } = toRefs(props)
 
 const draft = reactive<SearchFilters>({
     location: props.modelValue.location,
-    type: props.modelValue.type,
+    types: [...props.modelValue.types],
     date: props.modelValue.date,
     categories: [...props.modelValue.categories],
 })
@@ -184,7 +184,8 @@ let isSyncingFromParent = false
 const hasSameFilters = (first: SearchFilters, second: SearchFilters) => {
     return (
         first.location === second.location &&
-        first.type === second.type &&
+        first.types.length === second.types.length &&
+        first.types.every((type, index) => type === second.types[index]) &&
         first.date === second.date &&
         first.categories.length === second.categories.length &&
         first.categories.every((category, index) => category === second.categories[index])
@@ -197,7 +198,7 @@ watch(
         if (
             hasSameFilters(value, {
                 location: draft.location,
-                type: draft.type,
+                types: draft.types,
                 date: draft.date,
                 categories: draft.categories,
             })
@@ -207,7 +208,7 @@ watch(
 
         isSyncingFromParent = true
         draft.location = value.location
-        draft.type = value.type
+        draft.types = [...value.types]
         draft.date = value.date
         draft.categories = [...value.categories]
         isSyncingFromParent = false
@@ -224,7 +225,7 @@ watch(
 
         const nextValue: SearchFilters = {
             location: draft.location,
-            type: draft.type,
+            types: [...draft.types],
             date: draft.date,
             categories: [...draft.categories],
         }
@@ -253,7 +254,7 @@ const removeCategory = (category: string) => {
 
 const clearFilters = () => {
     draft.location = ""
-    draft.type = "all"
+    draft.types = []
     draft.date = ""
     draft.categories = []
 }
@@ -361,8 +362,17 @@ const addCategoryFromQuery = () => {
     isCategoriesOpen.value = false
 }
 
-const typeDotClass = (value: SearchFilters["type"]) => {
-    const isActive = draft.type === value
+const toggleTypeFilter = (type: SearchFilters["types"][number]) => {
+    if (draft.types.includes(type)) {
+        draft.types = draft.types.filter((item) => item !== type)
+        return
+    }
+
+    draft.types = [...draft.types, type]
+}
+
+const typeDotClass = (value: SearchFilters["types"][number]) => {
+    const isActive = draft.types.includes(value)
     return [
         "h-3 w-3 rounded-sm border border-slate-400",
         isActive ? "bg-slate-700" : "bg-white",

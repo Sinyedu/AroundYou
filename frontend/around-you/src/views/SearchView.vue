@@ -104,12 +104,12 @@ const RESULTS_PER_PAGE = 8
 const route = useRoute()
 
 const routeType = Array.isArray(route.query.type) ? route.query.type[0] : route.query.type
-const initialType: SearchFilters["type"] =
-    routeType === "event" || routeType === "attraction" ? routeType : "all"
+const initialTypes: SearchFilters["types"] =
+    routeType === "event" || routeType === "attraction" ? [routeType] : []
 
 const filters = ref<SearchFilters>({
     location: "",
-    type: initialType,
+    types: initialTypes,
     date: "",
     categories: [],
 })
@@ -157,7 +157,7 @@ watch(totalPages, (pages) => {
 })
 
 const resultDescription = computed(() => {
-    if (filters.value.location || filters.value.type !== "all" || filters.value.date || filters.value.categories.length) {
+    if (filters.value.location || filters.value.types.length || filters.value.date || filters.value.categories.length) {
         return "Søg blandt byer, events og attraktioner i hele Danmark."
     }
 
