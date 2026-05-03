@@ -32,7 +32,7 @@
             <input v-model="eventForm.name" class="rounded-xl border border-slate-200 px-4 py-3" placeholder="Name" />
             <div class="rounded-xl border border-slate-200 px-4 py-3">
               <label class="mb-2 block text-sm font-semibold text-slate-700">Hero image file</label>
-              <input type="file" accept="image/*" capture="environment"
+              <input type="file" accept="image/png,image/jpeg,image/webp" capture="environment"
                 @change="(event) => onHeroImageSelected('event', event)"
                 class="block w-full text-sm text-slate-700 file:mr-3 file:rounded-lg file:border-0 file:bg-[#094b7b] file:px-3 file:py-2 file:font-semibold file:text-white" />
               <p v-if="eventHeroImageFile" class="mt-2 text-xs text-slate-600 break-all">Selected: {{
@@ -47,7 +47,7 @@
             <input v-model="eventForm.endDate" type="date" class="rounded-xl border border-slate-200 px-4 py-3" />
             <div class="rounded-xl border border-slate-200 px-4 py-3">
               <label class="mb-2 block text-sm font-semibold text-slate-700">Additional image files</label>
-              <input type="file" multiple accept="image/*" capture="environment"
+              <input type="file" multiple accept="image/png,image/jpeg,image/webp" capture="environment"
                 @change="(event) => onImageArraySelected('event', event)"
                 class="block w-full text-sm text-slate-700 file:mr-3 file:rounded-lg file:border-0 file:bg-[#094b7b] file:px-3 file:py-2 file:font-semibold file:text-white" />
               <p class="mt-2 text-xs text-slate-600">{{ eventImageArrayFiles.length }} image(s) selected</p>
@@ -69,7 +69,7 @@
               placeholder="Name" />
             <div class="rounded-xl border border-slate-200 px-4 py-3">
               <label class="mb-2 block text-sm font-semibold text-slate-700">Hero image file</label>
-              <input type="file" accept="image/*" capture="environment"
+              <input type="file" accept="image/png,image/jpeg,image/webp" capture="environment"
                 @change="(event) => onHeroImageSelected('attraction', event)"
                 class="block w-full text-sm text-slate-700 file:mr-3 file:rounded-lg file:border-0 file:bg-[#094b7b] file:px-3 file:py-2 file:font-semibold file:text-white" />
               <p v-if="attractionHeroImageFile" class="mt-2 text-xs text-slate-600 break-all">Selected: {{
@@ -83,7 +83,7 @@
               placeholder="GPS (lat,lng)" />
             <div class="rounded-xl border border-slate-200 px-4 py-3">
               <label class="mb-2 block text-sm font-semibold text-slate-700">Additional image files</label>
-              <input type="file" multiple accept="image/*" capture="environment"
+              <input type="file" multiple accept="image/png,image/jpeg,image/webp" capture="environment"
                 @change="(event) => onImageArraySelected('attraction', event)"
                 class="block w-full text-sm text-slate-700 file:mr-3 file:rounded-lg file:border-0 file:bg-[#094b7b] file:px-3 file:py-2 file:font-semibold file:text-white" />
               <p class="mt-2 text-xs text-slate-600">{{ attractionImageArrayFiles.length }} image(s) selected</p>
@@ -100,7 +100,7 @@
             <input v-model="cityForm.name" class="rounded-xl border border-slate-200 px-4 py-3" placeholder="Name" />
             <div class="rounded-xl border border-slate-200 px-4 py-3">
               <label class="mb-2 block text-sm font-semibold text-slate-700">Hero image file</label>
-              <input type="file" accept="image/*" capture="environment"
+              <input type="file" accept="image/png,image/jpeg,image/webp" capture="environment"
                 @change="(event) => onHeroImageSelected('city', event)"
                 class="block w-full text-sm text-slate-700 file:mr-3 file:rounded-lg file:border-0 file:bg-[#094b7b] file:px-3 file:py-2 file:font-semibold file:text-white" />
               <p v-if="cityHeroImageFile" class="mt-2 text-xs text-slate-600 break-all">Selected: {{

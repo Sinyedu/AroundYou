@@ -9,6 +9,7 @@ import {
 } from '@/api/contentApi'
 import { fetchAttractions, fetchEvents } from '@/api/searchApi'
 import type { AttractionPayload, CityPayload, ContentType, EventPayload } from '@/types/content'
+import { compressImageFile, isAllowedImageType } from '@/utils/imageCompressor'
 
 const splitList = (value: string) =>
   value
@@ -17,6 +18,10 @@ const splitList = (value: string) =>
     .filter(Boolean)
 
 const getAuthToken = () => localStorage.getItem('token')
+
+const compressImageFiles = (files: File[]) => {
+  return Promise.all(files.map((file) => compressImageFile(file)))
+}
 
 export const useCreateContent = () => {
   const router = useRouter()
@@ -74,6 +79,12 @@ export const useCreateContent = () => {
       return
     }
 
+    if (!isAllowedImageType(file)) {
+      message.value = 'Only PNG and JPEG images are allowed.'
+      target.value = ''
+      return
+    }
+
     if (contentType === 'event') {
       eventHeroImageFile.value = file
     } else if (contentType === 'attraction') {
@@ -90,6 +101,15 @@ export const useCreateContent = () => {
     const files = target?.files ? Array.from(target.files) : []
 
     if (!files.length) {
+      return
+    }
+
+    const invalidFile = files.find((file) => !isAllowedImageType(file))
+    if (invalidFile) {
+      message.value = 'Only PNG and JPEG images are allowed.'
+      if (target) {
+        target.value = ''
+      }
       return
     }
 
@@ -110,9 +130,11 @@ export const useCreateContent = () => {
     isUploadingImage.value = true
 
     const token = getAuthToken()
-    const heroImage = await uploadImageFile(eventHeroImageFile.value, token)
+    const compressedHeroImage = await compressImageFile(eventHeroImageFile.value)
+    const compressedImageArray = await compressImageFiles(eventImageArrayFiles.value)
+    const heroImage = await uploadImageFile(compressedHeroImage, token)
     const imageArray = await Promise.all(
-      eventImageArrayFiles.value.map((file) => uploadImageFile(file, token)),
+      compressedImageArray.map((file) => uploadImageFile(file, token)),
     )
 
     const payload: EventPayload = {
@@ -141,9 +163,11 @@ export const useCreateContent = () => {
     isUploadingImage.value = true
 
     const token = getAuthToken()
-    const heroImage = await uploadImageFile(attractionHeroImageFile.value, token)
+    const compressedHeroImage = await compressImageFile(attractionHeroImageFile.value)
+    const compressedImageArray = await compressImageFiles(attractionImageArrayFiles.value)
+    const heroImage = await uploadImageFile(compressedHeroImage, token)
     const imageArray = await Promise.all(
-      attractionImageArrayFiles.value.map((file) => uploadImageFile(file, token)),
+      compressedImageArray.map((file) => uploadImageFile(file, token)),
     )
 
     const payload: AttractionPayload = {
@@ -169,7 +193,8 @@ export const useCreateContent = () => {
     isUploadingImage.value = true
 
     const token = getAuthToken()
-    const heroImage = await uploadImageFile(cityHeroImageFile.value, token)
+    const compressedHeroImage = await compressImageFile(cityHeroImageFile.value)
+    const heroImage = await uploadImageFile(compressedHeroImage, token)
 
     const payload: CityPayload = {
       name: cityForm.name,
