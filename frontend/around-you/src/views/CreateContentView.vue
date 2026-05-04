@@ -41,8 +41,10 @@
             <input v-model="eventForm.price" type="number" class="rounded-xl border border-slate-200 px-4 py-3"
               placeholder="Price" />
             <input v-model="eventForm.link" class="rounded-xl border border-slate-200 px-4 py-3" placeholder="Link" />
-            <input v-model="eventForm.gpsPosition" class="rounded-xl border border-slate-200 px-4 py-3"
-              placeholder="GPS (lat,lng)" />
+            <input v-model="eventForm.address" class="rounded-xl border border-slate-200 px-4 py-3"
+              placeholder="Address" />
+            <input v-model="eventForm.city" class="rounded-xl border border-slate-200 px-4 py-3"
+              placeholder="City" />
             <input v-model="eventForm.startDate" type="date" class="rounded-xl border border-slate-200 px-4 py-3" />
             <input v-model="eventForm.endDate" type="date" class="rounded-xl border border-slate-200 px-4 py-3" />
             <div class="rounded-xl border border-slate-200 px-4 py-3">
@@ -79,8 +81,10 @@
               placeholder="Price" />
             <input v-model="attractionForm.link" class="rounded-xl border border-slate-200 px-4 py-3"
               placeholder="Link" />
-            <input v-model="attractionForm.gpsPosition" class="rounded-xl border border-slate-200 px-4 py-3"
-              placeholder="GPS (lat,lng)" />
+            <input v-model="attractionForm.address" class="rounded-xl border border-slate-200 px-4 py-3"
+              placeholder="Address" />
+            <input v-model="attractionForm.city" class="rounded-xl border border-slate-200 px-4 py-3"
+              placeholder="City" />
             <div class="rounded-xl border border-slate-200 px-4 py-3">
               <label class="mb-2 block text-sm font-semibold text-slate-700">Additional image files</label>
               <input type="file" multiple accept="image/png,image/jpeg,image/webp" capture="environment"
@@ -97,7 +101,7 @@
           </template>
 
           <template v-if="selectedType === 'city'">
-            <input v-model="cityForm.name" class="rounded-xl border border-slate-200 px-4 py-3" placeholder="Name" />
+            <input v-model="cityForm.name" class="rounded-xl border border-slate-200 px-4 py-3" placeholder="City" />
             <div class="rounded-xl border border-slate-200 px-4 py-3">
               <label class="mb-2 block text-sm font-semibold text-slate-700">Hero image file</label>
               <input type="file" accept="image/png,image/jpeg,image/webp" capture="environment"
@@ -112,8 +116,8 @@
               placeholder="Region" />
             <input v-model="cityForm.country" class="rounded-xl border border-slate-200 px-4 py-3"
               placeholder="Country" />
-            <input v-model="cityForm.gpsPosition" class="rounded-xl border border-slate-200 px-4 py-3"
-              placeholder="GPS (lat,lng)" />
+            <input v-model="cityForm.address" class="rounded-xl border border-slate-200 px-4 py-3"
+              placeholder="Address" />
             <input v-model="cityForm.population" type="number" class="rounded-xl border border-slate-200 px-4 py-3"
               placeholder="Population" />
             <input v-model="cityForm.visitorCenter" class="rounded-xl border border-slate-200 px-4 py-3"

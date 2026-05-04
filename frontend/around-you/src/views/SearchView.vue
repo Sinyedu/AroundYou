@@ -29,34 +29,40 @@
                 {{ errorMessage }}
               </div>
               <div v-else class="space-y-5">
-                <div class="grid gap-4 sm:grid-cols-2 xl:grid-cols-2">
+                <div ref="resultsGrid" class="grid gap-4 sm:grid-cols-2 xl:grid-cols-2">
                   <template v-for="item in paginatedResults" :key="item.id">
-                    <CityCard
-                      v-if="item.type === 'city'"
-                      :card="{
-                        id: item.id,
-                        name: item.title,
-                        description: item.description,
-                        image: item.image,
-                        rating: item.rating,
-                        reviews: item.reviews,
-                        tags: [item.type, item.location, ...item.categories].filter(Boolean),
-                        metaText: item.date || item.location,
-                      }"
-                    />
-                    <AttractionCard
-                      v-else
-                      :card="{
-                        id: item.id,
-                        name: item.title,
-                        description: item.description,
-                        image: item.image,
-                        rating: item.rating,
-                        reviews: item.reviews,
-                        tags: [item.type, item.location, ...item.categories].filter(Boolean),
-                        metaText: item.date || item.location,
-                      }"
-                    />
+                    <div
+                      :data-result-id="item.id"
+                      class="pointer-events-none rounded-2xl transition"
+                      :class="resultCardClass(item.id)"
+                    >
+                      <CityCard
+                        v-if="item.type === 'city'"
+                        :card="{
+                          id: item.id,
+                          name: item.title,
+                          description: item.description,
+                          image: item.image,
+                          rating: item.rating,
+                          reviews: item.reviews,
+                          tags: [item.type, item.location, ...item.categories].filter(Boolean),
+                          metaText: item.date || item.location,
+                        }"
+                      />
+                      <AttractionCard
+                        v-else
+                        :card="{
+                          id: item.id,
+                          name: item.title,
+                          description: item.description,
+                          image: item.image,
+                          rating: item.rating,
+                          reviews: item.reviews,
+                          tags: [item.type, item.location, ...item.categories].filter(Boolean),
+                          metaText: item.date || item.location,
+                        }"
+                      />
+                    </div>
                   </template>
                 </div>
 
@@ -98,8 +104,11 @@
                   :show-location-button="false"
                   :show-user-marker="false"
                   :center="selectedCityCenter"
+                  :center-zoom="selectedCityCenter ? 13 : 11"
+                  v-model:selected-marker-id="selectedResultId"
                   :markers="mapMarkers"
                   map-class="h-[520px] w-full rounded-xl"
+                  @marker-selected="handleMapMarkerSelected"
                 />
               </div>
             </aside>
@@ -110,7 +119,7 @@
   </main>
 </template>
 <script setup lang="ts">
-import { computed, ref, watch } from "vue"
+import { computed, nextTick, ref, watch } from "vue"
 import { useRoute } from "vue-router"
 import AttractionCard from "@/components/AttractionCard.vue"
 import CityCard from "@/components/CityCard.vue"
@@ -134,6 +143,12 @@ const filters = ref<SearchFilters>({
     categories: [],
 })
 
+type SelectedMapMarker = {
+    id: string
+    title: string
+    type: "event" | "attraction" | "city"
+}
+
 const {
     filteredResults,
     cityCoordinates,
@@ -146,8 +161,19 @@ const {
 } = useSearchResults(filters)
 
 const currentPage = ref(1)
+const selectedResultId = ref<string | null>(null)
+const citySelectedFromMap = ref('')
+const resultsGrid = ref<HTMLElement | null>(null)
 
-const totalPages = computed(() => Math.ceil(filteredResults.value.length / RESULTS_PER_PAGE))
+const resultItems = computed(() => {
+    if (!citySelectedFromMap.value) {
+        return filteredResults.value
+    }
+
+    return filteredResults.value.filter((item) => item.type !== "city")
+})
+
+const totalPages = computed(() => Math.ceil(resultItems.value.length / RESULTS_PER_PAGE))
 
 const pageNumbers = computed(() => {
     return Array.from({ length: totalPages.value }, (_, index) => index + 1)
@@ -155,17 +181,57 @@ const pageNumbers = computed(() => {
 
 const paginatedResults = computed(() => {
     const start = (currentPage.value - 1) * RESULTS_PER_PAGE
-    return filteredResults.value.slice(start, start + RESULTS_PER_PAGE)
+    return resultItems.value.slice(start, start + RESULTS_PER_PAGE)
 })
 
 const goToPage = (page: number) => {
     currentPage.value = Math.min(Math.max(page, 1), totalPages.value)
 }
 
+const resultCardClass = (id: string) => {
+    return selectedResultId.value === id
+        ? "ring-4 ring-[#de5826]/70 shadow-[0_0_0_6px_rgba(222,88,38,0.12)]"
+        : "ring-0"
+}
+
+const scrollToResult = async (id: string) => {
+    await nextTick()
+
+    requestAnimationFrame(() => {
+        const selectedCard = resultsGrid.value?.querySelector<HTMLElement>(`[data-result-id="${CSS.escape(id)}"]`)
+
+        if (!selectedCard || !document.body.contains(selectedCard)) {
+            return
+        }
+
+        const stickyHeaderOffset = 120
+        const targetTop = selectedCard.getBoundingClientRect().top + window.scrollY - stickyHeaderOffset
+
+        window.scrollTo({
+            top: Math.max(targetTop, 0),
+            behavior: "smooth",
+        })
+    })
+}
+
+const handleMapMarkerSelected = (marker: SelectedMapMarker) => {
+    if (marker.type !== "city") {
+        return
+    }
+
+    citySelectedFromMap.value = marker.title
+    filters.value.location = marker.title
+    selectedResultId.value = null
+}
+
 watch(
     filters,
     () => {
         currentPage.value = 1
+
+        if (filters.value.location !== citySelectedFromMap.value) {
+            citySelectedFromMap.value = ""
+        }
     },
     { deep: true },
 )
@@ -174,6 +240,15 @@ watch(totalPages, (pages) => {
     if (pages > 0 && currentPage.value > pages) {
         currentPage.value = pages
     }
+})
+
+watch(selectedResultId, async (id) => {
+    if (!id) {
+        return
+    }
+
+    await nextTick()
+    await scrollToResult(id)
 })
 
 const resultDescription = computed(() => {

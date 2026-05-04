@@ -48,7 +48,10 @@ import {
   getContentSuggestions,
   rejectContentSuggestion,
 } from "../controllers/contentSuggestionController";
-import { reverseGeocode } from "../controllers/geocodingController";
+import {
+  forwardGeocode,
+  reverseGeocode,
+} from "../controllers/geocodingController";
 import { verifyToken } from "../middleware/verifyUserToken";
 import { requirePermission } from "../middleware/requirePermission";
 import {
@@ -66,6 +69,7 @@ router.get("/", (req: Request, res: Response) => {
   // disconnect
 });
 
+router.get("/geocode", forwardGeocode);
 router.get("/geocode/reverse", reverseGeocode);
 
 /**

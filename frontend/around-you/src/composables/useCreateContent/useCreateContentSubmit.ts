@@ -1,6 +1,7 @@
 import { ref } from 'vue'
 import { useRouter } from 'vue-router'
 import { createAttraction, createCity, createEvent, uploadImageFile } from '@/api/contentApi'
+import { getGeocodedCoordinates } from '@/api/geocoding.api'
 import type { AttractionPayload, CityPayload, ContentType, EventPayload } from '@/types/content'
 import type {
   CreateAttractionForm,
@@ -20,6 +21,15 @@ const splitList = (value: string) =>
     .filter(Boolean)
 
 const getAuthToken = () => localStorage.getItem('token')
+
+const resolveGpsPosition = async (address: string, city: string) => {
+  if (!address.trim() || !city.trim()) {
+    throw new Error('Please enter both address and city.')
+  }
+
+  const location = await getGeocodedCoordinates(address.trim(), city.trim())
+  return `${location.latitude},${location.longitude}`
+}
 
 export const useCreateContentSubmit = (
   selectedType: CreateContentFormType,
@@ -42,9 +52,11 @@ export const useCreateContentSubmit = (
       throw new Error('Please upload an image for this event.')
     }
 
+    const token = getAuthToken()
+    const gpsPosition = await resolveGpsPosition(eventForm.address, eventForm.city)
+
     isUploadingImage.value = true
 
-    const token = getAuthToken()
     const compressedHeroImage = await compressImageFile(eventHeroImageFile.value)
     const compressedImageArray = await compressImageFiles(eventImageArrayFiles.value)
     const heroImage = await uploadImageFile(compressedHeroImage, token)
@@ -59,7 +71,7 @@ export const useCreateContentSubmit = (
       imageArray,
       price: Number(eventForm.price) || 0,
       link: eventForm.link,
-      gpsPosition: eventForm.gpsPosition,
+      gpsPosition,
       slugArray: eventForm.slugArray,
       isAnnual: eventForm.isAnnual,
       startDate: eventForm.startDate,
@@ -75,9 +87,11 @@ export const useCreateContentSubmit = (
       throw new Error('Please upload an image for this attraction.')
     }
 
+    const token = getAuthToken()
+    const gpsPosition = await resolveGpsPosition(attractionForm.address, attractionForm.city)
+
     isUploadingImage.value = true
 
-    const token = getAuthToken()
     const compressedHeroImage = await compressImageFile(attractionHeroImageFile.value)
     const compressedImageArray = await compressImageFiles(attractionImageArrayFiles.value)
     const heroImage = await uploadImageFile(compressedHeroImage, token)
@@ -92,7 +106,7 @@ export const useCreateContentSubmit = (
       imageArray,
       price: Number(attractionForm.price) || 0,
       link: attractionForm.link,
-      gpsPosition: attractionForm.gpsPosition,
+      gpsPosition,
       slugArray: attractionForm.slugArray,
       openingHours: splitList(attractionForm.openingHoursText),
     }
@@ -105,9 +119,11 @@ export const useCreateContentSubmit = (
       throw new Error('Please upload an image for this city.')
     }
 
+    const token = getAuthToken()
+    const gpsPosition = await resolveGpsPosition(cityForm.address, cityForm.name)
+
     isUploadingImage.value = true
 
-    const token = getAuthToken()
     const compressedHeroImage = await compressImageFile(cityHeroImageFile.value)
     const heroImage = await uploadImageFile(compressedHeroImage, token)
 
@@ -118,7 +134,7 @@ export const useCreateContentSubmit = (
       commune: cityForm.commune,
       region: cityForm.region,
       country: cityForm.country,
-      gpsPosition: cityForm.gpsPosition,
+      gpsPosition,
       population: Number(cityForm.population) || 0,
       visitorCenter: cityForm.visitorCenter,
     }
