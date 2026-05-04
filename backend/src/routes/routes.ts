@@ -36,9 +36,21 @@ import {
   getReviewByQuery,
   getReviewByGenericQuery,
 } from "../controllers/reviewController";
-import { getCurrentUser } from "../controllers/userController";
-import { loginUser, registerUser } from "../controllers/authController";
+import {
+  getMe,
+  loginUser,
+  registerUser,
+  updateMe,
+} from "../controllers/authController";
+import {
+  approveContentSuggestion,
+  createContentSuggestion,
+  getContentSuggestions,
+  rejectContentSuggestion,
+} from "../controllers/contentSuggestionController";
+import { reverseGeocode } from "../controllers/geocodingController";
 import { verifyToken } from "../middleware/verifyUserToken";
+import { requirePermission } from "../middleware/requirePermission";
 import {
   uploadImage,
   uploadSingleImage,
@@ -53,6 +65,159 @@ router.get("/", (req: Request, res: Response) => {
   res.status(200).send("Welcome to the AroundYou API");
   // disconnect
 });
+
+router.get("/geocode/reverse", reverseGeocode);
+
+/**
+ * @swagger
+ * /suggestions:
+ *   post:
+ *     tags:
+ *       - Content Suggestions
+ *     summary: Submit a city, event, or attraction suggestion
+ *     description: Authenticated users submit content suggestions for admin approval.
+ *     security:
+ *       - bearerAuth: []
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             required:
+ *               - type
+ *               - payload
+ *             properties:
+ *               type:
+ *                 type: string
+ *                 enum: [attraction, event, city]
+ *               payload:
+ *                 type: object
+ *     responses:
+ *       201:
+ *         description: Suggestion submitted
+ *       400:
+ *         description: Invalid suggestion
+ *       401:
+ *         description: Unauthorized
+ *       403:
+ *         description: Insufficient permissions
+ */
+router.post(
+  "/suggestions",
+  verifyToken,
+  requirePermission("content:suggest"),
+  createContentSuggestion,
+);
+
+/**
+ * @swagger
+ * /admin/suggestions:
+ *   get:
+ *     tags:
+ *       - Admin
+ *     summary: List content suggestions for admin review
+ *     description: Returns suggestions filtered by status. Defaults to pending.
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - name: status
+ *         in: query
+ *         schema:
+ *           type: string
+ *           enum: [pending, approved, rejected]
+ *     responses:
+ *       200:
+ *         description: Suggestions returned
+ *       401:
+ *         description: Unauthorized
+ *       403:
+ *         description: Admin access required
+ */
+router.get(
+  "/admin/suggestions",
+  verifyToken,
+  requirePermission("admin:access"),
+  getContentSuggestions,
+);
+
+/**
+ * @swagger
+ * /admin/suggestions/{id}/approve:
+ *   post:
+ *     tags:
+ *       - Admin
+ *     summary: Approve a content suggestion
+ *     description: Creates the real city, event, or attraction from the suggestion payload.
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - name: id
+ *         in: path
+ *         required: true
+ *         schema:
+ *           type: string
+ *     responses:
+ *       200:
+ *         description: Suggestion approved
+ *       401:
+ *         description: Unauthorized
+ *       403:
+ *         description: Admin access required
+ *       404:
+ *         description: Suggestion not found
+ *       409:
+ *         description: Suggestion already reviewed
+ */
+router.post(
+  "/admin/suggestions/:id/approve",
+  verifyToken,
+  requirePermission("admin:access"),
+  approveContentSuggestion,
+);
+
+/**
+ * @swagger
+ * /admin/suggestions/{id}/reject:
+ *   post:
+ *     tags:
+ *       - Admin
+ *     summary: Reject a content suggestion
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - name: id
+ *         in: path
+ *         required: true
+ *         schema:
+ *           type: string
+ *     requestBody:
+ *       required: false
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             properties:
+ *               reason:
+ *                 type: string
+ *     responses:
+ *       200:
+ *         description: Suggestion rejected
+ *       401:
+ *         description: Unauthorized
+ *       403:
+ *         description: Admin access required
+ *       404:
+ *         description: Suggestion not found
+ *       409:
+ *         description: Suggestion already reviewed
+ */
+router.post(
+  "/admin/suggestions/:id/reject",
+  verifyToken,
+  requirePermission("admin:access"),
+  rejectContentSuggestion,
+);
 
 // AUTH ROUTES
 // REGISTER
@@ -107,20 +272,20 @@ router.post("/user/register", registerUser);
  *           schema:
  *             type: object
  *             required:
- *               - email
+ *               - identifier
  *               - password
  *             properties:
- *               email:
+ *               identifier:
  *                 type: string
- *                 format: email
+ *                 description: Email address or username
  *               password:
  *                 type: string
  *     responses:
  *       200:
  *         description: Login successful
  *         headers:
- *           auth-token:
- *             description: JWT authentication token
+ *           Authorization:
+ *             description: JWT authentication token in Bearer format
  *             schema:
  *               type: string
  *         content:
@@ -128,16 +293,10 @@ router.post("/user/register", registerUser);
  *             schema:
  *               type: object
  *               properties:
- *                 error:
+ *                 token:
  *                   type: string
- *                   nullable: true
- *                 data:
- *                   type: object
- *                   properties:
- *                     userId:
- *                       type: string
- *                     token:
- *                       type: string
+ *                 user:
+ *                   $ref: '#/components/schemas/User'
  *       400:
  *         description: Invalid email or password
  *       401:
@@ -178,15 +337,8 @@ router.post("/user/login", loginUser);
  *       500:
  *         description: Server error
  */
-router.get(
-  "/user/me",
-  verifyToken,
-  (req, res, next) => {
-    console.log("MIDDLEWARE PASSED");
-    next();
-  },
-  getCurrentUser,
-);
+router.get("/user/me", verifyToken, getMe);
+router.put("/user/me", verifyToken, updateMe);
 
 // ATTRACTION ROUTES
 // CREATE ATTRACTION
@@ -220,7 +372,12 @@ router.get(
  *       500:
  *         description: Server error
  */
-router.post("/attractions", verifyToken, createAttraction);
+router.post(
+  "/attractions",
+  verifyToken,
+  requirePermission("attraction:create"),
+  createAttraction,
+);
 
 // GET ALL ATTRACTIONS
 /**
@@ -313,7 +470,12 @@ router.get("/attractions/:id", getAttractionById);
  *       500:
  *         description: Server error
  */
-router.put("/attractions/:id", updateAttractionById);
+router.put(
+  "/attractions/:id",
+  verifyToken,
+  requirePermission("attraction:update"),
+  updateAttractionById,
+);
 
 // DELETE ATTRACTION BY ID
 /**
@@ -341,7 +503,12 @@ router.put("/attractions/:id", updateAttractionById);
  *       500:
  *         description: Server error
  */
-router.delete("/attractions/:id", deleteAttractionById);
+router.delete(
+  "/attractions/:id",
+  verifyToken,
+  requirePermission("attraction:delete"),
+  deleteAttractionById,
+);
 
 // GET ATTRACTION BY QUERY
 /**
@@ -384,6 +551,7 @@ router.delete("/attractions/:id", deleteAttractionById);
 router.get(
   "/attractions/query/:key/:value",
   verifyToken,
+  requirePermission("attraction:read"),
   getAttractionsByQuery,
 );
 
@@ -419,7 +587,12 @@ router.get(
  *       500:
  *         description: Server error
  */
-router.post("/attractions/query", verifyToken, getAttractionsByQueryGeneric);
+router.post(
+  "/attractions/query",
+  verifyToken,
+  requirePermission("attraction:read"),
+  getAttractionsByQueryGeneric,
+);
 
 // EVENT ROUTES
 // CREATE EVENT
@@ -452,7 +625,12 @@ router.post("/attractions/query", verifyToken, getAttractionsByQueryGeneric);
  *       500:
  *         description: Server error
  */
-router.post("/events", createEvent);
+router.post(
+  "/events",
+  verifyToken,
+  requirePermission("event:create"),
+  createEvent,
+);
 
 // GET ALL EVENTS
 /**
@@ -545,7 +723,12 @@ router.get("/events/:id", getEventById);
  *       500:
  *         description: Server error
  */
-router.put("/events/:id", updateEventById);
+router.put(
+  "/events/:id",
+  verifyToken,
+  requirePermission("event:update"),
+  updateEventById,
+);
 
 // DELETE EVENT BY ID
 /**
@@ -573,7 +756,12 @@ router.put("/events/:id", updateEventById);
  *       500:
  *         description: Server error
  */
-router.delete("/events/:id", deleteEventById);
+router.delete(
+  "/events/:id",
+  verifyToken,
+  requirePermission("event:delete"),
+  deleteEventById,
+);
 
 // GET EVENT BY QUERY
 /**
@@ -613,7 +801,12 @@ router.delete("/events/:id", deleteEventById);
  *       500:
  *         description: Server error
  */
-router.get("/events/query/:key/:value", verifyToken, getEventByQuery);
+router.get(
+  "/events/query/:key/:value",
+  verifyToken,
+  requirePermission("event:read"),
+  getEventByQuery,
+);
 
 // GET EVENT BY GENERIC QUERY
 /**
@@ -647,7 +840,12 @@ router.get("/events/query/:key/:value", verifyToken, getEventByQuery);
  *       500:
  *         description: Server error
  */
-router.post("/events/query", verifyToken, getEventByGenericQuery);
+router.post(
+  "/events/query",
+  verifyToken,
+  requirePermission("event:read"),
+  getEventByGenericQuery,
+);
 
 // CITY ROUTES
 // CREATE CITY
@@ -681,7 +879,7 @@ router.post("/events/query", verifyToken, getEventByGenericQuery);
  *       500:
  *         description: Server error
  */
-router.post("/city", createCity);
+router.post("/city", verifyToken, requirePermission("city:create"), createCity);
 
 // GET ALL CITIES
 /**
@@ -774,7 +972,12 @@ router.get("/city/:id", getCityById);
  *       500:
  *         description: Server error
  */
-router.put("/city/:id", updateCityById);
+router.put(
+  "/city/:id",
+  verifyToken,
+  requirePermission("city:update"),
+  updateCityById,
+);
 
 // DELETE CITY BY ID
 /**
@@ -802,7 +1005,12 @@ router.put("/city/:id", updateCityById);
  *       500:
  *         description: Server error
  */
-router.delete("/city/:id", deleteCityById);
+router.delete(
+  "/city/:id",
+  verifyToken,
+  requirePermission("city:delete"),
+  deleteCityById,
+);
 
 // GET CITY BY QUERY
 /**
@@ -842,7 +1050,12 @@ router.delete("/city/:id", deleteCityById);
  *       500:
  *         description: Server error
  */
-router.get("/city/query/:key/:value", verifyToken, getCityByQuery);
+router.get(
+  "/city/query/:key/:value",
+  verifyToken,
+  requirePermission("city:read"),
+  getCityByQuery,
+);
 
 // GET CITY BY GENERIC QUERY
 /**
@@ -876,7 +1089,12 @@ router.get("/city/query/:key/:value", verifyToken, getCityByQuery);
  *       500:
  *         description: Server error
  */
-router.post("/city/query", verifyToken, getCityByGenericQuery);
+router.post(
+  "/city/query",
+  verifyToken,
+  requirePermission("city:read"),
+  getCityByGenericQuery,
+);
 
 // REVIEW ROUTES
 // CREATE REVIEW
@@ -910,7 +1128,12 @@ router.post("/city/query", verifyToken, getCityByGenericQuery);
  *       500:
  *         description: Server error
  */
-router.post("/reviews", createReview);
+router.post(
+  "/reviews",
+  verifyToken,
+  requirePermission("review:create"),
+  createReview,
+);
 
 // GET ALL REVIEWS
 /**
@@ -1003,7 +1226,12 @@ router.get("/reviews/:id", getReviewById);
  *       500:
  *         description: Server error
  */
-router.put("/reviews/:id", updateReviewById);
+router.put(
+  "/reviews/:id",
+  verifyToken,
+  requirePermission("review:update"),
+  updateReviewById,
+);
 
 // DELETE REVIEW BY ID
 /**
@@ -1031,7 +1259,12 @@ router.put("/reviews/:id", updateReviewById);
  *       500:
  *         description: Server error
  */
-router.delete("/reviews/:id", deleteReviewById);
+router.delete(
+  "/reviews/:id",
+  verifyToken,
+  requirePermission("review:delete"),
+  deleteReviewById,
+);
 
 // GET REVIEW BY QUERY
 /**
@@ -1071,7 +1304,12 @@ router.delete("/reviews/:id", deleteReviewById);
  *       500:
  *         description: Server error
  */
-router.get("/reviews/query/:key/:value", verifyToken, getReviewByQuery);
+router.get(
+  "/reviews/query/:key/:value",
+  verifyToken,
+  requirePermission("review:read"),
+  getReviewByQuery,
+);
 
 // GET REVIEW BY GENERIC QUERY
 /**
@@ -1105,6 +1343,11 @@ router.get("/reviews/query/:key/:value", verifyToken, getReviewByQuery);
  *       500:
  *         description: Server error
  */
-router.post("/reviews/query", verifyToken, getReviewByGenericQuery);
+router.post(
+  "/reviews/query",
+  verifyToken,
+  requirePermission("review:read"),
+  getReviewByGenericQuery,
+);
 
 export default router;

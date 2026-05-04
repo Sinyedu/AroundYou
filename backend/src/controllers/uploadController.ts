@@ -1,11 +1,16 @@
 import { Request, Response } from "express";
+import type { FileFilterCallback } from "multer";
 import multer from "multer";
 
 const imageUpload = multer({
   storage: multer.memoryStorage(),
   limits: { fileSize: 5 * 1024 * 1024 },
-  fileFilter: (_req, file, callback) => {
-    const allowedMimeTypes = new Set(["image/jpeg", "image/jpg", "image/png","image/webp"]);
+  fileFilter: (
+    _req: Request,
+    file: Express.Multer.File,
+    callback: FileFilterCallback,
+  ) => {
+    const allowedMimeTypes = new Set(["image/jpeg", "image/jpg", "image/png", "image/webp"]);
 
     if (!allowedMimeTypes.has(file.mimetype)) {
       callback(new Error("Only PNG and JPEG images are allowed"));

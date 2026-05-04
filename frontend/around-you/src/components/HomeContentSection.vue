@@ -16,11 +16,7 @@
     </p>
 
     <div v-if="showCards" class="grid grid-cols-4 gap-4">
-      <AttractionCard
-        v-for="card in cards"
-        :key="card.id"
-        :card="card"
-      />
+      <AttractionCard v-for="card in cards" :key="card.id" :card="card" />
     </div>
   </section>
 </template>
@@ -28,7 +24,7 @@
 <script setup lang="ts">
 import { computed } from 'vue'
 import AttractionCard from '@/components/AttractionCard.vue'
-import type { ExperienceCard } from '@/types/attractions'
+import type { ExperienceCard } from '@/types/experience-card'
 
 const props = withDefaults(
   defineProps<{

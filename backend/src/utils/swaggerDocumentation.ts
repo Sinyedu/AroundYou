@@ -16,21 +16,21 @@ export function setupDocs(app: Application) {
     },
     servers: [
       {
-        url: "http://localhost:4000/api",
+        url: process.env.API_BASE_URL ?? "http://localhost:4000/api",
         description: "Development server",
       },
     ],
     security: [
       {
-        ApiKeyAuth: []
-      }
+        bearerAuth: [],
+      },
     ],
     components: {
       securitySchemes: {
-        ApiKeyAuth: {
-          type: "apiKey",
-          in: "header",
-          name: "auth-token",
+        bearerAuth: {
+          type: "http",
+          scheme: "bearer",
+          bearerFormat: "JWT",
         },
       },
       schemas: {
@@ -44,6 +44,11 @@ export function setupDocs(app: Application) {
             userAvatar: { type: "string" },
             email: { type: "string" },
             password: { type: "string" },
+            role: { type: "string", enum: ["user", "admin"] },
+            permissions: {
+              type: "array",
+              items: { type: "string" },
+            },
             country: { type: "string" },
             city: { type: "string" },
             street: { type: "string" },
@@ -122,7 +127,8 @@ export function setupDocs(app: Application) {
 
   const options = {
     swaggerDefinition,
-    apis: ["**/*.ts"],
+    apis: ["src/routes/*.ts", "src/controllers/*.ts"],
+    failOnErrors: true,
   };
 
   const swaggerSpec = swaggerJSDoc(options);

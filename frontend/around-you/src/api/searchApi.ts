@@ -1,17 +1,10 @@
-import type { ApiAttraction, ApiEvent, City } from '../types/search'
+import { apiRequest } from '@/api/http'
+import type { ApiAttraction } from '@/types/search-api-attraction'
+import type { ApiEvent } from '@/types/search-api-event'
+import type { City } from '@/types/search-city'
 
-const API_BASE_URL = 'http://localhost:4000/api'
+export const fetchEvents = () => apiRequest<ApiEvent[]>('/events')
 
-const fetchJson = async <T>(url: string): Promise<T> => {
-  const response = await fetch(url)
-  if (!response.ok) {
-    throw new Error(`Request failed: ${response.status}`)
-  }
-  return response.json() as Promise<T>
-}
+export const fetchAttractions = () => apiRequest<ApiAttraction[]>('/attractions')
 
-export const fetchEvents = () => fetchJson<ApiEvent[]>(`${API_BASE_URL}/events`)
-
-export const fetchAttractions = () => fetchJson<ApiAttraction[]>(`${API_BASE_URL}/attractions`)
-
-export const fetchCities = () => fetchJson<City[]>(`${API_BASE_URL}/city`)
+export const fetchCities = () => apiRequest<City[]>('/city')

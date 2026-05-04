@@ -75,7 +75,7 @@ const mapEvent = (event: ApiEvent, cities: City[]): SearchResult => {
   return {
     id: event._id,
     title: event.name,
-    description: event.description,
+    description: event.description ?? '',
     location: getNearestCityName(event.gpsPosition, cities),
     coordinates: parseGpsPosition(event.gpsPosition),
     type: 'event',
@@ -91,7 +91,7 @@ const mapAttraction = (attraction: ApiAttraction, cities: City[]): SearchResult 
   return {
     id: attraction._id,
     title: attraction.name,
-    description: attraction.description,
+    description: attraction.description ?? '',
     location: getNearestCityName(attraction.gpsPosition, cities),
     coordinates: parseGpsPosition(attraction.gpsPosition),
     type: 'attraction',
