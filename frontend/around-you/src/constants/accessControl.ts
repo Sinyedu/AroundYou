@@ -1,5 +1,4 @@
 export const USER_ROLES = ['user', 'admin'] as const
-export type UserRole = (typeof USER_ROLES)[number]
 
 export const USER_PERMISSIONS = [
   'attraction:create',
@@ -16,4 +15,3 @@ export const USER_PERMISSIONS = [
   'review:delete',
   'admin:access',
 ] as const
-export type UserPermission = (typeof USER_PERMISSIONS)[number]

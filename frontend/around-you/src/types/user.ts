@@ -1,4 +1,5 @@
-import type { UserPermission, UserRole } from './access-control'
+import type { UserPermission } from './user-permission'
+import type { UserRole } from './user-role'
 
 export type User = {
   userName: string

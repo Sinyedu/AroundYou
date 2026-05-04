@@ -7,7 +7,8 @@ import {
   getNearbyLocationContent,
 } from '@/api/attractions.api'
 import { useGeolocationStore } from '@/stores/geolocation'
-import type { ExperienceCard, NearbyLocationContent } from '@/types/attractions'
+import type { ExperienceCard } from '@/types/experience-card'
+import type { NearbyLocationContent } from '@/types/nearby-location-content'
 import { useAsyncData } from '@/composables/useAsyncData'
 
 const emptyNearbyContent: NearbyLocationContent = {

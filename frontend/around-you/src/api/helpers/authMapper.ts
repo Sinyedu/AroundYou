@@ -1,5 +1,5 @@
 import type { User } from '@/types/user'
-import { USER_PERMISSIONS, USER_ROLES } from '@/types/access-control'
+import { USER_PERMISSIONS, USER_ROLES } from '@/constants/accessControl'
 import { optionalString } from './stringFields'
 
 function isUserRole(value: unknown): value is User['role'] {
