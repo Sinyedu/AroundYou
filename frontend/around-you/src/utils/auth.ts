@@ -7,6 +7,11 @@ export function getStoredUserName(): string {
   return getStoredValue('userName') ?? 'Guest'
 }
 
+export function getStoredUserId(): string | null {
+  const payload = getJwtPayload()
+  return (payload as (JwtPayload & { userID?: string }) | null)?.userID ?? null
+}
+
 export function getStoredUserAvatar(): string | null {
   return getStoredValue('userAvatar')
 }

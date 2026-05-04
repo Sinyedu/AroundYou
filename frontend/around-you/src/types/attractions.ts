@@ -24,10 +24,10 @@ export type CityApiItem = {
   heroImage: string
   commune: string
   region: string
-  country?: string
+  country: string
   gpsPosition: string
   population: number
-  visitorCenter?: string
+  visitorCenter: string
   rating?: number
 }
 
@@ -40,6 +40,7 @@ export type ExperienceCard = {
   reviews: number
   tags: string[]
   metaText?: string
+  href?: string
 }
 
 export type NearbyAttractionCard = ExperienceCard

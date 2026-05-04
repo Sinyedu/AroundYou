@@ -121,7 +121,7 @@ const citySection = useAsyncData<CityApiItem | null>(
 watch(
 	cityParam,
 	() => {
-		void citySection.execute().catch((error: unknown) => {
+		void citySection.execute().catch((error) => {
 			console.error('Fejl ved hentning af bydata:', error)
 		})
 	},

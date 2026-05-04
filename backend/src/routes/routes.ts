@@ -22,6 +22,7 @@ import {
   createCity,
   getAllCities,
   getCityById,
+  getCityByName,
   updateCityById,
   deleteCityById,
   getCityByQuery,
@@ -35,6 +36,9 @@ import {
   deleteReviewById,
   getReviewByQuery,
   getReviewByGenericQuery,
+  getReviewsByTarget,
+  likeReview,
+  editReview,
 } from "../controllers/reviewController";
 import {
   getMe,
@@ -48,7 +52,10 @@ import {
   getContentSuggestions,
   rejectContentSuggestion,
 } from "../controllers/contentSuggestionController";
-import { reverseGeocode } from "../controllers/geocodingController";
+import {
+  forwardGeocode,
+  reverseGeocode,
+} from "../controllers/geocodingController";
 import { verifyToken } from "../middleware/verifyUserToken";
 import { requirePermission } from "../middleware/requirePermission";
 import {
@@ -66,6 +73,7 @@ router.get("/", (req: Request, res: Response) => {
   // disconnect
 });
 
+router.get("/geocode", forwardGeocode);
 router.get("/geocode/reverse", reverseGeocode);
 
 /**
@@ -904,6 +912,9 @@ router.post("/city", verifyToken, requirePermission("city:create"), createCity);
  */
 router.get("/city", getAllCities);
 
+// GET CITY BY NAME
+router.get("/city/name/:cityName", getCityByName);
+
 // GET CITY BY ID
 /**
  * @swagger
@@ -1128,12 +1139,13 @@ router.post(
  *       500:
  *         description: Server error
  */
-router.post(
-  "/reviews",
-  verifyToken,
-  requirePermission("review:create"),
-  createReview,
-);
+router.post("/reviews", verifyToken, requirePermission("review:create"), createReview);
+
+router.get("/reviews/target/:targetId", getReviewsByTarget);
+
+router.post("/reviews/:id/like", verifyToken, likeReview);
+
+router.patch("/reviews/:id", verifyToken, editReview);
 
 // GET ALL REVIEWS
 /**
