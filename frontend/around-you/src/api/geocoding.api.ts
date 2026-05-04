@@ -4,6 +4,23 @@ type ReverseGeocodeResponse = {
   displayName: string
 }
 
+type ForwardGeocodeResponse = {
+  latitude: number
+  longitude: number
+  displayName: string
+}
+
+export async function getGeocodedCoordinates(
+  address: string,
+  city: string,
+): Promise<ForwardGeocodeResponse> {
+  const query = new URLSearchParams({
+    address,
+    city,
+  })
+  return apiRequest<ForwardGeocodeResponse>(`/geocode?${query}`)
+}
+
 export async function getReverseGeocodedAddress(
   latitude: number,
   longitude: number,
