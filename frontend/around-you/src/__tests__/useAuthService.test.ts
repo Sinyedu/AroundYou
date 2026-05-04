@@ -1,5 +1,6 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest'
 import { useAuthService } from '../api/authService'
+import { USER_API_URL } from '@/constants/config'
 
 // Mock utils
 vi.mock('@/utils/auth', () => ({
@@ -55,7 +56,7 @@ describe('useAuthService', () => {
     const result = await auth.login('testUser', 'password')
 
     expect(fetchMock).toHaveBeenCalledWith(
-      'http://localhost:4000/api/user/login',
+      `${USER_API_URL}/login`,
       expect.objectContaining({
         method: 'POST',
         body: JSON.stringify({

@@ -13,6 +13,7 @@ import { onMounted, watch, ref, nextTick } from 'vue'
 import L from 'leaflet'
 import { useGeolocationStore } from '@/stores/geolocation'
 import type { Coordinates } from '@/types/coordinates'
+import { getReverseGeocodedAddress } from '@/api/geocoding.api'
 
 const geo = useGeolocationStore()
 
@@ -20,16 +21,9 @@ const mapEl = ref<HTMLElement | null>(null)
 let map: ReturnType<typeof L.map> | null = null
 let marker: ReturnType<typeof L.marker> | null = null
 
-// Instead of displaying X and Y coords, it reverses and prints out the address for better UX
 const getAddress = async (lat: number, lon: number): Promise<string> => {
   try {
-    const res = await fetch(
-      `https://nominatim.openstreetmap.org/reverse?format=json&lat=${lat}&lon=${lon}`
-    )
-
-    const data = await res.json()
-
-    return data.display_name || 'Unknown location'
+    return await getReverseGeocodedAddress(lat, lon)
   } catch (err) {
     console.error('Reverse geocoding failed:', err)
     return 'Unknown location'
@@ -48,10 +42,7 @@ const updateMap = async (coords: Coordinates) => {
   if (marker) {
     marker.setLatLng([latitude, longitude]).setPopupContent(address)
   } else {
-    marker = L.marker([latitude, longitude])
-      .addTo(map)
-      .bindPopup(address)
-      .openPopup()
+    marker = L.marker([latitude, longitude]).addTo(map).bindPopup(address).openPopup()
   }
 }
 
@@ -79,7 +70,7 @@ watch(
     if (!coords || !map) return
 
     await updateMap(coords)
-  }
+  },
 )
 </script>
 

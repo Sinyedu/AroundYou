@@ -1,13 +1,12 @@
 import { ref } from 'vue'
-
-const apiUrl = 'http://localhost:4000/api/user'
+import { USER_API_URL } from '@/constants/config'
 
 export function useUser() {
   const token = ref<string | null>(localStorage.getItem('authToken') || null)
 
   async function login(email: string, password: string) {
     try {
-      const response = await fetch(`${apiUrl}/login`, {
+      const response = await fetch(`${USER_API_URL}/login`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ email, password }),
@@ -31,7 +30,7 @@ export function useUser() {
 
   async function register(name: string, email: string, password: string) {
     try {
-      const response = await fetch(`${apiUrl}/register`, {
+      const response = await fetch(`${USER_API_URL}/register`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ name, email, password }),

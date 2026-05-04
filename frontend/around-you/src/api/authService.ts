@@ -2,8 +2,7 @@ import { ref } from 'vue'
 import type { User } from '@/types/user'
 import { hasPermission, hasRole } from '@/utils/accessControl'
 import { toAuthenticatedUser } from '@/api/helpers/authMapper'
-
-const apiUrl = 'http://localhost:4000/api/user'
+import { USER_API_URL } from '@/constants/config'
 
 type AuthResponse = {
   token: string
@@ -41,7 +40,7 @@ function syncUserStorage(user: User | null): void {
 
 export const useAuthService = () => {
   const login = async (identifier: string, password: string): Promise<AuthResponse> => {
-    const response = await fetch(`${apiUrl}/login`, {
+    const response = await fetch(`${USER_API_URL}/login`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ identifier, password }),
@@ -78,7 +77,7 @@ export const useAuthService = () => {
     email: string,
     password: string,
   ): Promise<void> => {
-    const res = await fetch(`${apiUrl}/register`, {
+    const res = await fetch(`${USER_API_URL}/register`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ firstName, lastName, userName, email, password }),
@@ -105,7 +104,7 @@ export const useAuthService = () => {
       return false
     }
 
-    const response = await fetch(`${apiUrl}/me`, {
+    const response = await fetch(`${USER_API_URL}/me`, {
       method: 'GET',
       headers: {
         Authorization: `Bearer ${token.value}`,

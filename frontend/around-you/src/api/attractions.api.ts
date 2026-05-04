@@ -9,8 +9,7 @@ import type {
   NearbyLocationContent,
 } from '@/types/attractions'
 import type { Coordinates } from '@/types/coordinates'
-
-const API_BASE_URL = 'http://localhost:4000/api'
+import { apiRequest } from '@/api/http'
 
 export const DEFAULT_NEARBY_LOCATION_DESCRIPTION =
   'Gå på opdagelse i spændende oplevelser tæt på din egen lokation, hvor natur, kultur, attraktioner og restauranter er lige inden for rækkevidde. Oplev alt fra populære seværdigheder og hyggelige udflugtsmål til lokale favoritter og skjulte perler lige i nærheden.'
@@ -41,7 +40,12 @@ function convertDmsToDecimal(
 }
 
 function isValidCoordinates(latitude: number, longitude: number): boolean {
-  return !Number.isNaN(latitude) && !Number.isNaN(longitude) && Math.abs(latitude) <= 90 && Math.abs(longitude) <= 180
+  return (
+    !Number.isNaN(latitude) &&
+    !Number.isNaN(longitude) &&
+    Math.abs(latitude) <= 90 &&
+    Math.abs(longitude) <= 180
+  )
 }
 
 function parseDecimalCoordinates(normalizedGpsPosition: string): Coordinates | null {
@@ -98,7 +102,11 @@ function parseDirectionalCoordinates(normalizedGpsPosition: string): Coordinates
 }
 
 function parseDmsCoordinates(normalizedGpsPosition: string): Coordinates | null {
-  const matches = [...normalizedGpsPosition.matchAll(/(\d{1,3})[^\dA-Z]+(\d{1,2})(?:[^\dA-Z]+(\d{1,2}(?:\.\d+)?))?[^A-Z\d]*([NSEW])/gi)]
+  const matches = [
+    ...normalizedGpsPosition.matchAll(
+      /(\d{1,3})[^\dA-Z]+(\d{1,2})(?:[^\dA-Z]+(\d{1,2}(?:\.\d+)?))?[^A-Z\d]*([NSEW])/gi,
+    ),
+  ]
 
   if (matches.length < 2) {
     return null
@@ -172,13 +180,7 @@ function yourDistanceInKm(from: Coordinates, to: Coordinates): number {
 }
 
 async function fetchJson<T>(path: string): Promise<T> {
-  const response = await fetch(`${API_BASE_URL}${path}`)
-
-  if (!response.ok) {
-    throw new Error(`Request failed for ${path}`)
-  }
-
-  return response.json() as Promise<T>
+  return apiRequest<T>(path)
 }
 
 export async function getNearbyLocationContent(
@@ -272,7 +274,9 @@ async function getExperiencesBySlug(slug: string, limit = 4): Promise<NatureExpe
   ]
 
   return entries
-    .filter((entry) => entry.slugArray.some((entrySlug) => entrySlug.toLowerCase() === slug.toLowerCase()))
+    .filter((entry) =>
+      entry.slugArray.some((entrySlug) => entrySlug.toLowerCase() === slug.toLowerCase()),
+    )
     .sort((first, second) => second.rating - first.rating)
     .slice(0, limit)
     .map((entry) => ({

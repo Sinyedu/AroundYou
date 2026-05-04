@@ -42,6 +42,7 @@ import {
   registerUser,
   updateMe,
 } from "../controllers/authController";
+import { reverseGeocode } from "../controllers/geocodingController";
 import { verifyToken } from "../middleware/verifyUserToken";
 import { requirePermission } from "../middleware/requirePermission";
 
@@ -52,6 +53,8 @@ router.get("/", (req: Request, res: Response) => {
   res.status(200).send("Welcome to the AroundYou API");
   // disconnect
 });
+
+router.get("/geocode/reverse", reverseGeocode);
 
 // AUTH ROUTES
 // REGISTER
@@ -177,11 +180,7 @@ router.post("/user/login", loginUser);
  *       500:
  *         description: Server error
  */
-router.get(
-  "/user/me",
-  verifyToken,
-  getMe,
-);
+router.get("/user/me", verifyToken, getMe);
 router.put("/user/me", verifyToken, updateMe);
 
 // ATTRACTION ROUTES
