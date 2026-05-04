@@ -22,6 +22,7 @@ import {
   createCity,
   getAllCities,
   getCityById,
+  getCityByName,
   updateCityById,
   deleteCityById,
   getCityByQuery,
@@ -699,6 +700,9 @@ router.post("/city", createCity);
  *         description: Server error
  */
 router.get("/city", getAllCities);
+
+// GET CITY BY NAME
+router.get("/city/name/:cityName", getCityByName);
 
 // GET CITY BY ID
 /**

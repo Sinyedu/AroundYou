@@ -1,6 +1,8 @@
 <template>
-  <div
-    class="group rounded-xl overflow-hidden shadow-sm border border-gray-100 cursor-pointer hover:shadow-md transition-shadow"
+  <component
+    :is="card.href ? RouterLink : 'div'"
+    :to="card.href ?? undefined"
+    class="group rounded-xl overflow-hidden shadow-sm border border-gray-100 cursor-pointer hover:shadow-md transition-shadow block"
   >
     <img
       :src="card.image"
@@ -30,10 +32,11 @@
         </span>
       </div>
     </div>
-  </div>
+  </component>
 </template>
 
 <script setup lang="ts">
+import { RouterLink } from 'vue-router'
 import type { ExperienceCard } from '@/types/attractions'
 
 defineProps<{

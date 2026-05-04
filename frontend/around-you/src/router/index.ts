@@ -18,6 +18,11 @@ const router = createRouter({
 
     { path: '/search', name: 'search', component: () => import('../views/SearchView.vue') },
     {
+      path: '/city/:cityName',
+      name: 'single-city',
+      component: () => import('../views/SingleCityView.vue'),
+    },
+    {
       path: '/user/user-profile',
       name: 'user-profile',
       component: () => import('../views/UserProfileView.vue'),

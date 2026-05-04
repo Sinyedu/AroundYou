@@ -181,6 +181,32 @@ async function fetchJson<T>(path: string): Promise<T> {
   return response.json() as Promise<T>
 }
 
+function normalizeCitySlug(name: string): string {
+  return name
+    .toLowerCase()
+    .replace(/æ/g, 'a')
+    .replace(/ø/g, 'o')
+    .replace(/å/g, 'a')
+    .normalize('NFD')
+    .replace(/[\u0300-\u036f]/g, '')
+    .replace(/[^a-z0-9]+/g, '-')
+    .replace(/(^-|-$)/g, '')
+}
+
+export async function getCityByName(cityName: string): Promise<CityApiItem | null> {
+  const response = await fetch(`${API_BASE_URL}/city/name/${encodeURIComponent(cityName)}`)
+
+  if (response.status === 404) {
+    return null
+  }
+
+  if (!response.ok) {
+    throw new Error(`Request failed for /city/name/${cityName}`)
+  }
+
+  return response.json() as Promise<CityApiItem>
+}
+
 export async function getNearbyLocationContent(
   coords: Coordinates,
   limit = 4,
@@ -257,6 +283,7 @@ export async function getLargestCities(limit = 4): Promise<LargestCityCard[]> {
       reviews: 0,
       tags: [city.region, city.commune, 'Storby'].filter(Boolean).slice(0, 3),
       metaText: `${city.population.toLocaleString('da-DK')} indbyggere`,
+      href: `/city/${normalizeCitySlug(city.name)}`,
     }))
 }
 
