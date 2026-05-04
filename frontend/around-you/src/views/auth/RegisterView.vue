@@ -1,42 +1,118 @@
 <template>
-  <div class="container mx-auto p-4">
-    <h2 class="text-2xl font-bold mb-4">Register</h2>
+  <main class="min-h-[calc(100vh-88px)] bg-[#C1D2DE] px-4 py-8">
+    <section
+      class="mx-auto grid max-w-5xl overflow-hidden rounded-[28px] bg-white shadow-[0_24px_80px_rgba(9,75,123,0.16)] lg:grid-cols-[0.9fr_1.1fr]"
+    >
+      <div class="flex flex-col justify-between gap-8 bg-[#094b7b] px-8 py-8 text-white">
+        <div>
+          <p class="text-xs font-semibold uppercase tracking-[0.32em] text-[#f1b28f]">Around You</p>
+          <h1 class="mt-3 text-3xl font-black tracking-tight">Opret konto</h1>
+          <p class="mt-3 max-w-md text-sm leading-6 text-white/80">
+            Bliv en del af AroundYou og begynd at oprette oplevelser, events og steder i Danmark.
+          </p>
+        </div>
 
-    <form @submit.prevent="handleRegister">
-      <div class="mb-4">
-        <label class="block text-sm font-medium text-gray-700">First Name</label>
-        <input id="firstName" v-model="firstName" type="text" required class="input" />
+        
       </div>
 
-      <div class="mb-4">
-        <label class="block text-sm font-medium text-gray-700">Last Name</label>
-        <input id="lastName" v-model="lastName" type="text" required class="input" />
-      </div>
+      <div class="flex items-center px-6 py-8 sm:px-10">
+        <div class="w-full">
+          <p class="text-xs font-semibold uppercase tracking-[0.28em] text-[#de5826]">Register</p>
+          <h2 class="mt-2 text-3xl font-black tracking-tight text-[#094b7b]">Kom i gang</h2>
 
-      <div class="mb-4">
-        <label class="block text-sm font-medium text-gray-700">Username</label>
-        <input id="userName" v-model="userName" type="text" required class="input" />
-      </div>
+          <p
+            v-if="message"
+            class="mt-5 rounded-xl px-4 py-3 text-sm font-semibold"
+            :class="isSuccess ? 'bg-emerald-50 text-emerald-700' : 'bg-rose-50 text-rose-700'"
+          >
+            {{ message }}
+          </p>
 
-      <div class="mb-4">
-        <label class="block text-sm font-medium text-gray-700">Email</label>
-        <input id="email" v-model="email" type="email" required class="input" />
-      </div>
+          <form class="mt-5 grid gap-4 sm:grid-cols-2" @submit.prevent="handleRegister">
+            <label class="grid gap-2">
+              <span class="text-sm font-semibold text-slate-700">Fornavn</span>
+              <input
+                id="firstName"
+                v-model="firstName"
+                type="text"
+                required
+                autocomplete="given-name"
+                class="rounded-xl border border-slate-200 px-4 py-3 text-sm font-semibold text-slate-700 outline-none transition focus:border-[#094b7b] focus:ring-4 focus:ring-[#C1D2DE]/60"
+              />
+            </label>
 
-      <div class="mb-4">
-        <label class="block text-sm font-medium text-gray-700">Password</label>
-        <input id="password" v-model="password" type="password" required class="input" />
-      </div>
+            <label class="grid gap-2">
+              <span class="text-sm font-semibold text-slate-700">Efternavn</span>
+              <input
+                id="lastName"
+                v-model="lastName"
+                type="text"
+                required
+                autocomplete="family-name"
+                class="rounded-xl border border-slate-200 px-4 py-3 text-sm font-semibold text-slate-700 outline-none transition focus:border-[#094b7b] focus:ring-4 focus:ring-[#C1D2DE]/60"
+              />
+            </label>
 
-      <button type="submit" class="w-full bg-blue-600 text-white py-2 px-4 rounded">
-        Register
-      </button>
-    </form>
-  </div>
+            <label class="grid gap-2 sm:col-span-2">
+              <span class="text-sm font-semibold text-slate-700">Brugernavn</span>
+              <input
+                id="userName"
+                v-model="userName"
+                type="text"
+                required
+                autocomplete="username"
+                class="rounded-xl border border-slate-200 px-4 py-3 text-sm font-semibold text-slate-700 outline-none transition focus:border-[#094b7b] focus:ring-4 focus:ring-[#C1D2DE]/60"
+              />
+            </label>
+
+            <label class="grid gap-2 sm:col-span-2">
+              <span class="text-sm font-semibold text-slate-700">Email</span>
+              <input
+                id="email"
+                v-model="email"
+                type="email"
+                required
+                autocomplete="email"
+                class="rounded-xl border border-slate-200 px-4 py-3 text-sm font-semibold text-slate-700 outline-none transition focus:border-[#094b7b] focus:ring-4 focus:ring-[#C1D2DE]/60"
+              />
+            </label>
+
+            <label class="grid gap-2 sm:col-span-2">
+              <span class="text-sm font-semibold text-slate-700">Adgangskode</span>
+              <input
+                id="password"
+                v-model="password"
+                type="password"
+                required
+                autocomplete="new-password"
+                class="rounded-xl border border-slate-200 px-4 py-3 text-sm font-semibold text-slate-700 outline-none transition focus:border-[#094b7b] focus:ring-4 focus:ring-[#C1D2DE]/60"
+              />
+            </label>
+
+            <button
+              type="submit"
+              class="rounded-full bg-[#094b7b] px-6 py-3 text-sm font-semibold text-white shadow-[0_16px_30px_rgba(9,75,123,0.18)] transition hover:bg-[#0b5d98] disabled:cursor-not-allowed disabled:opacity-60 sm:col-span-2"
+              :disabled="isSubmitting"
+            >
+              {{ isSubmitting ? 'Opretter konto...' : 'Opret konto' }}
+            </button>
+          </form>
+
+          <p class="mt-5 text-sm text-slate-600">
+            Har du allerede en konto?
+            <RouterLink to="/auth/login" class="font-semibold text-[#094b7b] hover:text-[#de5826]">
+              Log ind
+            </RouterLink>
+          </p>
+        </div>
+      </div>
+    </section>
+  </main>
 </template>
 
 <script setup lang="ts">
 import { ref } from 'vue'
+import { RouterLink } from 'vue-router'
 import { useAuth } from '../../composables/useAuth'
 
 const { register } = useAuth()
@@ -46,6 +122,9 @@ const lastName = ref('')
 const userName = ref('')
 const email = ref('')
 const password = ref('')
+const message = ref('')
+const isSuccess = ref(false)
+const isSubmitting = ref(false)
 
 const handleRegister = async () => {
   if (!firstName.value || !lastName.value || !userName.value || !email.value || !password.value) {
@@ -53,14 +132,20 @@ const handleRegister = async () => {
   }
 
   try {
+    isSubmitting.value = true
+    message.value = ''
+    isSuccess.value = false
+
     await register(firstName.value, lastName.value, userName.value, email.value, password.value)
 
-    alert('Registration successful!')
+    isSuccess.value = true
+    message.value = 'Din konto er oprettet. Du kan logge ind nu.'
   } catch (error) {
     console.error(error)
-    alert('Registration failed. Please check your details.')
+    isSuccess.value = false
+    message.value = error instanceof Error ? error.message : 'Registration failed.'
+  } finally {
+    isSubmitting.value = false
   }
 }
 </script>
-
-<style scoped></style>
