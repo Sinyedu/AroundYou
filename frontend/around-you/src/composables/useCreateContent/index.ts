@@ -1,6 +1,7 @@
 import { useCreateContentForm } from './useCreateContentForm'
 import { useCreateContentImages } from './useCreateContentImages'
 import { useCreateContentSubmit } from './useCreateContentSubmit'
+import type { ContentType } from '@/types/content'
 
 export const useCreateContent = () => {
   const {
@@ -45,11 +46,11 @@ export const useCreateContent = () => {
     message.value = msg
   }
 
-  const onHeroImageSelected = (contentType: any, event: Event) => {
+  const onHeroImageSelected = (contentType: ContentType, event: Event) => {
     _onHeroImageSelected(contentType, event, setMessage)
   }
 
-  const onImageArraySelected = (contentType: any, event: Event) => {
+  const onImageArraySelected = (contentType: 'event' | 'attraction', event: Event) => {
     _onImageArraySelected(contentType, event, setMessage)
   }
 

@@ -2,6 +2,15 @@ import { ref } from 'vue'
 import { useRouter } from 'vue-router'
 import { createAttraction, createCity, createEvent, uploadImageFile } from '@/api/contentApi'
 import type { AttractionPayload, CityPayload, ContentType, EventPayload } from '@/types/content'
+import type {
+  CreateAttractionForm,
+  CreateCityForm,
+  CreateContentFileArrayRef,
+  CreateContentFileRef,
+  CreateContentFormType,
+  CreateContentMessageSetter,
+  CreateEventForm,
+} from '@/types/content/useCreateContent'
 import { compressImageFile } from '@/utils/imageCompressor'
 
 const splitList = (value: string) =>
@@ -13,15 +22,15 @@ const splitList = (value: string) =>
 const getAuthToken = () => localStorage.getItem('token')
 
 export const useCreateContentSubmit = (
-  selectedType: { value: ContentType },
-  eventForm: any,
-  attractionForm: any,
-  cityForm: any,
-  eventHeroImageFile: { value: File | null },
-  attractionHeroImageFile: { value: File | null },
-  cityHeroImageFile: { value: File | null },
-  eventImageArrayFiles: { value: File[] },
-  attractionImageArrayFiles: { value: File[] },
+  selectedType: CreateContentFormType,
+  eventForm: CreateEventForm,
+  attractionForm: CreateAttractionForm,
+  cityForm: CreateCityForm,
+  eventHeroImageFile: CreateContentFileRef,
+  attractionHeroImageFile: CreateContentFileRef,
+  cityHeroImageFile: CreateContentFileRef,
+  eventImageArrayFiles: CreateContentFileArrayRef,
+  attractionImageArrayFiles: CreateContentFileArrayRef,
   compressImageFiles: (files: File[]) => Promise<File[]>,
 ) => {
   const router = useRouter()
@@ -117,7 +126,7 @@ export const useCreateContentSubmit = (
     await createCity(payload, token)
   }
 
-  const submitSelected = async (setMessage: (msg: string) => void) => {
+  const submitSelected = async (setMessage: CreateContentMessageSetter) => {
     try {
       isSubmitting.value = true
       setMessage('')

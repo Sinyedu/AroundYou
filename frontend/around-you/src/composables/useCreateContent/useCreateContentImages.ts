@@ -1,6 +1,7 @@
 import { ref } from 'vue'
 import { compressImageFile, isAllowedImageType } from '@/utils/imageCompressor'
 import type { ContentType } from '@/types/content'
+import type { CreateContentMessageSetter } from '@/types/content/useCreateContent'
 
 export const useCreateContentImages = () => {
   const eventHeroImageFile = ref<File | null>(null)
@@ -12,7 +13,7 @@ export const useCreateContentImages = () => {
   const onHeroImageSelected = (
     contentType: ContentType,
     event: Event,
-    setMessage: (msg: string) => void,
+    setMessage: CreateContentMessageSetter,
   ) => {
     const target = event.target as HTMLInputElement | null
     const file = target?.files?.[0]
@@ -41,7 +42,7 @@ export const useCreateContentImages = () => {
   const onImageArraySelected = (
     contentType: 'event' | 'attraction',
     event: Event,
-    setMessage: (msg: string) => void,
+    setMessage: CreateContentMessageSetter,
   ) => {
     const target = event.target as HTMLInputElement | null
     const files = target?.files ? Array.from(target.files) : []

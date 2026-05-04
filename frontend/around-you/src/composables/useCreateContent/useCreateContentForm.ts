@@ -1,13 +1,18 @@
 import { onMounted, reactive, ref } from 'vue'
 import { fetchAttractions, fetchEvents } from '@/api/searchApi'
 import type { ContentType } from '@/types/content'
+import type {
+  CreateAttractionForm,
+  CreateCityForm,
+  CreateEventForm,
+} from '@/types/content/useCreateContent'
 
 export const useCreateContentForm = () => {
   const selectedType = ref<ContentType>('event')
   const message = ref('')
   const categoryOptions = ref<string[]>([])
 
-  const eventForm = reactive({
+  const eventForm = reactive<CreateEventForm>({
     name: '',
     description: '',
     price: '',
@@ -20,7 +25,7 @@ export const useCreateContentForm = () => {
     openingHoursText: '',
   })
 
-  const attractionForm = reactive({
+  const attractionForm = reactive<CreateAttractionForm>({
     name: '',
     description: '',
     price: '',
@@ -30,7 +35,7 @@ export const useCreateContentForm = () => {
     openingHoursText: '',
   })
 
-  const cityForm = reactive({
+  const cityForm = reactive<CreateCityForm>({
     name: '',
     description: '',
     commune: '',
