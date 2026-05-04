@@ -1,11 +1,13 @@
-import {
-  USER_PERMISSIONS,
-  UserPermission,
-  UserRole,
-} from "../constants/enums";
+import { USER_PERMISSIONS, UserPermission, UserRole } from "../constants/enums";
 
 const ROLE_PERMISSION_MAP: Record<UserRole, UserPermission[]> = {
-  user: ["review:create", "review:update", "review:delete"],
+  user: [
+    "content:suggest",
+    "review:read",
+    "review:create",
+    "review:update",
+    "review:delete",
+  ],
   admin: [...USER_PERMISSIONS],
 };
 
@@ -13,9 +15,7 @@ export function normalizeRole(role: unknown): UserRole {
   return role === "admin" ? "admin" : "user";
 }
 
-export function normalizePermissions(
-  permissions: unknown,
-): UserPermission[] {
+export function normalizePermissions(permissions: unknown): UserPermission[] {
   if (!Array.isArray(permissions)) {
     return [];
   }

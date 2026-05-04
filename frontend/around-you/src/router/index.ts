@@ -2,6 +2,7 @@ import { createRouter, createWebHistory } from 'vue-router'
 import HomeView from '../views/HomeView.vue'
 import AdminView from '../views/AdminView.vue'
 import ContentPlaceholderView from '../views/ContentPlaceholderView.vue'
+import CreateContentView from '../views/CreateContentView.vue'
 import { useAuthService } from '@/api/authService'
 
 const router = createRouter({
@@ -27,12 +28,8 @@ const router = createRouter({
     {
       path: '/create',
       name: 'create',
-      component: ContentPlaceholderView,
+      component: CreateContentView,
       meta: { requiresAuth: true },
-      props: {
-        title: 'Tilføj nye oplevelser',
-        description: 'Opret attraktioner, events eller lokationer.',
-      },
     },
 
     {

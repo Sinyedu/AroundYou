@@ -5,6 +5,7 @@ import cors from "cors";
 import routes from "./routes/routes";
 import { setupDocs } from "./utils/swaggerDocumentation";
 import { connectDB } from "./repository/database";
+import { ensureDefaultAdminUser } from "./services/admin.service";
 
 dotenvFlow.config();
 
@@ -20,7 +21,7 @@ function setupCors() {
       credentials: true,
       methods: ["GET", "POST", "PUT", "DELETE"],
       allowedHeaders: ["Authorization", "Content-Type"],
-    })
+    }),
   );
 }
 
@@ -49,6 +50,7 @@ export async function startServer() {
   setupDocs(app);
 
   await connectDB();
+  await ensureDefaultAdminUser();
 
   const PORT: number = Number(process.env.PORT as string) || 4000;
 

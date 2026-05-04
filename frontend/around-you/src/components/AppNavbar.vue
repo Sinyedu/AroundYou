@@ -119,7 +119,8 @@ const router = useRouter()
 const navRef = ref<ComponentPublicInstance | HTMLElement | null>(null)
 const isAvatarMenuOpen = ref(false)
 
-const { avatarInitials, isAdmin, isAuthenticated, logout, userAvatar, userName } = useAuth()
+const { avatarInitials, checkSession, isAdmin, isAuthenticated, logout, userAvatar, userName } =
+  useAuth()
 
 const displayUserName = computed(() => userName.value || 'Guest')
 
@@ -157,6 +158,12 @@ const handleDocumentClick = (event: MouseEvent) => {
   }
 }
 
-onMounted(() => document.addEventListener('click', handleDocumentClick))
+onMounted(() => {
+  document.addEventListener('click', handleDocumentClick)
+
+  if (isAuthenticated.value && !isAdmin.value) {
+    void checkSession()
+  }
+})
 onBeforeUnmount(() => document.removeEventListener('click', handleDocumentClick))
 </script>

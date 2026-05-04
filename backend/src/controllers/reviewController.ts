@@ -1,13 +1,28 @@
 import { Request, Response } from "express";
 import { ReviewModel } from "../models/reviewModel";
 import { buildDynamicQuery } from "./dynamicQueryBuilder";
+import { pickTrimmedStringFields } from "../utils/stringFields";
+
+function canModifyReview(req: Request, author: string): boolean {
+  return req.user?.role === "admin" || req.user?.userName === author;
+}
 
 /**
  * CREATE REVIEW
  */
 export async function createReview(req: Request, res: Response): Promise<void> {
   try {
-    const review = new ReviewModel(req.body);
+    const author = req.user?.userName;
+
+    if (!author) {
+      res.status(401).json({ message: "Unauthorized" });
+      return;
+    }
+
+    const review = new ReviewModel({
+      ...req.body,
+      author,
+    });
     const result = await review.save();
 
     res.status(201).json(result);
@@ -22,7 +37,10 @@ export async function createReview(req: Request, res: Response): Promise<void> {
 /**
  * GET ALL REVIEWS
  */
-export async function getAllReviews(req: Request, res: Response): Promise<void> {
+export async function getAllReviews(
+  req: Request,
+  res: Response,
+): Promise<void> {
   try {
     const result = await ReviewModel.find({});
     res.status(200).json(result);
@@ -37,7 +55,10 @@ export async function getAllReviews(req: Request, res: Response): Promise<void> 
 /**
  * GET REVIEW BY ID
  */
-export async function getReviewById(req: Request, res: Response): Promise<void> {
+export async function getReviewById(
+  req: Request,
+  res: Response,
+): Promise<void> {
   try {
     const result = await ReviewModel.findById(req.params.id);
 
@@ -58,18 +79,41 @@ export async function getReviewById(req: Request, res: Response): Promise<void> 
 /**
  * UPDATE REVIEW
  */
-export async function updateReviewById(req: Request, res: Response): Promise<void> {
+export async function updateReviewById(
+  req: Request,
+  res: Response,
+): Promise<void> {
   try {
-    const result = await ReviewModel.findByIdAndUpdate(
-      req.params.id,
-      req.body,
-      { new: true }
-    );
+    const review = await ReviewModel.findById(req.params.id);
 
-    if (!result) {
+    if (!review) {
       res.status(404).json({ message: "Review not found" });
       return;
     }
+
+    if (!canModifyReview(req, review.author)) {
+      res.status(403).json({ message: "Cannot modify another user's review" });
+      return;
+    }
+
+    const updates = {
+      ...pickTrimmedStringFields(req.body as Record<string, unknown>, [
+        "title",
+        "description",
+        "image",
+      ]),
+      ...(typeof req.body.rating === "number"
+        ? { rating: req.body.rating }
+        : {}),
+      ...(typeof req.body.likes === "number" && req.user?.role === "admin"
+        ? { likes: req.body.likes }
+        : {}),
+    };
+
+    const result = await ReviewModel.findByIdAndUpdate(req.params.id, updates, {
+      new: true,
+      runValidators: true,
+    });
 
     res.status(200).json({
       message: "Review updated successfully",
@@ -86,14 +130,24 @@ export async function updateReviewById(req: Request, res: Response): Promise<voi
 /**
  * DELETE REVIEW
  */
-export async function deleteReviewById(req: Request, res: Response): Promise<void> {
+export async function deleteReviewById(
+  req: Request,
+  res: Response,
+): Promise<void> {
   try {
-    const result = await ReviewModel.findByIdAndDelete(req.params.id);
+    const review = await ReviewModel.findById(req.params.id);
 
-    if (!result) {
+    if (!review) {
       res.status(404).json({ message: "Review not found" });
       return;
     }
+
+    if (!canModifyReview(req, review.author)) {
+      res.status(403).json({ message: "Cannot delete another user's review" });
+      return;
+    }
+
+    await ReviewModel.findByIdAndDelete(req.params.id);
 
     res.status(200).json({ message: "Review deleted successfully" });
   } catch (err) {
@@ -107,7 +161,10 @@ export async function deleteReviewById(req: Request, res: Response): Promise<voi
 /**
  * QUERY REVIEW (KEY / VALUE)
  */
-export async function getReviewByQuery(req: Request, res: Response): Promise<void> {
+export async function getReviewByQuery(
+  req: Request,
+  res: Response,
+): Promise<void> {
   try {
     const key = req.params.key as string;
     const value = req.params.value as string;
@@ -128,7 +185,10 @@ export async function getReviewByQuery(req: Request, res: Response): Promise<voi
 /**
  * GENERIC QUERY
  */
-export async function getReviewByGenericQuery(req: Request, res: Response): Promise<void> {
+export async function getReviewByGenericQuery(
+  req: Request,
+  res: Response,
+): Promise<void> {
   try {
     const query = buildDynamicQuery(ReviewModel, req.body);
 

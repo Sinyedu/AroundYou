@@ -16,13 +16,19 @@ export async function registerUser(req: Request, res: Response): Promise<void> {
     const { error } = validateUserRegistration(req.body);
 
     if (error) {
-      res.status(400).json({ error: error.details[0].message });
+      res.status(400).json({
+        error: error.details[0].message,
+        message: error.details[0].message,
+      });
       return;
     }
 
     const emailExists = await UserModel.findOne({ email: req.body.email });
     if (emailExists) {
-      res.status(409).json({ error: "Email already exists" });
+      res.status(409).json({
+        error: "Email already exists",
+        message: "Email already exists",
+      });
       return;
     }
 
@@ -31,7 +37,10 @@ export async function registerUser(req: Request, res: Response): Promise<void> {
     });
 
     if (userNameExists) {
-      res.status(409).json({ error: "Username already exists" });
+      res.status(409).json({
+        error: "Username already exists",
+        message: "Username already exists",
+      });
       return;
     }
 
@@ -56,7 +65,10 @@ export async function registerUser(req: Request, res: Response): Promise<void> {
     });
   } catch (err) {
     console.error("Register error:", err);
-    res.status(500).json({ error: "Internal server error" });
+    res.status(500).json({
+      error: "Internal server error",
+      message: "Internal server error",
+    });
   }
 }
 
@@ -68,7 +80,10 @@ export async function loginUser(req: Request, res: Response): Promise<void> {
     const { error } = validateUserLogin(req.body);
 
     if (error) {
-      res.status(400).json({ error: error.details[0].message });
+      res.status(400).json({
+        error: error.details[0].message,
+        message: error.details[0].message,
+      });
       return;
     }
 
@@ -79,14 +94,18 @@ export async function loginUser(req: Request, res: Response): Promise<void> {
     });
 
     if (!user) {
-      res.status(401).json({ error: "Invalid credentials" });
+      res
+        .status(401)
+        .json({ error: "Invalid credentials", message: "Invalid credentials" });
       return;
     }
 
     const validPassword = await bcrypt.compare(password, user.password);
 
     if (!validPassword) {
-      res.status(401).json({ error: "Invalid credentials" });
+      res
+        .status(401)
+        .json({ error: "Invalid credentials", message: "Invalid credentials" });
       return;
     }
 
@@ -118,7 +137,10 @@ export async function loginUser(req: Request, res: Response): Promise<void> {
     });
   } catch (err) {
     console.error("Login error:", err);
-    res.status(500).json({ error: "Internal server error" });
+    res.status(500).json({
+      error: "Internal server error",
+      message: "Internal server error",
+    });
   }
 }
 
@@ -156,14 +178,16 @@ export async function getMe(req: Request, res: Response): Promise<void> {
     const userID = req.user?.userID;
 
     if (!userID) {
-      res.status(401).json({ error: "Unauthorized" });
+      res.status(401).json({ error: "Unauthorized", message: "Unauthorized" });
       return;
     }
 
     const user = await UserModel.findById(userID).select("-password");
 
     if (!user) {
-      res.status(404).json({ error: "User not found" });
+      res
+        .status(404)
+        .json({ error: "User not found", message: "User not found" });
       return;
     }
 
@@ -178,7 +202,10 @@ export async function getMe(req: Request, res: Response): Promise<void> {
     });
   } catch (err) {
     console.error("GetMe error:", err);
-    res.status(500).json({ error: "Internal server error" });
+    res.status(500).json({
+      error: "Internal server error",
+      message: "Internal server error",
+    });
   }
 }
 
@@ -187,22 +214,25 @@ export async function updateMe(req: Request, res: Response): Promise<void> {
     const userID = req.user?.userID;
 
     if (!userID) {
-      res.status(401).json({ error: "Unauthorized" });
+      res.status(401).json({ error: "Unauthorized", message: "Unauthorized" });
       return;
     }
 
-    const updates = pickTrimmedStringFields(req.body as Record<string, unknown>, [
-      "userName",
-      "email",
-      "firstName",
-      "lastName",
-      "userAvatar",
-      "country",
-      "city",
-      "street",
-      "streetNumber",
-      "postalCode",
-    ]);
+    const updates = pickTrimmedStringFields(
+      req.body as Record<string, unknown>,
+      [
+        "userName",
+        "email",
+        "firstName",
+        "lastName",
+        "userAvatar",
+        "country",
+        "city",
+        "street",
+        "streetNumber",
+        "postalCode",
+      ],
+    );
 
     const updatedUser = await UserModel.findByIdAndUpdate(userID, updates, {
       new: true,
@@ -210,7 +240,9 @@ export async function updateMe(req: Request, res: Response): Promise<void> {
     }).select("userName email firstName lastName userAvatar role permissions");
 
     if (!updatedUser) {
-      res.status(404).json({ error: "User not found" });
+      res
+        .status(404)
+        .json({ error: "User not found", message: "User not found" });
       return;
     }
 
@@ -228,6 +260,9 @@ export async function updateMe(req: Request, res: Response): Promise<void> {
     });
   } catch (err) {
     console.error("UpdateMe error:", err);
-    res.status(500).json({ error: "Internal server error" });
+    res.status(500).json({
+      error: "Internal server error",
+      message: "Internal server error",
+    });
   }
 }

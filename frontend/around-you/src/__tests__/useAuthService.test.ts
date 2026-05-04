@@ -99,6 +99,32 @@ describe('useAuthService', () => {
     expect(localStorage.getItem('userAvatar')).toBe(null)
   })
 
+  it('marks admin users as admin after login', async () => {
+    vi.stubGlobal(
+      'fetch',
+      vi.fn(() =>
+        Promise.resolve({
+          ok: true,
+          json: () =>
+            Promise.resolve({
+              token: 'admin-jwt-token',
+              user: {
+                userName: 'admin',
+                email: 'admin@test.com',
+                role: 'admin',
+                permissions: ['admin:access'],
+              },
+            }),
+        }),
+      ) as unknown as typeof fetch,
+    )
+
+    await auth.login('admin', 'password')
+
+    expect(auth.isAdmin.value).toBe(true)
+    expect(auth.currentUser.value?.role).toBe('admin')
+  })
+
   it('throws error on failed login', async () => {
     vi.stubGlobal(
       'fetch',

@@ -18,8 +18,8 @@ export async function apiRequest<T>(path: string, options: RequestOptions = {}):
     let message = `Request failed for ${path}`
 
     try {
-      const error = (await response.json()) as { message?: string }
-      message = error.message ?? message
+      const error = (await response.json()) as { message?: string; error?: string }
+      message = error.message ?? error.error ?? message
     } catch {
       message = `${message}: ${response.status}`
     }

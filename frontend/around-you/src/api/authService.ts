@@ -9,6 +9,15 @@ type AuthResponse = {
   user: User
 }
 
+async function getErrorMessage(response: Response, fallback: string): Promise<string> {
+  try {
+    const error = (await response.json()) as { message?: string; error?: string }
+    return error.message || error.error || fallback
+  } catch {
+    return fallback
+  }
+}
+
 function getStoredToken(): string | null {
   if (typeof window === 'undefined') return null
   const storage = window.localStorage as Storage | undefined
@@ -47,8 +56,7 @@ export const useAuthService = () => {
     })
 
     if (!response.ok) {
-      const error = await response.json()
-      throw new Error(error.message || 'Login failed')
+      throw new Error(await getErrorMessage(response, 'Login failed'))
     }
 
     const data = await response.json()
@@ -83,7 +91,9 @@ export const useAuthService = () => {
       body: JSON.stringify({ firstName, lastName, userName, email, password }),
     })
 
-    if (!res.ok) throw new Error('Registration failed')
+    if (!res.ok) {
+      throw new Error(await getErrorMessage(res, 'Registration failed'))
+    }
   }
 
   const logout = () => {
