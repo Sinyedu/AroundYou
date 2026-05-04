@@ -203,7 +203,7 @@ export const useSearchResults = (filters: Ref<SearchFilters>) => {
     }
   })
 
-  const nearestExperienceResults = computed(() => {
+  const locationSortedExperienceResults = computed(() => {
     const coords = userCoordinates.value
 
     if (!coords) {
@@ -217,17 +217,26 @@ export const useSearchResults = (filters: Ref<SearchFilters>) => {
         distance: distanceKm(coords, item.coordinates!),
       }))
       .sort((first, second) => first.distance - second.distance)
-      .slice(0, 6)
       .map(({ item }) => item)
   })
 
+  const nearestExperienceResults = computed(() => locationSortedExperienceResults.value.slice(0, 6))
+
   const visibleResults = computed(() => {
-    if (hasActiveFilters.value) {
-      return results.value
+    if (userCoordinates.value) {
+      if (filters.value.location.trim().length === 0 && hasActiveFilters.value) {
+        return locationSortedExperienceResults.value
+      }
+
+      if (hasActiveFilters.value) {
+        return results.value
+      }
+
+      return nearestExperienceResults.value
     }
 
-    if (userCoordinates.value) {
-      return nearestExperienceResults.value
+    if (hasActiveFilters.value) {
+      return results.value
     }
 
     return largestCityResults.value
