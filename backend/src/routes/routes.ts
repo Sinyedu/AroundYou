@@ -39,8 +39,14 @@ import {
 import { getCurrentUser } from "../controllers/userController";
 import { loginUser, registerUser } from "../controllers/authController";
 import { verifyToken } from "../middleware/verifyUserToken";
+import {
+  uploadImage,
+  uploadSingleImage,
+} from "../controllers/uploadController";
 
 const router: Router = Router();
+
+router.post("/upload/image", uploadSingleImage, uploadImage);
 
 router.get("/", (req: Request, res: Response) => {
   // connect
@@ -1040,7 +1046,7 @@ router.delete("/reviews/:id", deleteReviewById);
  *       - name: key
  *         in: path
  *         required: true
- *         description: The field to query (e.g., rating, city)
+ *         description: The field to query (e.g., name, city)
  *         schema:
  *           type: string
  *       - name: value
