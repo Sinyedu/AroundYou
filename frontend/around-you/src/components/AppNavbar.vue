@@ -7,9 +7,10 @@
     >
       <RouterLink
         to="/"
-        class="text-3xl font-black tracking-tight text-[#094b7b] transition hover:text-[#0b5d98]"
+        class="inline-flex shrink-0 items-center transition hover:opacity-85"
+        aria-label="AroundYou home"
       >
-        AroundYou
+        <img :src="aroundYouLogo" alt="AroundYou" class="h-10 w-auto sm:h-12" />
       </RouterLink>
 
       <div
@@ -112,6 +113,7 @@
 import { computed, onBeforeUnmount, onMounted, ref } from 'vue'
 import type { ComponentPublicInstance } from 'vue'
 import { RouterLink, useRoute, useRouter } from 'vue-router'
+import aroundYouLogo from '@/assets/around-you-logo.svg'
 import { useAuth } from '@/composables/useAuth'
 
 const route = useRoute()
