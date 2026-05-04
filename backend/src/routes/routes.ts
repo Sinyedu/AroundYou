@@ -36,6 +36,9 @@ import {
   deleteReviewById,
   getReviewByQuery,
   getReviewByGenericQuery,
+  getReviewsByTarget,
+  likeReview,
+  editReview,
 } from "../controllers/reviewController";
 import { getCurrentUser } from "../controllers/userController";
 import { loginUser, registerUser } from "../controllers/authController";
@@ -908,7 +911,13 @@ router.post("/city/query", verifyToken, getCityByGenericQuery);
  *       500:
  *         description: Server error
  */
-router.post("/reviews", createReview);
+router.post("/reviews", verifyToken, createReview);
+
+router.get("/reviews/target/:targetId", getReviewsByTarget);
+
+router.post("/reviews/:id/like", verifyToken, likeReview);
+
+router.patch("/reviews/:id", verifyToken, editReview);
 
 // GET ALL REVIEWS
 /**
