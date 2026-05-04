@@ -7,4 +7,5 @@ export type ExperienceCard = {
   reviews: number
   tags: string[]
   metaText?: string
+  href?: string
 }
