@@ -3,6 +3,7 @@ import { ReviewModel } from "../models/reviewModel";
 import { buildDynamicQuery } from "./dynamicQueryBuilder";
 import { pickTrimmedStringFields } from "../utils/stringFields";
 
+
 function canModifyReview(req: Request, author: string): boolean {
   return req.user?.role === "admin" || req.user?.userName === author;
 }
