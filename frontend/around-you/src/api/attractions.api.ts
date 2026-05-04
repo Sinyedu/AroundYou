@@ -15,174 +15,55 @@ const API_BASE_URL = 'http://localhost:4000/api'
 export const DEFAULT_NEARBY_LOCATION_DESCRIPTION =
   'Gå på opdagelse i spændende oplevelser tæt på din egen lokation, hvor natur, kultur, attraktioner og restauranter er lige inden for rækkevidde. Oplev alt fra populære seværdigheder og hyggelige udflugtsmål til lokale favoritter og skjulte perler lige i nærheden.'
 
-type AxisDirection = 'N' | 'S' | 'E' | 'W'
-
-function toSignedCoordinate(value: number, direction?: AxisDirection): number {
-  if (!direction) {
-    return value
-  }
-
-  return direction === 'S' || direction === 'W' ? -Math.abs(value) : Math.abs(value)
-}
-
-function convertDmsToDecimal(
-  degrees: number,
-  minutes = 0,
-  seconds = 0,
-  direction?: AxisDirection,
-): number {
-  const decimal = Math.abs(degrees) + minutes / 60 + seconds / 3600
-
-  if (degrees < 0 && !direction) {
-    return -decimal
-  }
-
-  return toSignedCoordinate(decimal, direction)
-}
-
-function isValidCoordinates(latitude: number, longitude: number): boolean {
-  return !Number.isNaN(latitude) && !Number.isNaN(longitude) && Math.abs(latitude) <= 90 && Math.abs(longitude) <= 180
-}
-
-function parseDecimalCoordinates(normalizedGpsPosition: string): Coordinates | null {
-  const matches = normalizedGpsPosition.match(/-?\d+(?:\.\d+)?/g)
-
-  if (!matches || matches.length < 2) {
-    return null
-  }
-
-  const latitude = Number(matches[0])
-  const longitude = Number(matches[1])
-
-  if (!isValidCoordinates(latitude, longitude)) {
-    return null
-  }
-
-  return { latitude, longitude }
-}
-
-function parseDirectionalCoordinates(normalizedGpsPosition: string): Coordinates | null {
-  const matches = [...normalizedGpsPosition.matchAll(/(\d+(?:\.\d+)?)\s*([NSEW])/gi)]
-
-  if (matches.length < 2) {
-    return null
-  }
-
-  let latitude: number | null = null
-  let longitude: number | null = null
-
-  for (const match of matches) {
-    const value = Number(match[1])
-    const directionValue = match[2]
-
-    if (!directionValue) {
-      continue
-    }
-
-    const direction = directionValue.toUpperCase() as AxisDirection
-
-    if (direction === 'N' || direction === 'S') {
-      latitude = toSignedCoordinate(value, direction)
-    }
-
-    if (direction === 'E' || direction === 'W') {
-      longitude = toSignedCoordinate(value, direction)
-    }
-  }
-
-  if (latitude === null || longitude === null || !isValidCoordinates(latitude, longitude)) {
-    return null
-  }
-
-  return { latitude, longitude }
-}
-
-function parseDmsCoordinates(normalizedGpsPosition: string): Coordinates | null {
-  const matches = [...normalizedGpsPosition.matchAll(/(\d{1,3})[^\dA-Z]+(\d{1,2})(?:[^\dA-Z]+(\d{1,2}(?:\.\d+)?))?[^A-Z\d]*([NSEW])/gi)]
-
-  if (matches.length < 2) {
-    return null
-  }
-
-  let latitude: number | null = null
-  let longitude: number | null = null
-
-  for (const match of matches) {
-    const degrees = Number(match[1])
-    const minutes = Number(match[2])
-    const seconds = match[3] ? Number(match[3]) : 0
-    const directionValue = match[4]
-
-    if (!directionValue) {
-      continue
-    }
-
-    const direction = directionValue.toUpperCase() as AxisDirection
-    const decimal = convertDmsToDecimal(degrees, minutes, seconds, direction)
-
-    if (direction === 'N' || direction === 'S') {
-      latitude = decimal
-    }
-
-    if (direction === 'E' || direction === 'W') {
-      longitude = decimal
-    }
-  }
-
-  if (latitude === null || longitude === null || !isValidCoordinates(latitude, longitude)) {
-    return null
-  }
-
-  return { latitude, longitude }
-}
-
-function parseGpsPosition(gpsPosition: string): Coordinates | null {
-  const normalizedGpsPosition = gpsPosition
-    .trim()
-    .replace(/,/g, '.')
-    .replace(/[º°]/g, ' ')
-    .replace(/[′']/g, ' ')
-    .replace(/[″"]/g, ' ')
-    .replace(/\s+/g, ' ')
-
-  return (
-    parseDmsCoordinates(normalizedGpsPosition) ??
-    parseDirectionalCoordinates(normalizedGpsPosition) ??
-    parseDecimalCoordinates(normalizedGpsPosition)
-  )
-}
-
-function yourDistanceInKm(from: Coordinates, to: Coordinates): number {
-  const earthRadiusKm = 6371
-  const latitudeDelta = ((to.latitude - from.latitude) * Math.PI) / 180
-  const longitudeDelta = ((to.longitude - from.longitude) * Math.PI) / 180
-  const fromLatitudeRadians = (from.latitude * Math.PI) / 180
-  const toLatitudeRadians = (to.latitude * Math.PI) / 180
-
-  const a =
-    Math.sin(latitudeDelta / 2) * Math.sin(latitudeDelta / 2) +
-    Math.cos(fromLatitudeRadians) *
-      Math.cos(toLatitudeRadians) *
-      Math.sin(longitudeDelta / 2) *
-      Math.sin(longitudeDelta / 2)
-
-  const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a))
-
-  return earthRadiusKm * c
-}
-
 async function fetchJson<T>(path: string): Promise<T> {
   const response = await fetch(`${API_BASE_URL}${path}`)
-
   if (!response.ok) {
-    throw new Error(`Request failed for ${path}`)
+    throw new Error(`Request failed for ${path}: ${response.status}`)
   }
-
   return response.json() as Promise<T>
 }
 
-function normalizeCitySlug(name: string): string {
-  return name
+function parseGpsPosition(value?: string): Coordinates | null {
+  if (!value) {
+    return null
+  }
+
+  const [latitudeRaw, longitudeRaw] = value.split(',').map((part) => part.trim())
+  const latitude = Number(latitudeRaw)
+  const longitude = Number(longitudeRaw)
+
+  if (!Number.isFinite(latitude) || !Number.isFinite(longitude)) {
+    return null
+  }
+
+  return { latitude, longitude }
+}
+
+function toRadians(value: number): number {
+  return (value * Math.PI) / 180
+}
+
+function distanceKm(from: Coordinates, to: Coordinates): number {
+  const earthRadius = 6371
+  const dLatitude = toRadians(to.latitude - from.latitude)
+  const dLongitude = toRadians(to.longitude - from.longitude)
+  const fromLatitude = toRadians(from.latitude)
+  const toLatitude = toRadians(to.latitude)
+
+  const a =
+    Math.sin(dLatitude / 2) * Math.sin(dLatitude / 2) +
+    Math.cos(fromLatitude) * Math.cos(toLatitude) * Math.sin(dLongitude / 2) * Math.sin(dLongitude / 2)
+
+  return earthRadius * (2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a)))
+}
+
+function normalizedRating(entry: NatureExperienceSource): number {
+  return typeof entry.rating === 'number' ? entry.rating : 0
+}
+
+function normalizeEntitySlug(value: string): string {
+  return value
+    .trim()
     .toLowerCase()
     .replace(/æ/g, 'a')
     .replace(/ø/g, 'o')
@@ -190,21 +71,38 @@ function normalizeCitySlug(name: string): string {
     .normalize('NFD')
     .replace(/[\u0300-\u036f]/g, '')
     .replace(/[^a-z0-9]+/g, '-')
-    .replace(/(^-|-$)/g, '')
+    .replace(/^-+|-+$/g, '')
 }
 
-export async function getCityByName(cityName: string): Promise<CityApiItem | null> {
-  const response = await fetch(`${API_BASE_URL}/city/name/${encodeURIComponent(cityName)}`)
-
-  if (response.status === 404) {
+export async function getEventByIdentifier(eventIdentifier: string): Promise<EventApiItem | null> {
+  if (!eventIdentifier.trim()) {
     return null
   }
 
-  if (!response.ok) {
-    throw new Error(`Request failed for /city/name/${cityName}`)
+  const events = await fetchJson<EventApiItem[]>('/events')
+  const normalizedIdentifier = normalizeEntitySlug(decodeURIComponent(eventIdentifier))
+
+  return (
+    events.find(
+      (event) =>
+        event._id === eventIdentifier || normalizeEntitySlug(event.name) === normalizedIdentifier,
+    ) ?? null
+  )
+}
+
+export async function getCityByName(cityName: string): Promise<CityApiItem | null> {
+  if (!cityName.trim()) {
+    return null
   }
 
-  return response.json() as Promise<CityApiItem>
+  const cities = await fetchJson<CityApiItem[]>('/city')
+  const normalizedInput = normalizeEntitySlug(decodeURIComponent(cityName))
+
+  return (
+    cities.find(
+      (city) => city._id === cityName || normalizeEntitySlug(city.name) === normalizedInput,
+    ) ?? null
+  )
 }
 
 export async function getNearbyLocationContent(
@@ -226,7 +124,7 @@ export async function getNearbyLocationContent(
 
       return {
         city,
-        distanceKm: yourDistanceInKm(coords, cityCoords),
+        distanceKm: distanceKm(coords, cityCoords),
       }
     })
     .filter((entry): entry is { city: CityApiItem; distanceKm: number } => entry !== null)
@@ -242,7 +140,7 @@ export async function getNearbyLocationContent(
 
       return {
         attraction,
-        distanceKm: yourDistanceInKm(coords, attractionCoords),
+        distanceKm: distanceKm(coords, attractionCoords),
       }
     })
     .filter(
@@ -283,7 +181,7 @@ export async function getLargestCities(limit = 4): Promise<LargestCityCard[]> {
       reviews: 0,
       tags: [city.region, city.commune, 'Storby'].filter(Boolean).slice(0, 3),
       metaText: `${city.population.toLocaleString('da-DK')} indbyggere`,
-      href: `/city/${normalizeCitySlug(city.name)}`,
+      href: `/city/${city._id}`,
     }))
 }
 
@@ -299,8 +197,10 @@ async function getExperiencesBySlug(slug: string, limit = 4): Promise<NatureExpe
   ]
 
   return entries
-    .filter((entry) => entry.slugArray.some((entrySlug) => entrySlug.toLowerCase() === slug.toLowerCase()))
-    .sort((first, second) => (second.rating ?? 0) - (first.rating ?? 0))
+    .filter((entry) =>
+      entry.slugArray.some((entrySlug: string) => entrySlug.toLowerCase() === slug.toLowerCase()),
+    )
+    .sort((first, second) => normalizedRating(second) - normalizedRating(first))
     .slice(0, limit)
     .map((entry) => ({
       id: entry._id,

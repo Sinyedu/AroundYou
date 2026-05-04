@@ -39,6 +39,7 @@
                                             reviews: item.reviews,
                                             tags: [item.type, item.location, ...item.categories].filter(Boolean),
                                             metaText: item.date || item.location,
+                                            href: `/city/${item.id}`,
                                         }" />
                                         <AttractionCard v-else :card="{
                                             id: item.id,
