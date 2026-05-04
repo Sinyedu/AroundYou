@@ -1,267 +1,61 @@
-import { onMounted, reactive, ref } from 'vue'
-import { useRouter } from 'vue-router'
-
-import {
-  createAttraction,
-  createCity,
-  createEvent,
-  uploadImageFile,
-} from '@/api/contentApi'
-import { fetchAttractions, fetchEvents } from '@/api/searchApi'
-import type { AttractionPayload, CityPayload, ContentType, EventPayload } from '@/types/content'
-import { compressImageFile, isAllowedImageType } from '@/utils/imageCompressor'
-
-const splitList = (value: string) =>
-  value
-    .split(',')
-    .map((item) => item.trim())
-    .filter(Boolean)
-
-const getAuthToken = () => localStorage.getItem('token')
-
-const compressImageFiles = (files: File[]) => {
-  return Promise.all(files.map((file) => compressImageFile(file)))
-}
+import { useCreateContentForm } from './useCreateContentForm'
+import { useCreateContentImages } from './useCreateContentImages'
+import { useCreateContentSubmit } from './useCreateContentSubmit'
 
 export const useCreateContent = () => {
-  const router = useRouter()
-  const selectedType = ref<ContentType>('event')
-  const isSubmitting = ref(false)
-  const isUploadingImage = ref(false)
-  const message = ref('')
-  const categoryOptions = ref<string[]>([])
+  const {
+    selectedType,
+    message,
+    categoryOptions,
+    eventForm,
+    attractionForm,
+    cityForm,
+    typeButtonClass,
+  } = useCreateContentForm()
 
-  const eventHeroImageFile = ref<File | null>(null)
-  const attractionHeroImageFile = ref<File | null>(null)
-  const cityHeroImageFile = ref<File | null>(null)
-  const eventImageArrayFiles = ref<File[]>([])
-  const attractionImageArrayFiles = ref<File[]>([])
+  const {
+    eventHeroImageFile,
+    attractionHeroImageFile,
+    cityHeroImageFile,
+    eventImageArrayFiles,
+    attractionImageArrayFiles,
+    onHeroImageSelected: _onHeroImageSelected,
+    onImageArraySelected: _onImageArraySelected,
+    compressImageFiles,
+  } = useCreateContentImages()
 
-  const eventForm = reactive({
-    name: '',
-    description: '',
-    price: '',
-    link: '',
-    gpsPosition: '',
-    slugArray: [] as string[],
-    isAnnual: false,
-    startDate: '',
-    endDate: '',
-    openingHoursText: '',
-  })
+  const {
+    isSubmitting,
+    isUploadingImage,
+    submitSelected: _submitSelected,
+  } = useCreateContentSubmit(
+    selectedType,
+    eventForm,
+    attractionForm,
+    cityForm,
+    eventHeroImageFile,
+    attractionHeroImageFile,
+    cityHeroImageFile,
+    eventImageArrayFiles,
+    attractionImageArrayFiles,
+    compressImageFiles,
+  )
 
-  const attractionForm = reactive({
-    name: '',
-    description: '',
-    price: '',
-    link: '',
-    gpsPosition: '',
-    slugArray: [] as string[],
-    openingHoursText: '',
-  })
-
-  const cityForm = reactive({
-    name: '',
-    description: '',
-    commune: '',
-    region: '',
-    country: '',
-    gpsPosition: '',
-    population: '',
-    visitorCenter: '',
-  })
-
-  const onHeroImageSelected = (contentType: ContentType, event: Event) => {
-    const target = event.target as HTMLInputElement | null
-    const file = target?.files?.[0]
-
-    if (!file) {
-      return
-    }
-
-    if (!isAllowedImageType(file)) {
-      message.value = 'Only PNG and JPEG images are allowed.'
-      target.value = ''
-      return
-    }
-
-    if (contentType === 'event') {
-      eventHeroImageFile.value = file
-    } else if (contentType === 'attraction') {
-      attractionHeroImageFile.value = file
-    } else {
-      cityHeroImageFile.value = file
-    }
-
-    message.value = ''
+  const setMessage = (msg: string) => {
+    message.value = msg
   }
 
-  const onImageArraySelected = (contentType: 'event' | 'attraction', event: Event) => {
-    const target = event.target as HTMLInputElement | null
-    const files = target?.files ? Array.from(target.files) : []
-
-    if (!files.length) {
-      return
-    }
-
-    const invalidFile = files.find((file) => !isAllowedImageType(file))
-    if (invalidFile) {
-      message.value = 'Only PNG and JPEG images are allowed.'
-      if (target) {
-        target.value = ''
-      }
-      return
-    }
-
-    if (contentType === 'event') {
-      eventImageArrayFiles.value = files
-    } else {
-      attractionImageArrayFiles.value = files
-    }
-
-    message.value = ''
+  const onHeroImageSelected = (contentType: any, event: Event) => {
+    _onHeroImageSelected(contentType, event, setMessage)
   }
 
-  const submitEvent = async () => {
-    if (!eventHeroImageFile.value) {
-      throw new Error('Please upload an image for this event.')
-    }
-
-    isUploadingImage.value = true
-
-    const token = getAuthToken()
-    const compressedHeroImage = await compressImageFile(eventHeroImageFile.value)
-    const compressedImageArray = await compressImageFiles(eventImageArrayFiles.value)
-    const heroImage = await uploadImageFile(compressedHeroImage, token)
-    const imageArray = await Promise.all(
-      compressedImageArray.map((file) => uploadImageFile(file, token)),
-    )
-
-    const payload: EventPayload = {
-      name: eventForm.name,
-      description: eventForm.description,
-      heroImage,
-      imageArray,
-      price: Number(eventForm.price) || 0,
-      link: eventForm.link,
-      gpsPosition: eventForm.gpsPosition,
-      slugArray: eventForm.slugArray,
-      isAnnual: eventForm.isAnnual,
-      startDate: eventForm.startDate,
-      endDate: eventForm.endDate,
-      openingHours: splitList(eventForm.openingHoursText),
-    }
-
-    await createEvent(payload, token)
-  }
-
-  const submitAttraction = async () => {
-    if (!attractionHeroImageFile.value) {
-      throw new Error('Please upload an image for this attraction.')
-    }
-
-    isUploadingImage.value = true
-
-    const token = getAuthToken()
-    const compressedHeroImage = await compressImageFile(attractionHeroImageFile.value)
-    const compressedImageArray = await compressImageFiles(attractionImageArrayFiles.value)
-    const heroImage = await uploadImageFile(compressedHeroImage, token)
-    const imageArray = await Promise.all(
-      compressedImageArray.map((file) => uploadImageFile(file, token)),
-    )
-
-    const payload: AttractionPayload = {
-      name: attractionForm.name,
-      description: attractionForm.description,
-      heroImage,
-      imageArray,
-      price: Number(attractionForm.price) || 0,
-      link: attractionForm.link,
-      gpsPosition: attractionForm.gpsPosition,
-      slugArray: attractionForm.slugArray,
-      openingHours: splitList(attractionForm.openingHoursText),
-    }
-
-    await createAttraction(payload, token)
-  }
-
-  const submitCity = async () => {
-    if (!cityHeroImageFile.value) {
-      throw new Error('Please upload an image for this city.')
-    }
-
-    isUploadingImage.value = true
-
-    const token = getAuthToken()
-    const compressedHeroImage = await compressImageFile(cityHeroImageFile.value)
-    const heroImage = await uploadImageFile(compressedHeroImage, token)
-
-    const payload: CityPayload = {
-      name: cityForm.name,
-      description: cityForm.description,
-      heroImage,
-      commune: cityForm.commune,
-      region: cityForm.region,
-      country: cityForm.country,
-      gpsPosition: cityForm.gpsPosition,
-      population: Number(cityForm.population) || 0,
-      visitorCenter: cityForm.visitorCenter,
-    }
-
-    await createCity(payload, token)
+  const onImageArraySelected = (contentType: any, event: Event) => {
+    _onImageArraySelected(contentType, event, setMessage)
   }
 
   const submitSelected = async () => {
-    try {
-      isSubmitting.value = true
-      message.value = ''
-
-      if (selectedType.value === 'event') {
-        await submitEvent()
-      } else if (selectedType.value === 'attraction') {
-        await submitAttraction()
-      } else {
-        await submitCity()
-      }
-
-      message.value = `${selectedType.value} saved successfully.`
-
-      if (selectedType.value === 'attraction') {
-        await router.push({ name: 'search', query: { type: 'attraction' } })
-      }
-    } catch (error) {
-      message.value = error instanceof Error ? error.message : 'Save failed.'
-    } finally {
-      isUploadingImage.value = false
-      isSubmitting.value = false
-    }
+    await _submitSelected(setMessage)
   }
-
-  const typeButtonClass = (value: ContentType) => {
-    const isActive = selectedType.value === value
-    return isActive
-      ? 'bg-[#094b7b] text-white'
-      : 'bg-white text-[#094b7b] border border-[#094b7b]/20'
-  }
-
-  const fetchCategoryOptions = async () => {
-    try {
-      const [events, attractions] = await Promise.all([fetchEvents(), fetchAttractions()])
-      const unique = new Set(
-        [...events, ...attractions]
-          .flatMap((item) => item.slugArray ?? [])
-          .map((slug) => slug.trim().toLowerCase())
-          .filter(Boolean),
-      )
-      categoryOptions.value = Array.from(unique).sort()
-    } catch (error) {
-      console.error('Could not fetch category options:', error)
-    }
-  }
-
-  onMounted(() => {
-    void fetchCategoryOptions()
-  })
 
   return {
     selectedType,

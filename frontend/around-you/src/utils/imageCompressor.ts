@@ -70,11 +70,11 @@ export const isAllowedImageType = (file: File) => ALLOWED_IMAGE_TYPES.has(file.t
 
 export async function compressImageFile(file: File, options: CompressImageOptions = {}) {
   if (!isAllowedImageType(file)) {
-    throw new Error('Only PNG and JPEG images are allowed.')
+    throw new Error('Only PNG, JPEG, and WebP images are allowed.')
   }
 
-  const maxWidth = options.maxWidth ?? 1200
-  const maxHeight = options.maxHeight ?? 1200
+  const maxWidth = options.maxWidth ?? 1000
+  const maxHeight = options.maxHeight ?? 1000
   const quality = options.quality ?? 0.78
   const image = await loadImage(file)
   const dimensions = getScaledDimensions(image.width, image.height, maxWidth, maxHeight)

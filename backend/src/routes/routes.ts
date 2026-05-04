@@ -220,7 +220,7 @@ router.get(
  *       500:
  *         description: Server error
  */
-router.post("/attractions", createAttraction);
+router.post("/attractions", verifyToken, createAttraction);
 
 // GET ALL ATTRACTIONS
 /**
