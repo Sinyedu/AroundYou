@@ -1,8 +1,9 @@
 export type ApiEvent = {
   _id: string
   name: string
+  description?: string
   heroImage: string
-  rating: number
+  rating?: number
   startDate: string
   gpsPosition?: string
   slugArray?: string[]

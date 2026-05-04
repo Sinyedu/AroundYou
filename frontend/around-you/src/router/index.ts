@@ -4,7 +4,6 @@ import AdminView from '../views/AdminView.vue'
 import CreateContentView from '../views/CreateContentView.vue'
 import { useAuthService } from '@/api/authService'
 import ContentPlaceholderView from '../views/CreateContentView.vue'
-import { hasAdminAccess } from '@/utils/auth'
 
 const router = createRouter({
   history: createWebHistory(import.meta.env.BASE_URL),

@@ -1,5 +1,5 @@
 import { computed, onBeforeUnmount, onMounted, reactive, ref, watch } from 'vue'
-import type { SearchFilters } from '@/types/search-filter'
+import type { SearchFilterType, SearchFilters } from '@/types/search'
 
 type SearchFilterProps = {
   modelValue: SearchFilters
@@ -24,7 +24,7 @@ export function useSearchFilter(props: SearchFilterProps, emit: SearchFilterEmit
 
   const draft = reactive<SearchFilters>({
     location: props.modelValue.location,
-    type: props.modelValue.type,
+    types: [...props.modelValue.types],
     date: props.modelValue.date,
     categories: [...props.modelValue.categories],
   })
@@ -36,7 +36,7 @@ export function useSearchFilter(props: SearchFilterProps, emit: SearchFilterEmit
     (value) => {
       isSyncingFromParent = true
       draft.location = value.location
-      draft.type = value.type
+      draft.types = [...value.types]
       draft.date = value.date
       draft.categories = [...value.categories]
       isSyncingFromParent = false
@@ -53,7 +53,7 @@ export function useSearchFilter(props: SearchFilterProps, emit: SearchFilterEmit
 
       emit('update:modelValue', {
         location: draft.location,
-        type: draft.type,
+        types: [...draft.types],
         date: draft.date,
         categories: [...draft.categories],
       })
@@ -165,8 +165,17 @@ export function useSearchFilter(props: SearchFilterProps, emit: SearchFilterEmit
     isCategoriesOpen.value = false
   }
 
-  const typeDotClass = (value: SearchFilters['type']) => {
-    const isActive = draft.type === value
+  const toggleTypeFilter = (type: SearchFilterType) => {
+    if (draft.types.includes(type)) {
+      draft.types = draft.types.filter((item) => item !== type)
+      return
+    }
+
+    draft.types = [...draft.types, type]
+  }
+
+  const typeDotClass = (value: SearchFilterType) => {
+    const isActive = draft.types.includes(value)
 
     return [
       'h-3 w-3 rounded-sm border border-slate-400',
@@ -302,6 +311,7 @@ export function useSearchFilter(props: SearchFilterProps, emit: SearchFilterEmit
     toggleCategory,
     toggleDate,
     toggleType,
+    toggleTypeFilter,
     typeDotClass,
     weekdayLabels,
   }
