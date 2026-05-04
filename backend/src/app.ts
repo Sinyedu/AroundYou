@@ -5,6 +5,7 @@ import cors from "cors";
 import routes from "./routes/routes";
 import { setupDocs } from "./utils/swaggerDocumentation";
 import { connectDB } from "./repository/database";
+import { ensureDefaultAdminUser } from "./services/admin.service";
 
 dotenvFlow.config();
 
@@ -18,9 +19,9 @@ function setupCors() {
     cors({
       origin: "http://localhost:5173",
       credentials: true,
-      methods: ["GET", "POST", "PUT", "DELETE"],
+      methods: ["GET", "POST", "PUT", "PATCH", "DELETE"],
       allowedHeaders: ["Authorization", "Content-Type"],
-    })
+    }),
   );
 }
 
@@ -28,7 +29,7 @@ function setupCors() {
  * Middleware setup
  */
 function setupMiddleware() {
-  app.use(express.json());
+  app.use(express.json({ limit: "50mb" }));
 }
 
 /**
@@ -49,6 +50,7 @@ export async function startServer() {
   setupDocs(app);
 
   await connectDB();
+  await ensureDefaultAdminUser();
 
   const PORT: number = Number(process.env.PORT as string) || 4000;
 

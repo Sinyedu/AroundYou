@@ -1,0 +1,37 @@
+import { USER_PERMISSIONS, UserPermission, UserRole } from "../constants/enums";
+
+const ROLE_PERMISSION_MAP: Record<UserRole, UserPermission[]> = {
+  user: [
+    "content:suggest",
+    "review:read",
+    "review:create",
+    "review:update",
+    "review:delete",
+  ],
+  admin: [...USER_PERMISSIONS],
+};
+
+export function normalizeRole(role: unknown): UserRole {
+  return role === "admin" ? "admin" : "user";
+}
+
+export function normalizePermissions(permissions: unknown): UserPermission[] {
+  if (!Array.isArray(permissions)) {
+    return [];
+  }
+
+  const validPermissions = new Set<UserPermission>(USER_PERMISSIONS);
+
+  return permissions.filter(
+    (permission): permission is UserPermission =>
+      typeof permission === "string" &&
+      validPermissions.has(permission as UserPermission),
+  );
+}
+
+export function getEffectivePermissions(
+  role: UserRole,
+  permissions: UserPermission[],
+): UserPermission[] {
+  return Array.from(new Set([...ROLE_PERMISSION_MAP[role], ...permissions]));
+}

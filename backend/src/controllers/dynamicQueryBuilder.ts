@@ -5,6 +5,34 @@ interface SearchBody {
   value: unknown;
 }
 
+const ALLOWED_NUMBER_OPERATORS = new Set(["$eq", "$gte", "$gt", "$lte", "$lt"]);
+
+function buildNumberQueryValue(
+  value: unknown,
+): number | Record<string, number> {
+  if (typeof value !== "object" || value === null || Array.isArray(value)) {
+    return Number(value);
+  }
+
+  const queryValue: Record<string, number> = {};
+
+  for (const [operator, operatorValue] of Object.entries(value)) {
+    if (!ALLOWED_NUMBER_OPERATORS.has(operator)) {
+      throw new Error(`Unsupported number query operator: ${operator}`);
+    }
+
+    const numericValue = Number(operatorValue);
+
+    if (!Number.isFinite(numericValue)) {
+      throw new Error(`Invalid number query value for ${operator}`);
+    }
+
+    queryValue[operator] = numericValue;
+  }
+
+  return queryValue;
+}
+
 export function buildDynamicQuery<T>(
   model: Model<T>,
   body: SearchBody,
@@ -28,12 +56,7 @@ export function buildDynamicQuery<T>(
       break;
 
     case "Number":
-      if (typeof value === "object" && value !== null) {
-        // supports range: { price: { $gte: 100, $lte: 300 } }
-        query = { [field]: value } as QueryFilter<T>;
-      } else {
-        query = { [field]: Number(value) } as QueryFilter<T>;
-      }
+      query = { [field]: buildNumberQueryValue(value) } as QueryFilter<T>;
       break;
 
     case "Date":

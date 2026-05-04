@@ -16,7 +16,7 @@
         class="flex basis-full flex-wrap items-center justify-start gap-x-4 gap-y-3 md:ml-20 md:basis-auto md:flex-1 md:justify-end md:gap-x-8"
       >
         <RouterLink :to="{ name: 'home' }" :class="getNavLinkClass('home')">Hjem</RouterLink>
-        <RouterLink :to="{ name: 'mapview' }" :class="getNavLinkClass('mapview')"
+        <RouterLink :to="{ name: 'search' }" :class="getNavLinkClass('search')"
           >Udforsk</RouterLink
         >
         <RouterLink :to="{ name: 'create' }" :class="getNavLinkClass('create')">Tilføj</RouterLink>
@@ -119,7 +119,8 @@ const router = useRouter()
 const navRef = ref<ComponentPublicInstance | HTMLElement | null>(null)
 const isAvatarMenuOpen = ref(false)
 
-const { avatarInitials, isAdmin, isAuthenticated, logout, userAvatar, userName } = useAuth()
+const { avatarInitials, checkSession, isAdmin, isAuthenticated, logout, userAvatar, userName } =
+  useAuth()
 
 const displayUserName = computed(() => userName.value || 'Guest')
 
@@ -157,6 +158,12 @@ const handleDocumentClick = (event: MouseEvent) => {
   }
 }
 
-onMounted(() => document.addEventListener('click', handleDocumentClick))
+onMounted(() => {
+  document.addEventListener('click', handleDocumentClick)
+
+  if (isAuthenticated.value && !isAdmin.value) {
+    void checkSession()
+  }
+})
 onBeforeUnmount(() => document.removeEventListener('click', handleDocumentClick))
 </script>

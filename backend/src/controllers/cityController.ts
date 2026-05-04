@@ -2,6 +2,20 @@ import { Request, Response } from "express";
 import { CityModel } from "../models/cityModel";
 import { buildDynamicQuery } from "./dynamicQueryBuilder";
 
+function normalizeCityName(value: string): string {
+  const withDanishCharsMapped = value
+    .toLowerCase()
+    .replace(/æ/g, "a")
+    .replace(/ø/g, "o")
+    .replace(/å/g, "a");
+
+  return withDanishCharsMapped
+    .normalize("NFD")
+    .replace(/[\u0300-\u036f]/g, "")
+    .replace(/[^a-z0-9]+/g, "-")
+    .replace(/(^-|-$)/g, "");
+}
+
 /**
  * CREATE CITY
  */
@@ -13,6 +27,18 @@ export async function createCity(req: Request, res: Response): Promise<void> {
     res.status(201).json(result);
   } catch (err) {
     console.error("Error creating city:", err);
+
+    if (
+      err instanceof Error &&
+      "name" in err &&
+      err.name === "ValidationError"
+    ) {
+      res.status(400).json({
+        message: err.message,
+      });
+      return;
+    }
+
     res.status(500).json({
       message: "Error creating city",
     });
@@ -56,15 +82,50 @@ export async function getCityById(req: Request, res: Response): Promise<void> {
 }
 
 /**
+ * GET CITY BY NAME
+ */
+export async function getCityByName(req: Request, res: Response): Promise<void> {
+  try {
+    const cityNameRaw = req.params.cityName;
+    const cityNameParam = Array.isArray(cityNameRaw) ? cityNameRaw[0] : cityNameRaw;
+
+    if (!cityNameParam) {
+      res.status(400).json({ message: "City name is required" });
+      return;
+    }
+
+    const normalizedTarget = normalizeCityName(cityNameParam);
+    const cities = await CityModel.find({});
+
+    const matchingCity = cities.find((city) => {
+      return normalizeCityName(city.name) === normalizedTarget;
+    });
+
+    if (!matchingCity) {
+      res.status(404).json({ message: "City not found" });
+      return;
+    }
+
+    res.status(200).json(matchingCity);
+  } catch (err) {
+    console.error("Error fetching city by name:", err);
+    res.status(500).json({
+      message: "Error retrieving city",
+    });
+  }
+}
+
+/**
  * UPDATE CITY
  */
-export async function updateCityById(req: Request, res: Response): Promise<void> {
+export async function updateCityById(
+  req: Request,
+  res: Response,
+): Promise<void> {
   try {
-    const result = await CityModel.findByIdAndUpdate(
-      req.params.id,
-      req.body,
-      { new: true }
-    );
+    const result = await CityModel.findByIdAndUpdate(req.params.id, req.body, {
+      new: true,
+    });
 
     if (!result) {
       res.status(404).json({
@@ -88,7 +149,10 @@ export async function updateCityById(req: Request, res: Response): Promise<void>
 /**
  * DELETE CITY
  */
-export async function deleteCityById(req: Request, res: Response): Promise<void> {
+export async function deleteCityById(
+  req: Request,
+  res: Response,
+): Promise<void> {
   try {
     const result = await CityModel.findByIdAndDelete(req.params.id);
 
@@ -109,7 +173,10 @@ export async function deleteCityById(req: Request, res: Response): Promise<void>
 /**
  * QUERY CITY (KEY / VALUE)
  */
-export async function getCityByQuery(req: Request, res: Response): Promise<void> {
+export async function getCityByQuery(
+  req: Request,
+  res: Response,
+): Promise<void> {
   try {
     const key = req.params.key as string;
     const value = req.params.value as string;
@@ -130,7 +197,10 @@ export async function getCityByQuery(req: Request, res: Response): Promise<void>
 /**
  * GENERIC QUERY
  */
-export async function getCityByGenericQuery(req: Request, res: Response): Promise<void> {
+export async function getCityByGenericQuery(
+  req: Request,
+  res: Response,
+): Promise<void> {
   try {
     const query = buildDynamicQuery(CityModel, req.body);
 
