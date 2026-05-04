@@ -1,5 +1,5 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest'
-import { mount } from '@vue/test-utils'
+import { mount, type VueWrapper } from '@vue/test-utils'
 import { nextTick } from 'vue'
 import RegisterView from '../views/auth/RegisterView.vue'
 
@@ -12,7 +12,7 @@ vi.mock('@/composables/useAuth', () => ({
   }),
 }))
 
-const fillForm = async (wrapper: any) => {
+const fillForm = async (wrapper: VueWrapper) => {
   await wrapper.find('#firstName').setValue('John')
   await wrapper.find('#lastName').setValue('Doe')
   await wrapper.find('#userName').setValue('johndoe')

@@ -24,7 +24,7 @@ export type SearchResult = {
 export type ApiEvent = {
   _id: string
   name: string
-  description: string
+  description?: string
   heroImage: string
   rating?: number
   startDate: string
@@ -35,7 +35,7 @@ export type ApiEvent = {
 export type ApiAttraction = {
   _id: string
   name: string
-  description: string
+  description?: string
   heroImage: string
   rating?: number
   updateAt?: string

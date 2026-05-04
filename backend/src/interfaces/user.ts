@@ -1,4 +1,5 @@
 import { Document } from "mongoose";
+import { UserPermission, UserRole } from "../constants/enums";
 
 export interface User extends Document {
   firstName: string;
@@ -7,6 +8,8 @@ export interface User extends Document {
   userAvatar: string;
   email: string;
   password: string;
+  role: UserRole;
+  permissions: UserPermission[];
 
   country?: string;
   city?: string;

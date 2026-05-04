@@ -1,16 +1,14 @@
-import type {
-  AttractionApiItem,
-  CityApiItem,
-  EventApiItem,
-  FamilyExperienceCard,
-  LargestCityCard,
-  NatureExperienceCard,
-  NatureExperienceSource,
-  NearbyLocationContent,
-} from '@/types/attractions'
+import type { AttractionApiItem } from '@/types/attraction-api-item'
+import type { CityApiItem } from '@/types/city-api-item'
 import type { Coordinates } from '@/types/coordinates'
-
-const API_BASE_URL = 'http://localhost:4000/api'
+import type { EventApiItem } from '@/types/event-api-item'
+import type { FamilyExperienceCard } from '@/types/family-experience-card'
+import type { LargestCityCard } from '@/types/largest-city-card'
+import type { NatureExperienceCard } from '@/types/nature-experience-card'
+import type { NatureExperienceSource } from '@/types/nature-experience-source'
+import type { NearbyLocationContent } from '@/types/nearby-location-content'
+import { apiRequest } from '@/api/http'
+import { distanceKm, parseGpsPosition } from '@/utils/geo'
 
 export const DEFAULT_NEARBY_LOCATION_DESCRIPTION =
   'Gå på opdagelse i spændende oplevelser tæt på din egen lokation, hvor natur, kultur, attraktioner og restauranter er lige inden for rækkevidde. Oplev alt fra populære seværdigheder og hyggelige udflugtsmål til lokale favoritter og skjulte perler lige i nærheden.'

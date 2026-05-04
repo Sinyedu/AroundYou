@@ -1,10 +1,11 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest'
 import { useAuthService } from '../api/authService'
+import { USER_API_URL } from '@/constants/config'
 
 // Mock utils
 vi.mock('@/utils/auth', () => ({
-  getJwtPayload: vi.fn(() => ({ role: 'user' })),
-  payloadHasAdminAccess: vi.fn(() => false),
+  getStoredUserName: vi.fn(() => 'Guest'),
+  getStoredUserAvatar: vi.fn(() => null),
 }))
 
 describe('useAuthService', () => {
@@ -35,10 +36,11 @@ describe('useAuthService', () => {
     const mockResponse = {
       token: 'fake-jwt-token',
       user: {
-        id: '1',
         userName: 'testUser',
         email: 'test@test.com',
         userAvatar: 'avatar.png',
+        role: 'user',
+        permissions: [],
       },
     }
 
@@ -49,12 +51,12 @@ describe('useAuthService', () => {
       }),
     )
 
-    vi.stubGlobal('fetch', fetchMock as any)
+    vi.stubGlobal('fetch', fetchMock as unknown as typeof fetch)
 
     const result = await auth.login('testUser', 'password')
 
     expect(fetchMock).toHaveBeenCalledWith(
-      'http://localhost:4000/api/user/login',
+      `${USER_API_URL}/login`,
       expect.objectContaining({
         method: 'POST',
         body: JSON.stringify({
@@ -75,9 +77,10 @@ describe('useAuthService', () => {
     const mockResponse = {
       token: 'fake-jwt-token',
       user: {
-        id: '1',
         userName: 'testUser',
         email: 'test@test.com',
+        role: 'user',
+        permissions: [],
       },
     }
 
@@ -88,12 +91,38 @@ describe('useAuthService', () => {
           ok: true,
           json: () => Promise.resolve(mockResponse),
         }),
-      ) as any,
+      ) as unknown as typeof fetch,
     )
 
     await auth.login('testUser', 'password')
 
     expect(localStorage.getItem('userAvatar')).toBe(null)
+  })
+
+  it('marks admin users as admin after login', async () => {
+    vi.stubGlobal(
+      'fetch',
+      vi.fn(() =>
+        Promise.resolve({
+          ok: true,
+          json: () =>
+            Promise.resolve({
+              token: 'admin-jwt-token',
+              user: {
+                userName: 'admin',
+                email: 'admin@test.com',
+                role: 'admin',
+                permissions: ['admin:access'],
+              },
+            }),
+        }),
+      ) as unknown as typeof fetch,
+    )
+
+    await auth.login('admin', 'password')
+
+    expect(auth.isAdmin.value).toBe(true)
+    expect(auth.currentUser.value?.role).toBe('admin')
   })
 
   it('throws error on failed login', async () => {
@@ -104,7 +133,7 @@ describe('useAuthService', () => {
           ok: false,
           json: () => Promise.resolve({ message: 'Invalid credentials' }),
         }),
-      ) as any,
+      ) as unknown as typeof fetch,
     )
 
     await expect(auth.login('wrong', 'wrong')).rejects.toThrow('Invalid credentials')
@@ -130,7 +159,7 @@ describe('useAuthService', () => {
               user: {},
             }),
         }),
-      ) as any,
+      ) as unknown as typeof fetch,
     )
 
     await expect(auth.login('test', 'test')).rejects.toThrow('Invalid API response')
@@ -150,7 +179,7 @@ describe('useAuthService', () => {
         Promise.resolve({
           ok: true,
         }),
-      ) as any,
+      ) as unknown as typeof fetch,
     )
 
     await expect(auth.register('a', 'b', 'user', 'test@test.com', '123')).resolves.toBeUndefined()
@@ -163,7 +192,7 @@ describe('useAuthService', () => {
         Promise.resolve({
           ok: false,
         }),
-      ) as any,
+      ) as unknown as typeof fetch,
     )
 
     await expect(auth.register('a', 'b', 'user', 'test@test.com', '123')).rejects.toThrow(

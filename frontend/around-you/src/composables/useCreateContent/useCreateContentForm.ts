@@ -17,7 +17,8 @@ export const useCreateContentForm = () => {
     description: '',
     price: '',
     link: '',
-    gpsPosition: '',
+    address: '',
+    city: '',
     slugArray: [] as string[],
     isAnnual: false,
     startDate: '',
@@ -30,7 +31,8 @@ export const useCreateContentForm = () => {
     description: '',
     price: '',
     link: '',
-    gpsPosition: '',
+    address: '',
+    city: '',
     slugArray: [] as string[],
     openingHoursText: '',
   })
@@ -41,7 +43,7 @@ export const useCreateContentForm = () => {
     commune: '',
     region: '',
     country: '',
-    gpsPosition: '',
+    address: '',
     population: '',
     visitorCenter: '',
   })

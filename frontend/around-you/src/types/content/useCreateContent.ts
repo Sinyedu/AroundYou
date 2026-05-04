@@ -5,7 +5,8 @@ export type CreateEventForm = {
   description: string
   price: string
   link: string
-  gpsPosition: string
+  address: string
+  city: string
   slugArray: string[]
   isAnnual: boolean
   startDate: string
@@ -18,7 +19,8 @@ export type CreateAttractionForm = {
   description: string
   price: string
   link: string
-  gpsPosition: string
+  address: string
+  city: string
   slugArray: string[]
   openingHoursText: string
 }
@@ -29,7 +31,7 @@ export type CreateCityForm = {
   commune: string
   region: string
   country: string
-  gpsPosition: string
+  address: string
   population: string
   visitorCenter: string
 }
