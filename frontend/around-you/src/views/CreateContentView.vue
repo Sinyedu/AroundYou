@@ -1,162 +1,164 @@
 <template>
   <main class="min-h-screen bg-[#C1D2DE] px-4 py-12">
-    <section
-      class="mx-auto max-w-4xl overflow-hidden rounded-[32px] bg-white shadow-[0_24px_80px_rgba(9,75,123,0.16)]"
-    >
-      <div class="border-b border-[#094b7b]/10 bg-[#f8fbfd] px-8 py-8">
-        <p class="text-xs font-semibold uppercase tracking-[0.32em] text-[#de5826]">Forslag</p>
-        <h1 class="mt-3 text-4xl font-black tracking-tight text-[#094b7b]">Tilføj en oplevelse</h1>
-        <p class="mt-3 max-w-2xl text-slate-600">
-          Dit forslag sendes til admin-gennemgang. Når det bliver godkendt, bliver det oprettet som
-          rigtigt indhold.
-        </p>
+    <section class="mx-auto max-w-6xl overflow-hidden rounded-[32px] bg-white shadow-[0_24px_80px_rgba(9,75,123,0.16)]">
+      <div class="border-b border-[#094b7b]/10 bg-[#C1D2DE] px-8 py-8">
+        <p class="text-xs font-semibold uppercase tracking-[0.32em] text-[#de5826]">Around You</p>
+        <h1 class="mt-3 text-4xl font-black tracking-tight text-[#094b7b]">{{ title }}</h1>
+        <p class="mt-2 text-sm text-slate-700">{{ description }}</p>
       </div>
 
-      <form class="space-y-6 px-8 py-10" @submit.prevent="submitSuggestion">
-        <div class="flex flex-wrap gap-3">
-          <button
-            v-for="option in typeOptions"
-            :key="option.value"
-            type="button"
-            class="rounded-full px-5 py-2 text-sm font-bold"
-            :class="
-              form.type === option.value ? 'bg-[#094b7b] text-white' : 'bg-[#C1D2DE] text-[#094b7b]'
-            "
-            @click="form.type = option.value"
-          >
-            {{ option.label }}
+      <div class="px-8 py-10">
+        <div class="mb-6 flex flex-wrap items-center gap-3">
+          <button type="button" class="rounded-full px-4 py-2 text-sm font-semibold transition"
+            :class="typeButtonClass('event')" @click="selectedType = 'event'">
+            Event
+          </button>
+          <button type="button" class="rounded-full px-4 py-2 text-sm font-semibold transition"
+            :class="typeButtonClass('attraction')" @click="selectedType = 'attraction'">
+            Attraction
+          </button>
+          <button type="button" class="rounded-full px-4 py-2 text-sm font-semibold transition"
+            :class="typeButtonClass('city')" @click="selectedType = 'city'">
+            City
           </button>
         </div>
 
-        <div class="grid gap-4 md:grid-cols-2">
-          <label v-for="field in visibleFields" :key="field.key" class="block">
-            <span class="text-sm font-bold text-[#094b7b]">{{ field.label }}</span>
-            <textarea
-              v-if="field.kind === 'textarea'"
-              v-model="form.values[field.key]"
-              class="mt-2 min-h-28 w-full rounded-2xl border border-[#094b7b]/20 px-4 py-3 outline-none focus:border-[#de5826]"
-              required
-            />
-            <input
-              v-else
-              v-model="form.values[field.key]"
-              :type="field.kind"
-              class="mt-2 w-full rounded-2xl border border-[#094b7b]/20 px-4 py-3 outline-none focus:border-[#de5826]"
-              required
-            />
-          </label>
-        </div>
-
-        <p v-if="errorMessage" class="rounded-2xl bg-rose-50 px-4 py-3 font-semibold text-rose-700">
-          {{ errorMessage }}
-        </p>
-        <p
-          v-if="successMessage"
-          class="rounded-2xl bg-emerald-50 px-4 py-3 font-semibold text-emerald-700"
-        >
-          {{ successMessage }}
+        <p v-if="message" class="mb-4 rounded-xl bg-[#C1D2DE] px-4 py-3 text-sm font-semibold text-[#094b7b]">
+          {{ message }}
         </p>
 
-        <button
-          type="submit"
-          class="rounded-full bg-[#de5826] px-7 py-3 font-black text-white disabled:opacity-60"
-          :disabled="isSubmitting"
-        >
-          {{ isSubmitting ? 'Sender...' : 'Send til godkendelse' }}
-        </button>
-      </form>
+        <form class="grid gap-4 sm:grid-cols-2" @submit.prevent="submitSelected">
+          <template v-if="selectedType === 'event'">
+            <input v-model="eventForm.name" class="rounded-xl border border-slate-200 px-4 py-3" placeholder="Name" />
+            <div class="rounded-xl border border-slate-200 px-4 py-3">
+              <label class="mb-2 block text-sm font-semibold text-slate-700">Hero image file</label>
+              <input type="file" accept="image/png,image/jpeg,image/webp" capture="environment"
+                @change="(event) => onHeroImageSelected('event', event)"
+                class="block w-full text-sm text-slate-700 file:mr-3 file:rounded-lg file:border-0 file:bg-[#094b7b] file:px-3 file:py-2 file:font-semibold file:text-white" />
+              <p v-if="eventHeroImageFile" class="mt-2 text-xs text-slate-600 break-all">Selected: {{
+                eventHeroImageFile.name }}</p>
+            </div>
+            <input v-model="eventForm.price" type="number" class="rounded-xl border border-slate-200 px-4 py-3"
+              placeholder="Price" />
+            <input v-model="eventForm.link" class="rounded-xl border border-slate-200 px-4 py-3" placeholder="Link" />
+            <input v-model="eventForm.gpsPosition" class="rounded-xl border border-slate-200 px-4 py-3"
+              placeholder="GPS (lat,lng)" />
+            <input v-model="eventForm.startDate" type="date" class="rounded-xl border border-slate-200 px-4 py-3" />
+            <input v-model="eventForm.endDate" type="date" class="rounded-xl border border-slate-200 px-4 py-3" />
+            <div class="rounded-xl border border-slate-200 px-4 py-3">
+              <label class="mb-2 block text-sm font-semibold text-slate-700">Additional image files</label>
+              <input type="file" multiple accept="image/png,image/jpeg,image/webp" capture="environment"
+                @change="(event) => onImageArraySelected('event', event)"
+                class="block w-full text-sm text-slate-700 file:mr-3 file:rounded-lg file:border-0 file:bg-[#094b7b] file:px-3 file:py-2 file:font-semibold file:text-white" />
+              <p class="mt-2 text-xs text-slate-600">{{ eventImageArrayFiles.length }} image(s) selected</p>
+            </div>
+            <CategorySlugPicker v-model="eventForm.slugArray" :options="categoryOptions" label="Categories"
+              placeholder="Search or create category" />
+            <input v-model="eventForm.openingHoursText" class="rounded-xl border border-slate-200 px-4 py-3"
+              placeholder="Opening hours (comma separated)" />
+            <label class="flex items-center gap-2 rounded-xl border border-slate-200 px-4 py-3 text-sm text-slate-600">
+              <input v-model="eventForm.isAnnual" type="checkbox" class="h-4 w-4" />
+              Annual event
+            </label>
+            <textarea v-model="eventForm.description" rows="4"
+              class="rounded-xl border border-slate-200 px-4 py-3 sm:col-span-2" placeholder="Description"></textarea>
+          </template>
+
+          <template v-if="selectedType === 'attraction'">
+            <input v-model="attractionForm.name" class="rounded-xl border border-slate-200 px-4 py-3"
+              placeholder="Name" />
+            <div class="rounded-xl border border-slate-200 px-4 py-3">
+              <label class="mb-2 block text-sm font-semibold text-slate-700">Hero image file</label>
+              <input type="file" accept="image/png,image/jpeg,image/webp" capture="environment"
+                @change="(event) => onHeroImageSelected('attraction', event)"
+                class="block w-full text-sm text-slate-700 file:mr-3 file:rounded-lg file:border-0 file:bg-[#094b7b] file:px-3 file:py-2 file:font-semibold file:text-white" />
+              <p v-if="attractionHeroImageFile" class="mt-2 text-xs text-slate-600 break-all">Selected: {{
+                attractionHeroImageFile.name }}</p>
+            </div>
+            <input v-model="attractionForm.price" type="number" class="rounded-xl border border-slate-200 px-4 py-3"
+              placeholder="Price" />
+            <input v-model="attractionForm.link" class="rounded-xl border border-slate-200 px-4 py-3"
+              placeholder="Link" />
+            <input v-model="attractionForm.gpsPosition" class="rounded-xl border border-slate-200 px-4 py-3"
+              placeholder="GPS (lat,lng)" />
+            <div class="rounded-xl border border-slate-200 px-4 py-3">
+              <label class="mb-2 block text-sm font-semibold text-slate-700">Additional image files</label>
+              <input type="file" multiple accept="image/png,image/jpeg,image/webp" capture="environment"
+                @change="(event) => onImageArraySelected('attraction', event)"
+                class="block w-full text-sm text-slate-700 file:mr-3 file:rounded-lg file:border-0 file:bg-[#094b7b] file:px-3 file:py-2 file:font-semibold file:text-white" />
+              <p class="mt-2 text-xs text-slate-600">{{ attractionImageArrayFiles.length }} image(s) selected</p>
+            </div>
+            <CategorySlugPicker v-model="attractionForm.slugArray" :options="categoryOptions" label="Categories"
+              placeholder="Search or create category" />
+            <input v-model="attractionForm.openingHoursText" class="rounded-xl border border-slate-200 px-4 py-3"
+              placeholder="Opening hours (comma separated)" />
+            <textarea v-model="attractionForm.description" rows="4"
+              class="rounded-xl border border-slate-200 px-4 py-3 sm:col-span-2" placeholder="Description"></textarea>
+          </template>
+
+          <template v-if="selectedType === 'city'">
+            <input v-model="cityForm.name" class="rounded-xl border border-slate-200 px-4 py-3" placeholder="Name" />
+            <div class="rounded-xl border border-slate-200 px-4 py-3">
+              <label class="mb-2 block text-sm font-semibold text-slate-700">Hero image file</label>
+              <input type="file" accept="image/png,image/jpeg,image/webp" capture="environment"
+                @change="(event) => onHeroImageSelected('city', event)"
+                class="block w-full text-sm text-slate-700 file:mr-3 file:rounded-lg file:border-0 file:bg-[#094b7b] file:px-3 file:py-2 file:font-semibold file:text-white" />
+              <p v-if="cityHeroImageFile" class="mt-2 text-xs text-slate-600 break-all">Selected: {{
+                cityHeroImageFile.name }}</p>
+            </div>
+            <input v-model="cityForm.commune" class="rounded-xl border border-slate-200 px-4 py-3"
+              placeholder="Commune" />
+            <input v-model="cityForm.region" class="rounded-xl border border-slate-200 px-4 py-3"
+              placeholder="Region" />
+            <input v-model="cityForm.country" class="rounded-xl border border-slate-200 px-4 py-3"
+              placeholder="Country" />
+            <input v-model="cityForm.gpsPosition" class="rounded-xl border border-slate-200 px-4 py-3"
+              placeholder="GPS (lat,lng)" />
+            <input v-model="cityForm.population" type="number" class="rounded-xl border border-slate-200 px-4 py-3"
+              placeholder="Population" />
+            <input v-model="cityForm.visitorCenter" class="rounded-xl border border-slate-200 px-4 py-3"
+              placeholder="Visitor center" />
+            <textarea v-model="cityForm.description" rows="4"
+              class="rounded-xl border border-slate-200 px-4 py-3 sm:col-span-2" placeholder="Description"></textarea>
+          </template>
+
+          <button type="submit"
+            class="rounded-full bg-[#094b7b] px-6 py-3 text-sm font-semibold text-white sm:col-span-2"
+            :disabled="isSubmitting || isUploadingImage">
+            {{ isUploadingImage ? "Uploading image..." : `Save ${selectedType}` }}
+          </button>
+        </form>
+      </div>
     </section>
   </main>
 </template>
 
 <script setup lang="ts">
-import { computed, reactive, ref, watch } from 'vue'
-import { createContentSuggestion } from '@/api/contentSuggestions.api'
-import type { ContentSuggestionPayload, ContentSuggestionType } from '@/types/content-suggestion'
+import CategorySlugPicker from '@/components/CategorySlugPicker.vue'
+import { useCreateContent } from '@/composables/useCreateContent'
 
-type FieldConfig = {
-  key: string
-  label: string
-  kind: 'text' | 'number' | 'date' | 'textarea'
-}
+const { title, description } = defineProps<{
+  title: string
+  description: string
+}>()
 
-const typeOptions: { value: ContentSuggestionType; label: string }[] = [
-  { value: 'attraction', label: 'Attraktion' },
-  { value: 'event', label: 'Event' },
-  { value: 'city', label: 'By' },
-]
-
-const commonFields: FieldConfig[] = [
-  { key: 'name', label: 'Navn', kind: 'text' },
-  { key: 'description', label: 'Beskrivelse', kind: 'textarea' },
-  { key: 'heroImage', label: 'Billede URL', kind: 'text' },
-  { key: 'gpsPosition', label: 'GPS-position', kind: 'text' },
-]
-
-const typeFields: Record<ContentSuggestionType, FieldConfig[]> = {
-  attraction: [
-    ...commonFields,
-    { key: 'price', label: 'Pris', kind: 'number' },
-    { key: 'link', label: 'Link', kind: 'text' },
-  ],
-  event: [
-    ...commonFields,
-    { key: 'price', label: 'Pris', kind: 'number' },
-    { key: 'link', label: 'Link', kind: 'text' },
-    { key: 'startDate', label: 'Startdato', kind: 'date' },
-    { key: 'endDate', label: 'Slutdato', kind: 'date' },
-  ],
-  city: [
-    ...commonFields,
-    { key: 'commune', label: 'Kommune', kind: 'text' },
-    { key: 'region', label: 'Region', kind: 'text' },
-    { key: 'country', label: 'Land', kind: 'text' },
-    { key: 'population', label: 'Indbyggertal', kind: 'number' },
-    { key: 'visitorCenter', label: 'Turistinformation', kind: 'text' },
-  ],
-}
-
-const form = reactive({
-  type: 'attraction' as ContentSuggestionType,
-  values: {} as Record<string, string>,
-})
-
-const isSubmitting = ref(false)
-const errorMessage = ref('')
-const successMessage = ref('')
-
-const visibleFields = computed(() => typeFields[form.type])
-
-watch(
-  () => form.type,
-  () => {
-    form.values = {}
-    errorMessage.value = ''
-    successMessage.value = ''
-  },
-)
-
-function buildPayload(): ContentSuggestionPayload {
-  return visibleFields.value.reduce<ContentSuggestionPayload>((payload, field) => {
-    const value = form.values[field.key] ?? ''
-    payload[field.key] = field.kind === 'number' ? Number(value) : value
-    return payload
-  }, {})
-}
-
-async function submitSuggestion() {
-  isSubmitting.value = true
-  errorMessage.value = ''
-  successMessage.value = ''
-
-  try {
-    await createContentSuggestion(form.type, buildPayload())
-    form.values = {}
-    successMessage.value = 'Dit forslag er sendt til godkendelse.'
-  } catch (error) {
-    errorMessage.value = error instanceof Error ? error.message : 'Forslaget kunne ikke sendes.'
-  } finally {
-    isSubmitting.value = false
-  }
-}
+const {
+  selectedType,
+  isSubmitting,
+  isUploadingImage,
+  message,
+  eventHeroImageFile,
+  attractionHeroImageFile,
+  cityHeroImageFile,
+  eventImageArrayFiles,
+  attractionImageArrayFiles,
+  categoryOptions,
+  eventForm,
+  attractionForm,
+  cityForm,
+  onHeroImageSelected,
+  onImageArraySelected,
+  submitSelected,
+  typeButtonClass,
+} = useCreateContent()
 </script>

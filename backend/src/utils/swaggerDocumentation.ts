@@ -69,7 +69,6 @@ export function setupDocs(app: Application) {
             price: { type: "number" },
             link: { type: "string" },
             gpsPosition: { type: "string" },
-            rating: { type: "number" },
             slugArray: { type: "array", items: { type: "string" } },
             updateAt: { type: "string", format: "date-time" },
             openingHours: { type: "array", items: { type: "string" } },
@@ -88,7 +87,6 @@ export function setupDocs(app: Application) {
             gpsPosition: { type: "string" },
             population: { type: "number" },
             visitorCenter: { type: "string" },
-            rating: { type: "number" },
           },
         },
         Event: {
@@ -102,7 +100,6 @@ export function setupDocs(app: Application) {
             price: { type: "number" },
             link: { type: "string" },
             gpsPosition: { type: "string" },
-            rating: { type: "number" },
             slugArray: { type: "array", items: { type: "string" } },
             updateAt: { type: "string", format: "date-time" },
             isAnnual: { type: "boolean" },

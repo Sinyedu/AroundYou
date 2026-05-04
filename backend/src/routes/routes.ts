@@ -51,8 +51,14 @@ import {
 import { reverseGeocode } from "../controllers/geocodingController";
 import { verifyToken } from "../middleware/verifyUserToken";
 import { requirePermission } from "../middleware/requirePermission";
+import {
+  uploadImage,
+  uploadSingleImage,
+} from "../controllers/uploadController";
 
 const router: Router = Router();
+
+router.post("/upload/image", uploadSingleImage, uploadImage);
 
 router.get("/", (req: Request, res: Response) => {
   // connect
@@ -1273,7 +1279,7 @@ router.delete(
  *       - name: key
  *         in: path
  *         required: true
- *         description: The field to query (e.g., rating, city)
+ *         description: The field to query (e.g., name, city)
  *         schema:
  *           type: string
  *       - name: value
