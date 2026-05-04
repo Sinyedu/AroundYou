@@ -1,5 +1,7 @@
 <template>
-  <div
+  <component
+    :is="card.href ? RouterLink : 'div'"
+    :to="card.href"
     class="group rounded-xl overflow-hidden shadow-sm border border-gray-100 cursor-pointer hover:shadow-md transition-shadow"
   >
     <img
@@ -32,11 +34,12 @@
         </span>
       </div>
     </div>
-  </div>
+  </component>
 </template>
 
 <script setup lang="ts">
 import type { ExperienceCard } from '@/types/experience-card'
+import { RouterLink } from 'vue-router'
 
 defineProps<{
   card: ExperienceCard

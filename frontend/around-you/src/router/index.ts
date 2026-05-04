@@ -19,6 +19,11 @@ const router = createRouter({
 
     { path: '/search', name: 'search', component: () => import('../views/SearchView.vue') },
     {
+      path: '/event/:eventId',
+      name: 'single-event',
+      component: () => import('../views/SingleEventView.vue'),
+    },
+    {
       path: '/user/user-profile',
       name: 'user-profile',
       component: () => import('../views/UserProfileView.vue'),

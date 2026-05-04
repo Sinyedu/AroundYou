@@ -24,8 +24,10 @@ export type CityApiItem = {
   heroImage: string
   commune: string
   region: string
+  country?: string
   gpsPosition: string
   population: number
+  visitorCenter?: string
   rating?: number
 }
 

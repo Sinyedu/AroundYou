@@ -17,6 +17,50 @@ async function fetchJson<T>(path: string): Promise<T> {
   return apiRequest<T>(path)
 }
 
+function normalizeEntitySlug(value: string): string {
+  return value
+    .trim()
+    .toLowerCase()
+    .replace(/æ/g, 'a')
+    .replace(/ø/g, 'o')
+    .replace(/å/g, 'a')
+    .normalize('NFD')
+    .replace(/[\u0300-\u036f]/g, '')
+    .replace(/[^a-z0-9]+/g, '-')
+    .replace(/^-+|-+$/g, '')
+}
+
+export async function getEventByIdentifier(eventIdentifier: string): Promise<EventApiItem | null> {
+  if (!eventIdentifier.trim()) {
+    return null
+  }
+
+  const events = await fetchJson<EventApiItem[]>('/events')
+  const normalizedIdentifier = normalizeEntitySlug(decodeURIComponent(eventIdentifier))
+
+  return (
+    events.find(
+      (event) =>
+        event._id === eventIdentifier || normalizeEntitySlug(event.name) === normalizedIdentifier,
+    ) ?? null
+  )
+}
+
+export async function getCityByName(cityName: string): Promise<CityApiItem | null> {
+  if (!cityName.trim()) {
+    return null
+  }
+
+  const cities = await fetchJson<CityApiItem[]>('/city')
+  const normalizedInput = normalizeEntitySlug(decodeURIComponent(cityName))
+
+  return (
+    cities.find(
+      (city) => city._id === cityName || normalizeEntitySlug(city.name) === normalizedInput,
+    ) ?? null
+  )
+}
+
 export async function getNearbyLocationContent(
   coords: Coordinates,
   limit = 4,
@@ -109,7 +153,7 @@ async function getExperiencesBySlug(slug: string, limit = 4): Promise<NatureExpe
 
   return entries
     .filter((entry) =>
-      entry.slugArray.some((entrySlug) => entrySlug.toLowerCase() === slug.toLowerCase()),
+      entry.slugArray.some((entrySlug: string) => entrySlug.toLowerCase() === slug.toLowerCase()),
     )
     .sort((first, second) => second.rating - first.rating)
     .slice(0, limit)
@@ -122,6 +166,7 @@ async function getExperiencesBySlug(slug: string, limit = 4): Promise<NatureExpe
       reviews: 0,
       tags: entry.slugArray,
       metaText: entry.type,
+      href: entry.type === 'Event' ? `/event/${entry._id}` : undefined,
     }))
 }
 
