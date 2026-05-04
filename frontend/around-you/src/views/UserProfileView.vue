@@ -1,51 +1,205 @@
 <template>
-  <div class="max-w-xl mx-auto p-6 bg-white shadow rounded">
-    <h2 class="text-2xl font-bold mb-4">User Profile</h2>
-
-    <div v-if="loading">Loading...</div>
-    <div v-else-if="error" class="text-red-500">{{ error }}</div>
-
-    <form v-else-if="user" @submit.prevent="handleUpdate">
-      <div class="mb-4">
-        <label class="block text-sm font-medium">Username</label>
-        <input v-model="user.userName" class="input" />
+  <main class="min-h-[calc(100vh-88px)] bg-[#C1D2DE] px-4 py-8">
+    <section class="mx-auto max-w-4xl overflow-hidden rounded-[28px] bg-white shadow-[0_24px_80px_rgba(9,75,123,0.16)]">
+      <div class="bg-[#094b7b] px-6 py-8 text-center text-white sm:px-10">
+        <p class="text-xs font-semibold uppercase tracking-[0.32em] text-[#f1b28f]">Around You</p>
+        <div
+          class="mx-auto mt-5 flex h-32 w-32 items-center justify-center overflow-hidden rounded-full border-4 border-white bg-white text-3xl font-black text-[#094b7b] shadow-[0_18px_44px_rgba(0,0,0,0.2)]"
+        >
+          <img
+            v-if="displayAvatar"
+            :src="displayAvatar"
+            :alt="`${displayName} avatar`"
+            class="h-full w-full object-cover"
+          />
+          <span v-else>{{ initials }}</span>
+        </div>
+        <h1 class="mt-5 text-3xl font-black tracking-tight sm:text-4xl">Min profil</h1>
+        <p class="mx-auto mt-3 max-w-xl text-sm leading-6 text-white/80">
+          Hold dine kontooplysninger opdateret, så AroundYou kan føles mere personligt.
+        </p>
       </div>
 
-      <div class="mb-4">
-        <label class="block text-sm font-medium">Email</label>
-        <input v-model="user.email" class="input" />
-      </div>
+      <div class="px-6 py-8 sm:px-10">
+        <p class="text-xs font-semibold uppercase tracking-[0.28em] text-[#de5826]">Konto</p>
+        <h2 class="mt-2 text-3xl font-black tracking-tight text-[#094b7b]">Profilindstillinger</h2>
 
-      <div class="mb-4">
-        <label class="block text-sm font-medium">First Name</label>
-        <input v-model="user.firstName" class="input" />
-      </div>
+        <div v-if="loading && !user" class="mt-6 rounded-xl bg-[#C1D2DE] px-4 py-3 text-sm font-semibold text-[#094b7b]">
+          Henter profil...
+        </div>
 
-      <div class="mb-4">
-        <label class="block text-sm font-medium">Last Name</label>
-        <input v-model="user.lastName" class="input" />
-      </div>
+        <p v-else-if="error" class="mt-6 rounded-xl bg-rose-50 px-4 py-3 text-sm font-semibold text-rose-700">
+          {{ error }}
+        </p>
 
-      <button type="submit" class="bg-indigo-600 text-white px-4 py-2 rounded">
-        Save Changes
-      </button>
-    </form>
-  </div>
+        <p
+          v-if="successMessage"
+          class="mt-6 rounded-xl bg-emerald-50 px-4 py-3 text-sm font-semibold text-emerald-700"
+        >
+          {{ successMessage }}
+        </p>
+
+        <form v-if="user" class="mt-6 grid gap-4 sm:grid-cols-2" @submit.prevent="handleUpdate">
+          <div class="rounded-2xl border border-[#094b7b]/15 bg-[#C1D2DE]/40 px-4 py-4 sm:col-span-2">
+            <label class="grid gap-2">
+              <span class="text-sm font-semibold text-slate-700">Avatar billede</span>
+              <input
+                type="file"
+                accept="image/png,image/jpeg"
+                @change="handleAvatarSelected"
+                class="block w-full text-sm text-slate-700 file:mr-3 file:rounded-lg file:border-0 file:bg-[#094b7b] file:px-3 file:py-2 file:font-semibold file:text-white"
+              />
+            </label>
+            <p v-if="avatarFile" class="mt-2 break-all text-xs font-semibold text-slate-600">
+              Valgt: {{ avatarFile.name }}
+            </p>
+            <p v-if="avatarError" class="mt-2 text-sm font-semibold text-rose-700">
+              {{ avatarError }}
+            </p>
+          </div>
+
+          <label class="grid gap-2 sm:col-span-2">
+            <span class="text-sm font-semibold text-slate-700">Brugernavn</span>
+            <input
+              v-model="user.userName"
+              class="rounded-xl border border-slate-200 px-4 py-3 text-sm font-semibold text-slate-700 outline-none transition focus:border-[#094b7b] focus:ring-4 focus:ring-[#C1D2DE]/60"
+            />
+          </label>
+
+          <label class="grid gap-2 sm:col-span-2">
+            <span class="text-sm font-semibold text-slate-700">Email</span>
+            <input
+              v-model="user.email"
+              type="email"
+              class="rounded-xl border border-slate-200 px-4 py-3 text-sm font-semibold text-slate-700 outline-none transition focus:border-[#094b7b] focus:ring-4 focus:ring-[#C1D2DE]/60"
+            />
+          </label>
+
+          <label class="grid gap-2">
+            <span class="text-sm font-semibold text-slate-700">Fornavn</span>
+            <input
+              v-model="user.firstName"
+              class="rounded-xl border border-slate-200 px-4 py-3 text-sm font-semibold text-slate-700 outline-none transition focus:border-[#094b7b] focus:ring-4 focus:ring-[#C1D2DE]/60"
+            />
+          </label>
+
+          <label class="grid gap-2">
+            <span class="text-sm font-semibold text-slate-700">Efternavn</span>
+            <input
+              v-model="user.lastName"
+              class="rounded-xl border border-slate-200 px-4 py-3 text-sm font-semibold text-slate-700 outline-none transition focus:border-[#094b7b] focus:ring-4 focus:ring-[#C1D2DE]/60"
+            />
+          </label>
+
+          <button
+            type="submit"
+            class="rounded-full bg-[#094b7b] px-6 py-3 text-sm font-semibold text-white shadow-[0_16px_30px_rgba(9,75,123,0.18)] transition hover:bg-[#0b5d98] disabled:cursor-not-allowed disabled:opacity-60 sm:col-span-2"
+            :disabled="loading || uploadingAvatar"
+          >
+            {{ loading || uploadingAvatar ? 'Gemmer...' : 'Gem ændringer' }}
+          </button>
+        </form>
+      </div>
+    </section>
+  </main>
 </template>
 
 <script setup lang="ts">
-import { onMounted } from 'vue'
+import { computed, onMounted, onUnmounted, ref } from 'vue'
+import { uploadImageFile } from '@/api/contentApi'
+import { compressImageFile, isAllowedImageType } from '@/utils/imageCompressor'
 import { useUser } from '../composables/useUser'
 
 const { user, loading, error, fetchUser, updateUser } = useUser()
+const successMessage = ref('')
+const avatarError = ref('')
+const avatarFile = ref<File | null>(null)
+const avatarPreview = ref('')
+const uploadingAvatar = ref(false)
+
+const displayName = computed(() => user.value?.userName || 'Din profil')
+const displayAvatar = computed(() => avatarPreview.value || user.value?.userAvatar || '')
+const initials = computed(() => {
+  const source = user.value?.userName || user.value?.email || 'AY'
+  return source.slice(0, 2).toUpperCase()
+})
+
+const revokeAvatarPreview = () => {
+  if (avatarPreview.value.startsWith('blob:')) {
+    URL.revokeObjectURL(avatarPreview.value)
+  }
+}
 
 onMounted(() => {
   fetchUser()
 })
 
+onUnmounted(() => {
+  revokeAvatarPreview()
+})
+
+const handleAvatarSelected = (event: Event) => {
+  const target = event.target as HTMLInputElement | null
+  const file = target?.files?.[0]
+
+  avatarError.value = ''
+  successMessage.value = ''
+
+  if (!file) return
+
+  if (!isAllowedImageType(file)) {
+    avatarError.value = 'Vælg et PNG- eller JPEG-billede.'
+    avatarFile.value = null
+    target.value = ''
+    return
+  }
+
+  revokeAvatarPreview()
+  avatarFile.value = file
+  avatarPreview.value = URL.createObjectURL(file)
+}
+
+const uploadAvatarIfSelected = async () => {
+  if (!avatarFile.value || !user.value) return true
+
+  const token = localStorage.getItem('token')
+
+  if (!token) {
+    avatarError.value = 'Du skal være logget ind for at uploade et avatarbillede.'
+    return false
+  }
+
+  uploadingAvatar.value = true
+
+  try {
+    const compressedFile = await compressImageFile(avatarFile.value, {
+      maxWidth: 800,
+      maxHeight: 800,
+      quality: 0.78,
+    })
+    user.value.userAvatar = await uploadImageFile(compressedFile, token)
+    avatarFile.value = null
+    revokeAvatarPreview()
+    avatarPreview.value = ''
+    return true
+  } catch (err: unknown) {
+    avatarError.value = err instanceof Error ? err.message : 'Avatarbilledet kunne ikke uploades.'
+    return false
+  } finally {
+    uploadingAvatar.value = false
+  }
+}
+
 const handleUpdate = async () => {
+  successMessage.value = ''
+  avatarError.value = ''
+
+  const avatarUploaded = await uploadAvatarIfSelected()
+  if (!avatarUploaded) return
+
   await updateUser()
+  if (!error.value) {
+    successMessage.value = 'Profilen er opdateret.'
+  }
 }
 </script>
-
-<style scoped></style>
