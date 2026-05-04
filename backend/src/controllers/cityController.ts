@@ -27,6 +27,18 @@ export async function createCity(req: Request, res: Response): Promise<void> {
     res.status(201).json(result);
   } catch (err) {
     console.error("Error creating city:", err);
+
+    if (
+      err instanceof Error &&
+      "name" in err &&
+      err.name === "ValidationError"
+    ) {
+      res.status(400).json({
+        message: err.message,
+      });
+      return;
+    }
+
     res.status(500).json({
       message: "Error creating city",
     });
@@ -106,13 +118,14 @@ export async function getCityByName(req: Request, res: Response): Promise<void> 
 /**
  * UPDATE CITY
  */
-export async function updateCityById(req: Request, res: Response): Promise<void> {
+export async function updateCityById(
+  req: Request,
+  res: Response,
+): Promise<void> {
   try {
-    const result = await CityModel.findByIdAndUpdate(
-      req.params.id,
-      req.body,
-      { new: true }
-    );
+    const result = await CityModel.findByIdAndUpdate(req.params.id, req.body, {
+      new: true,
+    });
 
     if (!result) {
       res.status(404).json({
@@ -136,7 +149,10 @@ export async function updateCityById(req: Request, res: Response): Promise<void>
 /**
  * DELETE CITY
  */
-export async function deleteCityById(req: Request, res: Response): Promise<void> {
+export async function deleteCityById(
+  req: Request,
+  res: Response,
+): Promise<void> {
   try {
     const result = await CityModel.findByIdAndDelete(req.params.id);
 
@@ -157,7 +173,10 @@ export async function deleteCityById(req: Request, res: Response): Promise<void>
 /**
  * QUERY CITY (KEY / VALUE)
  */
-export async function getCityByQuery(req: Request, res: Response): Promise<void> {
+export async function getCityByQuery(
+  req: Request,
+  res: Response,
+): Promise<void> {
   try {
     const key = req.params.key as string;
     const value = req.params.value as string;
@@ -178,7 +197,10 @@ export async function getCityByQuery(req: Request, res: Response): Promise<void>
 /**
  * GENERIC QUERY
  */
-export async function getCityByGenericQuery(req: Request, res: Response): Promise<void> {
+export async function getCityByGenericQuery(
+  req: Request,
+  res: Response,
+): Promise<void> {
   try {
     const query = buildDynamicQuery(CityModel, req.body);
 

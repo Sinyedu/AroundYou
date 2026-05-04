@@ -13,6 +13,18 @@ export async function createEvent(req: Request, res: Response): Promise<void> {
     res.status(201).json(result);
   } catch (err) {
     console.error("Error creating event:", err);
+
+    if (
+      err instanceof Error &&
+      "name" in err &&
+      err.name === "ValidationError"
+    ) {
+      res.status(400).json({
+        message: err.message,
+      });
+      return;
+    }
+
     res.status(500).json({
       message: "Error creating event",
     });
@@ -58,13 +70,14 @@ export async function getEventById(req: Request, res: Response): Promise<void> {
 /**
  * UPDATE EVENT
  */
-export async function updateEventById(req: Request, res: Response): Promise<void> {
+export async function updateEventById(
+  req: Request,
+  res: Response,
+): Promise<void> {
   try {
-    const result = await EventModel.findByIdAndUpdate(
-      req.params.id,
-      req.body,
-      { new: true }
-    );
+    const result = await EventModel.findByIdAndUpdate(req.params.id, req.body, {
+      new: true,
+    });
 
     if (!result) {
       res.status(404).json({ message: "Event not found" });
@@ -86,7 +99,10 @@ export async function updateEventById(req: Request, res: Response): Promise<void
 /**
  * DELETE EVENT
  */
-export async function deleteEventById(req: Request, res: Response): Promise<void> {
+export async function deleteEventById(
+  req: Request,
+  res: Response,
+): Promise<void> {
   try {
     const result = await EventModel.findByIdAndDelete(req.params.id);
 
@@ -107,7 +123,10 @@ export async function deleteEventById(req: Request, res: Response): Promise<void
 /**
  * QUERY EVENT (KEY / VALUE)
  */
-export async function getEventByQuery(req: Request, res: Response): Promise<void> {
+export async function getEventByQuery(
+  req: Request,
+  res: Response,
+): Promise<void> {
   try {
     const key = req.params.key as string;
     const value = req.params.value as string;
@@ -128,7 +147,10 @@ export async function getEventByQuery(req: Request, res: Response): Promise<void
 /**
  * GENERIC QUERY
  */
-export async function getEventByGenericQuery(req: Request, res: Response): Promise<void> {
+export async function getEventByGenericQuery(
+  req: Request,
+  res: Response,
+): Promise<void> {
   try {
     const query = buildDynamicQuery(EventModel, req.body);
 

@@ -255,7 +255,7 @@ export async function getNearbyLocationContent(
       name: attraction.name,
       description: attraction.description,
       image: attraction.heroImage,
-      rating: attraction.rating,
+      rating: attraction.rating ?? 0,
       reviews: 0,
       tags: attraction.slugArray.slice(0, 3),
       metaText: `${distanceKm.toFixed(1)} km væk`,
@@ -279,7 +279,7 @@ export async function getLargestCities(limit = 4): Promise<LargestCityCard[]> {
       name: city.name,
       description: city.description,
       image: city.heroImage,
-      rating: city.rating,
+      rating: city.rating ?? 0,
       reviews: 0,
       tags: [city.region, city.commune, 'Storby'].filter(Boolean).slice(0, 3),
       metaText: `${city.population.toLocaleString('da-DK')} indbyggere`,
@@ -300,14 +300,14 @@ async function getExperiencesBySlug(slug: string, limit = 4): Promise<NatureExpe
 
   return entries
     .filter((entry) => entry.slugArray.some((entrySlug) => entrySlug.toLowerCase() === slug.toLowerCase()))
-    .sort((first, second) => second.rating - first.rating)
+    .sort((first, second) => (second.rating ?? 0) - (first.rating ?? 0))
     .slice(0, limit)
     .map((entry) => ({
       id: entry._id,
       name: entry.name,
       description: entry.description,
       image: entry.heroImage,
-      rating: entry.rating,
+      rating: entry.rating ?? 0,
       reviews: 0,
       tags: entry.slugArray,
       metaText: entry.type,

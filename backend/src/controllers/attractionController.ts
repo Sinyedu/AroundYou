@@ -7,7 +7,7 @@ import { buildDynamicQuery } from "../controllers/dynamicQueryBuilder";
  */
 export async function createAttraction(
   req: Request,
-  res: Response
+  res: Response,
 ): Promise<void> {
   try {
     const attraction = new AttractionModel(req.body);
@@ -16,6 +16,18 @@ export async function createAttraction(
     res.status(201).json(result);
   } catch (err) {
     console.error("Error creating attraction:", err);
+
+    if (
+      err instanceof Error &&
+      "name" in err &&
+      err.name === "ValidationError"
+    ) {
+      res.status(400).json({
+        message: err.message,
+      });
+      return;
+    }
+
     res.status(500).json({
       message: "An error occurred while creating the attraction",
     });
@@ -27,10 +39,10 @@ export async function createAttraction(
  */
 export async function getAllAttractions(
   req: Request,
-  res: Response
+  res: Response,
 ): Promise<void> {
   try {
-    const result = await AttractionModel.find({});
+    const result = await AttractionModel.find({}).sort({ updateAt: -1 });
     res.status(200).json(result);
   } catch (err) {
     console.error("Error retrieving attractions:", err);
@@ -45,7 +57,7 @@ export async function getAllAttractions(
  */
 export async function getAttractionById(
   req: Request,
-  res: Response
+  res: Response,
 ): Promise<void> {
   try {
     const id = req.params.id;
@@ -71,16 +83,14 @@ export async function getAttractionById(
  */
 export async function updateAttractionById(
   req: Request,
-  res: Response
+  res: Response,
 ): Promise<void> {
   try {
     const id = req.params.id;
 
-    const result = await AttractionModel.findByIdAndUpdate(
-      id,
-      req.body,
-      { new: true }
-    );
+    const result = await AttractionModel.findByIdAndUpdate(id, req.body, {
+      new: true,
+    });
 
     if (!result) {
       res.status(404).json({
@@ -106,7 +116,7 @@ export async function updateAttractionById(
  */
 export async function deleteAttractionById(
   req: Request,
-  res: Response
+  res: Response,
 ): Promise<void> {
   try {
     const id = req.params.id;
@@ -136,10 +146,9 @@ export async function deleteAttractionById(
  */
 export async function getAttractionsByQuery(
   req: Request,
-  res: Response
+  res: Response,
 ): Promise<void> {
   try {
-
     const key = req.params.key as string;
     const value = req.params.value as string;
 
@@ -161,7 +170,7 @@ export async function getAttractionsByQuery(
  */
 export async function getAttractionsByQueryGeneric(
   req: Request,
-  res: Response
+  res: Response,
 ): Promise<void> {
   try {
     const body = req.body;

@@ -6,7 +6,7 @@ export interface Review extends Document {
     reviewID: string;
     targetId: string;
     targetType: ReviewTargetType;
-    author: User['userID'];
+    author: User;
     title: string;
     description: string;
     rating: number;
