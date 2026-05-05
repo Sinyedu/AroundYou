@@ -10,6 +10,11 @@ const getLocationMock = vi.fn()
 const isAuthenticated = { value: true }
 
 vi.mock('vue-router', () => ({
+  RouterLink: {
+    name: 'RouterLink',
+    props: ['to'],
+    template: '<a><slot /></a>',
+  },
   useRouter: () => ({
     push: pushMock,
   }),
@@ -70,6 +75,7 @@ describe('LoginView', () => {
 
     expect(pushMock).not.toHaveBeenCalled()
     expect(getLocationMock).not.toHaveBeenCalled()
+    expect(wrapper.text()).toContain('Invalid credentials')
   })
 
   it('does not redirect if not authenticated', async () => {
