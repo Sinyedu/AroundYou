@@ -9,4 +9,5 @@ export type User = {
   userAvatar?: string
   role: UserRole
   permissions: UserPermission[]
+  isRestricted?: boolean
 }

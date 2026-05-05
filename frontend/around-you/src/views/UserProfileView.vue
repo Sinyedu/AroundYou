@@ -2,9 +2,8 @@
   <main class="min-h-[calc(100vh-88px)] bg-[#C1D2DE] px-4 py-8">
     <section class="mx-auto max-w-4xl overflow-hidden rounded-[28px] bg-white shadow-[0_24px_80px_rgba(9,75,123,0.16)]">
       <div class="bg-[#094b7b] px-6 py-8 text-center text-white sm:px-10">
-        <p class="text-xs font-semibold uppercase tracking-[0.32em] text-[#f1b28f]">Around You</p>
         <div
-          class="mx-auto mt-5 flex h-32 w-32 items-center justify-center overflow-hidden rounded-full border-4 border-white bg-white text-3xl font-black text-[#094b7b] shadow-[0_18px_44px_rgba(0,0,0,0.2)]"
+          class="mx-auto flex h-32 w-32 items-center justify-center overflow-hidden rounded-full border-4 border-white bg-white text-3xl font-black text-[#094b7b] shadow-[0_18px_44px_rgba(0,0,0,0.2)]"
         >
           <img
             v-if="displayAvatar"
@@ -14,7 +13,7 @@
           />
           <span v-else>{{ initials }}</span>
         </div>
-        <h1 class="mt-5 text-3xl font-black tracking-tight sm:text-4xl">Min profil</h1>
+        <h1 class="mt-5 text-3xl font-black tracking-tight sm:text-4xl">{{ displayName }}</h1>
         <p class="mx-auto mt-3 max-w-xl text-sm leading-6 text-white/80">
           Hold dine kontooplysninger opdateret, så AroundYou kan føles mere personligt.
         </p>
@@ -22,7 +21,7 @@
 
       <div class="px-6 py-8 sm:px-10">
         <p class="text-xs font-semibold uppercase tracking-[0.28em] text-[#de5826]">Konto</p>
-        <h2 class="mt-2 text-3xl font-black tracking-tight text-[#094b7b]">Profilindstillinger</h2>
+        <h2 class="mt-2 text-3xl font-black tracking-tight text-[#094b7b]">Min profil</h2>
 
         <div v-if="loading && !user" class="mt-6 rounded-xl bg-[#C1D2DE] px-4 py-3 text-sm font-semibold text-[#094b7b]">
           Henter profil...
@@ -99,23 +98,83 @@
             {{ loading || uploadingAvatar ? 'Gemmer...' : 'Gem ændringer' }}
           </button>
         </form>
+
+        <div v-if="user" class="mt-8 rounded-2xl border border-rose-200 bg-rose-50 px-4 py-4">
+          <h3 class="text-lg font-black text-rose-800">Slet konto</h3>
+          <p class="mt-2 text-sm leading-6 text-rose-700">
+            Din konto bliver deaktiveret, og du bliver logget ud.
+          </p>
+          <button
+            type="button"
+            class="mt-4 rounded-full bg-rose-700 px-5 py-2.5 text-sm font-semibold text-white transition hover:bg-rose-800 disabled:cursor-not-allowed disabled:opacity-60"
+            :disabled="deletingAccount"
+            @click="isDeleteModalOpen = true"
+          >
+            Slet konto
+          </button>
+        </div>
       </div>
     </section>
+
+    <div
+      v-if="isDeleteModalOpen"
+      class="fixed inset-0 z-[60] flex items-center justify-center bg-slate-950/50 px-4"
+      role="dialog"
+      aria-modal="true"
+      aria-labelledby="delete-account-title"
+    >
+      <div class="w-full max-w-md rounded-3xl bg-white p-6 shadow-[0_24px_80px_rgba(15,23,42,0.32)]">
+        <h2 id="delete-account-title" class="text-2xl font-black text-[#094b7b]">Slet konto?</h2>
+        <p class="mt-3 text-sm leading-6 text-slate-700">
+          Er du sikker på, at du vil slette din konto? Kontoen bliver deaktiveret, men dine data
+          bliver ikke slettet permanent.
+        </p>
+        <p v-if="deleteAccountError" class="mt-4 rounded-xl bg-rose-50 px-4 py-3 text-sm font-semibold text-rose-700">
+          {{ deleteAccountError }}
+        </p>
+        <div class="mt-6 flex flex-col-reverse gap-3 sm:flex-row sm:justify-end">
+          <button
+            type="button"
+            class="rounded-full px-5 py-2.5 text-sm font-semibold text-[#094b7b] transition hover:bg-[#C1D2DE]"
+            :disabled="deletingAccount"
+            @click="closeDeleteModal"
+          >
+            Annuller
+          </button>
+          <button
+            type="button"
+            class="rounded-full bg-rose-700 px-5 py-2.5 text-sm font-semibold text-white transition hover:bg-rose-800 disabled:cursor-not-allowed disabled:opacity-60"
+            :disabled="deletingAccount"
+            @click="confirmDeleteAccount"
+          >
+            {{ deletingAccount ? 'Sletter...' : 'Ja, slet min konto' }}
+          </button>
+        </div>
+      </div>
+    </div>
   </main>
 </template>
 
 <script setup lang="ts">
 import { computed, onMounted, onUnmounted, ref } from 'vue'
+import { useRouter } from 'vue-router'
 import { uploadImageFile } from '@/api/contentApi'
+import { restrictUserProfile } from '@/api/user'
+import { useAuth } from '@/composables/useAuth'
 import { compressImageFile, isAllowedImageType } from '@/utils/imageCompressor'
 import { useUser } from '../composables/useUser'
 
+const router = useRouter()
 const { user, loading, error, fetchUser, updateUser } = useUser()
+const { logout } = useAuth()
 const successMessage = ref('')
 const avatarError = ref('')
 const avatarFile = ref<File | null>(null)
 const avatarPreview = ref('')
 const uploadingAvatar = ref(false)
+const deletingAccount = ref(false)
+const deleteAccountError = ref('')
+const isDeleteModalOpen = ref(false)
 
 const displayName = computed(() => user.value?.userName || 'Din profil')
 const displayAvatar = computed(() => avatarPreview.value || user.value?.userAvatar || '')
@@ -200,6 +259,36 @@ const handleUpdate = async () => {
   await updateUser()
   if (!error.value) {
     successMessage.value = 'Profilen er opdateret.'
+  }
+}
+
+const closeDeleteModal = () => {
+  if (deletingAccount.value) return
+
+  deleteAccountError.value = ''
+  isDeleteModalOpen.value = false
+}
+
+const confirmDeleteAccount = async () => {
+  const token = localStorage.getItem('token')
+
+  if (!token) {
+    deleteAccountError.value = 'Du skal være logget ind for at slette din konto.'
+    return
+  }
+
+  deletingAccount.value = true
+  deleteAccountError.value = ''
+
+  try {
+    await restrictUserProfile(token)
+    logout()
+    await router.push('/auth/login')
+  } catch (err: unknown) {
+    deleteAccountError.value =
+      err instanceof Error ? err.message : 'Kontoen kunne ikke slettes lige nu.'
+  } finally {
+    deletingAccount.value = false
   }
 }
 </script>
