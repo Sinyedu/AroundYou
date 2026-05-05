@@ -21,3 +21,11 @@ export const updateUserProfile = async (token: string, user: UserProfileUpdate):
     body: JSON.stringify(user),
   })
 }
+
+export const restrictUserProfile = async (token: string): Promise<{ isRestricted: boolean }> => {
+  return apiRequest<{ isRestricted: boolean }>('/user/me/restrict', {
+    method: 'PATCH',
+    token,
+    headers: jsonHeaders(),
+  })
+}

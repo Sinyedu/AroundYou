@@ -1,4 +1,4 @@
-const ALLOWED_IMAGE_TYPES = new Set(['image/jpeg', 'image/png'])
+const ALLOWED_IMAGE_TYPES = new Set(['image/jpeg', 'image/png', 'image/webp'])
 
 type CompressImageOptions = {
   maxWidth?: number
@@ -7,7 +7,7 @@ type CompressImageOptions = {
 }
 
 const getFileExtension = (type: string) => {
-  return type === 'image/png' ? 'png' : type === 'image/jpeg' ? 'jpg' : "webp"
+  return type === 'image/png' ? 'png' : type === 'image/webp' ? 'webp' : 'jpg'
 }
 
 const getCompressedFileName = (file: File, type: string) => {
@@ -70,7 +70,7 @@ export const isAllowedImageType = (file: File) => ALLOWED_IMAGE_TYPES.has(file.t
 
 export async function compressImageFile(file: File, options: CompressImageOptions = {}) {
   if (!isAllowedImageType(file)) {
-    throw new Error('Only PNG, JPEG, and WebP images are allowed.')
+    throw new Error('Only PNG, JPEG and WebP images are allowed.')
   }
 
   const maxWidth = options.maxWidth ?? 1000

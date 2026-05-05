@@ -266,3 +266,38 @@ export async function updateMe(req: Request, res: Response): Promise<void> {
     });
   }
 }
+
+export async function restrictUser(req: Request, res: Response): Promise<void> {
+  try {
+    const userID = req.user?.userID;
+
+    if (!userID) {
+      res.status(401).json({ error: "Unauthorized", message: "Unauthorized" });
+      return;
+    }
+
+    const updatedUser = await UserModel.findByIdAndUpdate(
+      userID,
+      { isRestricted: true },
+      { new: true, runValidators: true },
+    ).select("isRestricted");
+
+    if (!updatedUser) {
+      res
+        .status(404)
+        .json({ error: "User not found", message: "User not found" });
+      return;
+    }
+
+    res.status(200).json({
+      message: "Account restricted",
+      isRestricted: updatedUser.isRestricted,
+    });
+  } catch (err) {
+    console.error("RestrictUser error:", err);
+    res.status(500).json({
+      error: "Internal server error",
+      message: "Internal server error",
+    });
+  }
+}

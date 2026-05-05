@@ -6,6 +6,17 @@ const user = ref<User | null>(null)
 const loading = ref(false)
 const error = ref<string | null>(null)
 
+const syncStoredUser = (updatedUser: User) => {
+  localStorage.setItem('userName', updatedUser.userName)
+
+  if (updatedUser.userAvatar) {
+    localStorage.setItem('userAvatar', updatedUser.userAvatar)
+    return
+  }
+
+  localStorage.removeItem('userAvatar')
+}
+
 export const useUser = () => {
   const fetchUser = async () => {
     const token = localStorage.getItem('token')
@@ -44,6 +55,7 @@ export const useUser = () => {
         userAvatar: user.value.userAvatar,
       }
       user.value = await updateUserProfile(token, updates)
+      syncStoredUser(user.value)
     } catch (err: unknown) {
       error.value = err instanceof Error ? err.message : 'Unknown error'
     } finally {

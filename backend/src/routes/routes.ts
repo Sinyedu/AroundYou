@@ -51,6 +51,7 @@ import {
   getMe,
   loginUser,
   registerUser,
+  restrictUser,
   updateMe,
 } from "../controllers/authController";
 import {
@@ -407,6 +408,7 @@ router.post("/user/login", loginUser);
  */
 router.get("/user/me", verifyToken, getMe);
 router.put("/user/me", verifyToken, updateMe);
+router.patch("/user/me/restrict", verifyToken, restrictUser);
 
 // ATTRACTION ROUTES
 // CREATE ATTRACTION
