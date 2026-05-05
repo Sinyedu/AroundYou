@@ -10,4 +10,7 @@ export interface Attraction extends Document {
     slugArray: string[];
     updateAt: Date;
     openingHours: string[];
+    isHidden: boolean;
+    hiddenAt?: Date;
+    hiddenBy?: string;
 }

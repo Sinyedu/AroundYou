@@ -13,4 +13,18 @@ export interface Review extends Document {
     edited: boolean;
     image: string;
     createdAt: Date;
+    reportCount: number;
+    reports: ReviewReport[];
+    reportResolved: boolean;
+    reportResolvedAt?: Date;
+    reportResolvedBy?: string;
+    isHidden: boolean;
+    hiddenAt?: Date;
+    hiddenBy?: string;
+}
+
+export interface ReviewReport {
+    reportedBy: string;
+    reason: string;
+    createdAt: Date;
 }

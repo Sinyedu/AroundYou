@@ -2,6 +2,26 @@ import { Request, Response } from "express";
 import { AttractionModel } from "../models/attractionModel";
 import { buildDynamicQuery } from "../controllers/dynamicQueryBuilder";
 
+function shouldIncludeHidden(req: Request): boolean {
+  return req.originalUrl.startsWith("/api/admin/");
+}
+
+function visibleFilter(req: Request): Record<string, unknown> {
+  if (!shouldIncludeHidden(req)) {
+    return { isHidden: { $ne: true } };
+  }
+
+  if (req.query.visibility === "hidden") {
+    return { isHidden: true };
+  }
+
+  if (req.query.visibility === "all") {
+    return {};
+  }
+
+  return { isHidden: { $ne: true } };
+}
+
 /**
  * Create new attraction
  */
@@ -42,7 +62,9 @@ export async function getAllAttractions(
   res: Response,
 ): Promise<void> {
   try {
-    const result = await AttractionModel.find({}).sort({ updateAt: -1 });
+    const result = await AttractionModel.find(visibleFilter(req)).sort({
+      updateAt: -1,
+    });
     res.status(200).json(result);
   } catch (err) {
     console.error("Error retrieving attractions:", err);
@@ -62,7 +84,10 @@ export async function getAttractionById(
   try {
     const id = req.params.id;
 
-    const result = await AttractionModel.findById(id);
+    const result = await AttractionModel.findOne({
+      _id: id,
+      ...visibleFilter(req),
+    });
 
     if (!result) {
       res.status(404).json({ message: "Attraction not found" });
@@ -112,7 +137,7 @@ export async function updateAttractionById(
 }
 
 /**
- * Delete attraction by ID
+ * Hide attraction by ID
  */
 export async function deleteAttractionById(
   req: Request,
@@ -121,7 +146,15 @@ export async function deleteAttractionById(
   try {
     const id = req.params.id;
 
-    const result = await AttractionModel.findByIdAndDelete(id);
+    const result = await AttractionModel.findByIdAndUpdate(
+      id,
+      {
+        isHidden: true,
+        hiddenAt: new Date(),
+        hiddenBy: req.user?.userID,
+      },
+      { new: true },
+    );
 
     if (!result) {
       res.status(404).json({
@@ -131,12 +164,48 @@ export async function deleteAttractionById(
     }
 
     res.status(200).json({
-      message: "Attraction deleted successfully",
+      message: "Attraction hidden successfully",
+      data: result,
     });
   } catch (err) {
     console.error("Error deleting attraction:", err);
     res.status(500).json({
       message: "Error deleting attraction",
+    });
+  }
+}
+
+export async function restoreAttractionById(
+  req: Request,
+  res: Response,
+): Promise<void> {
+  try {
+    const id = req.params.id;
+
+    const result = await AttractionModel.findByIdAndUpdate(
+      id,
+      {
+        isHidden: false,
+        $unset: { hiddenAt: "", hiddenBy: "" },
+      },
+      { new: true },
+    );
+
+    if (!result) {
+      res.status(404).json({
+        message: `Cannot find attraction with id=${id}`,
+      });
+      return;
+    }
+
+    res.status(200).json({
+      message: "Attraction restored successfully",
+      data: result,
+    });
+  } catch (err) {
+    console.error("Error restoring attraction:", err);
+    res.status(500).json({
+      message: "Error restoring attraction",
     });
   }
 }
@@ -153,6 +222,7 @@ export async function getAttractionsByQuery(
     const value = req.params.value as string;
 
     const result = await AttractionModel.find({
+      ...visibleFilter(req),
       [key]: { $regex: value, $options: "i" },
     });
 
@@ -177,7 +247,10 @@ export async function getAttractionsByQueryGeneric(
 
     const query = buildDynamicQuery(AttractionModel, body);
 
-    const result = await AttractionModel.find(query);
+    const result = await AttractionModel.find({
+      ...query,
+      ...visibleFilter(req),
+    });
 
     res.status(200).json(result);
   } catch (err) {

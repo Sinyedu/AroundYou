@@ -13,6 +13,23 @@ const reviewSchema = new Schema<Review>({
   edited: { type: Boolean, default: false },
   image: { type: String, default: "" },
   createdAt: { type: Date, default: Date.now },
+  reportCount: { type: Number, default: 0, min: 0 },
+  reports: {
+    type: [
+      {
+        reportedBy: { type: String, required: true },
+        reason: { type: String, default: "" },
+        createdAt: { type: Date, default: Date.now },
+      },
+    ],
+    default: [],
+  },
+  reportResolved: { type: Boolean, default: false },
+  reportResolvedAt: { type: Date },
+  reportResolvedBy: { type: String },
+  isHidden: { type: Boolean, default: false, index: true },
+  hiddenAt: { type: Date },
+  hiddenBy: { type: String },
 });
 
 export const ReviewModel = model<Review>("Review", reviewSchema);

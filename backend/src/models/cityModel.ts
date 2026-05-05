@@ -11,6 +11,9 @@ const citySchema = new Schema<City>({
   gpsPosition: { type: String, required: true },
   population: { type: Number, required: true, min: 0 },
   visitorCenter: { type: String, required: true },
+  isHidden: { type: Boolean, default: false, index: true },
+  hiddenAt: { type: Date },
+  hiddenBy: { type: String },
 });
 
 export const CityModel = model<City>("City", citySchema);
