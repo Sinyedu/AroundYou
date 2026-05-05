@@ -6,21 +6,7 @@
         <h2 class="mt-2 text-xl font-black text-[#094b7b]">Rapporterede anmeldelser</h2>
       </div>
       <div class="flex flex-wrap items-center gap-2">
-        <div class="flex rounded-md border border-slate-200 bg-slate-50 p-1">
-          <button
-            v-for="tab in reportTabs"
-            :key="tab.key"
-            class="rounded px-3 py-1.5 text-sm font-black"
-            :class="
-              activeReportTab === tab.key
-                ? 'bg-white text-[#094b7b] shadow-sm'
-                : 'text-slate-500'
-            "
-            @click="setReportTab(tab.key)"
-          >
-            {{ tab.label }}
-          </button>
-        </div>
+        <AdminSegmentedTabs v-model="activeReportTab" :tabs="reportTabs" />
         <button class="rounded-md border border-slate-300 px-3 py-2 text-sm font-bold" @click="loadReports">
           Opdater
         </button>
@@ -90,15 +76,15 @@
 </template>
 
 <script setup lang="ts">
-import { onMounted, ref } from 'vue'
+import { onMounted, ref, watch } from 'vue'
 import {
   deleteReportedReview,
   fetchReportedReviews,
   resolveReviewReport,
   restoreReportedReview,
 } from '@/api/admin.api'
-import type { ReportedReview } from '@/types/admin'
-import type { AdminVisibility } from '@/types/admin'
+import AdminSegmentedTabs from '@/components/admin/AdminSegmentedTabs.vue'
+import type { AdminVisibility, ReportedReview } from '@/types/admin'
 
 const reports = ref<ReportedReview[]>([])
 const isLoading = ref(false)
@@ -123,10 +109,9 @@ async function loadReports(): Promise<void> {
   }
 }
 
-function setReportTab(tab: Extract<AdminVisibility, 'active' | 'hidden'>): void {
-  activeReportTab.value = tab
+watch(activeReportTab, () => {
   void loadReports()
-}
+})
 
 async function resolveReport(id: string): Promise<void> {
   errorMessage.value = ''
