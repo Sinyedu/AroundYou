@@ -15,6 +15,9 @@ const eventSchema = new Schema<Event>({
   startDate: { type: Date, required: true },
   endDate: { type: Date, required: true },
   openingHours: { type: [String], default: [] },
+  isHidden: { type: Boolean, default: false, index: true },
+  hiddenAt: { type: Date },
+  hiddenBy: { type: String },
 });
 
 export const EventModel = model<Event>("Event", eventSchema);

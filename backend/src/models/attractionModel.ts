@@ -12,6 +12,9 @@ const attractionSchema = new Schema<Attraction>({
   slugArray: { type: [String], default: [] },
   updateAt: { type: Date, default: Date.now },
   openingHours: { type: [String], default: [] },
+  isHidden: { type: Boolean, default: false, index: true },
+  hiddenAt: { type: Date },
+  hiddenBy: { type: String },
 });
 
 export const AttractionModel = model<Attraction>(

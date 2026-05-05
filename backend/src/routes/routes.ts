@@ -6,6 +6,7 @@ import {
   getAttractionById,
   updateAttractionById,
   deleteAttractionById,
+  restoreAttractionById,
   getAttractionsByQuery,
   getAttractionsByQueryGeneric,
 } from "../controllers/attractionController";
@@ -15,6 +16,7 @@ import {
   getEventById,
   updateEventById,
   deleteEventById,
+  restoreEventById,
   getEventByQuery,
   getEventByGenericQuery,
 } from "../controllers/eventController";
@@ -25,6 +27,7 @@ import {
   getCityByName,
   updateCityById,
   deleteCityById,
+  restoreCityById,
   getCityByQuery,
   getCityByGenericQuery,
 } from "../controllers/cityController";
@@ -39,6 +42,10 @@ import {
   getReviewsByTarget,
   likeReview,
   editReview,
+  reportReview,
+  getReportedReviews,
+  resolveReviewReport,
+  restoreReviewById,
 } from "../controllers/reviewController";
 import {
   getMe,
@@ -58,6 +65,7 @@ import {
 } from "../controllers/geocodingController";
 import { verifyToken } from "../middleware/verifyUserToken";
 import { requirePermission } from "../middleware/requirePermission";
+import { requireAdmin } from "../middleware/requireAdmin";
 import {
   uploadImage,
   uploadSingleImage,
@@ -145,6 +153,7 @@ router.post(
 router.get(
   "/admin/suggestions",
   verifyToken,
+  requireAdmin,
   requirePermission("admin:access"),
   getContentSuggestions,
 );
@@ -180,6 +189,7 @@ router.get(
 router.post(
   "/admin/suggestions/:id/approve",
   verifyToken,
+  requireAdmin,
   requirePermission("admin:access"),
   approveContentSuggestion,
 );
@@ -223,8 +233,58 @@ router.post(
 router.post(
   "/admin/suggestions/:id/reject",
   verifyToken,
+  requireAdmin,
   requirePermission("admin:access"),
   rejectContentSuggestion,
+);
+
+router.get("/admin/city", verifyToken, requireAdmin, getAllCities);
+router.post("/admin/city", verifyToken, requireAdmin, createCity);
+router.put("/admin/city/:id", verifyToken, requireAdmin, updateCityById);
+router.patch("/admin/city/:id/restore", verifyToken, requireAdmin, restoreCityById);
+router.delete("/admin/city/:id", verifyToken, requireAdmin, deleteCityById);
+
+router.get("/admin/attractions", verifyToken, requireAdmin, getAllAttractions);
+router.post("/admin/attractions", verifyToken, requireAdmin, createAttraction);
+router.put(
+  "/admin/attractions/:id",
+  verifyToken,
+  requireAdmin,
+  updateAttractionById,
+);
+router.delete(
+  "/admin/attractions/:id",
+  verifyToken,
+  requireAdmin,
+  deleteAttractionById,
+);
+router.patch(
+  "/admin/attractions/:id/restore",
+  verifyToken,
+  requireAdmin,
+  restoreAttractionById,
+);
+
+router.get("/admin/events", verifyToken, requireAdmin, getAllEvents);
+router.post("/admin/events", verifyToken, requireAdmin, createEvent);
+router.put("/admin/events/:id", verifyToken, requireAdmin, updateEventById);
+router.patch("/admin/events/:id/restore", verifyToken, requireAdmin, restoreEventById);
+router.delete("/admin/events/:id", verifyToken, requireAdmin, deleteEventById);
+
+router.get("/admin/reviews/reports", verifyToken, requireAdmin, getReportedReviews);
+router.put("/admin/reviews/:id", verifyToken, requireAdmin, updateReviewById);
+router.patch(
+  "/admin/reviews/:id/resolve-report",
+  verifyToken,
+  requireAdmin,
+  resolveReviewReport,
+);
+router.delete("/admin/reviews/:id", verifyToken, requireAdmin, deleteReviewById);
+router.patch(
+  "/admin/reviews/:id/restore",
+  verifyToken,
+  requireAdmin,
+  restoreReviewById,
 );
 
 // AUTH ROUTES
@@ -492,8 +552,8 @@ router.put(
  *   delete:
  *     tags:
  *       - Attraction Routes
- *     summary: Delete an ATTRACTION by ID
- *     description: Deletes an existing ATTRACTION from the database by its ID. Requires authentication.
+ *     summary: Hide an ATTRACTION by ID
+ *     description: Soft-deletes an existing ATTRACTION by hiding it. Requires authentication.
  *     parameters:
  *       - name: id
  *         in: path
@@ -503,7 +563,7 @@ router.put(
  *           type: string
  *     responses:
  *       204:
- *         description: ATTRACTION deleted successfully
+ *         description: ATTRACTION hidden successfully
  *       401:
  *         description: Unauthorized - Invalid or missing token
  *       404:
@@ -745,8 +805,8 @@ router.put(
  *   delete:
  *     tags:
  *       - Event Routes
- *     summary: Delete an EVENT by ID
- *     description: Deletes an existing EVENT from the database by its ID. Requires authentication.
+ *     summary: Hide an EVENT by ID
+ *     description: Soft-deletes an existing EVENT by hiding it. Requires authentication.
  *     parameters:
  *       - name: id
  *         in: path
@@ -756,7 +816,7 @@ router.put(
  *           type: string
  *     responses:
  *       204:
- *         description: EVENT deleted successfully
+ *         description: EVENT hidden successfully
  *       401:
  *         description: Unauthorized - Invalid or missing token
  *       404:
@@ -997,8 +1057,8 @@ router.put(
  *   delete:
  *     tags:
  *       - City Routes
- *     summary: Delete a CITY by ID
- *     description: Deletes an existing CITY from the database by its ID. Requires authentication.
+ *     summary: Hide a CITY by ID
+ *     description: Soft-deletes an existing CITY by hiding it. Requires authentication.
  *     parameters:
  *       - name: id
  *         in: path
@@ -1008,7 +1068,7 @@ router.put(
  *           type: string
  *     responses:
  *       204:
- *         description: CITY deleted successfully
+ *         description: CITY hidden successfully
  *       401:
  *         description: Unauthorized - Invalid or missing token
  *       404:
@@ -1145,6 +1205,8 @@ router.get("/reviews/target/:targetId", getReviewsByTarget);
 
 router.post("/reviews/:id/like", verifyToken, likeReview);
 
+router.post("/reviews/:id/report", verifyToken, reportReview);
+
 router.patch("/reviews/:id", verifyToken, editReview);
 
 // GET ALL REVIEWS
@@ -1252,8 +1314,8 @@ router.put(
  *   delete:
  *     tags:
  *       - Review Routes
- *     summary: Delete a REVIEW by ID
- *     description: Deletes an existing REVIEW from the database by its ID. Requires authentication.
+ *     summary: Hide a REVIEW by ID
+ *     description: Soft-deletes an existing REVIEW by hiding it. Requires authentication.
  *     parameters:
  *       - name: id
  *         in: path
@@ -1263,7 +1325,7 @@ router.put(
  *           type: string
  *     responses:
  *       204:
- *         description: REVIEW deleted successfully
+ *         description: REVIEW hidden successfully
  *       401:
  *         description: Unauthorized - Invalid or missing token
  *       404:

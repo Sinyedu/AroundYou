@@ -68,6 +68,25 @@ export async function likeReview(reviewId: string, userId: string): Promise<Revi
   return res.json() as Promise<ReviewItem>
 }
 
+export async function reportReview(reviewId: string, reason: string): Promise<ReviewItem> {
+  const token = getToken()
+  const res = await fetch(`${API_BASE_URL}/reviews/${encodeURIComponent(reviewId)}/report`, {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+      ...(token ? { Authorization: `Bearer ${token}` } : {}),
+    },
+    body: JSON.stringify({ reason }),
+  })
+
+  if (!res.ok) {
+    const err = await res.json().catch(() => ({}))
+    throw new Error((err as { message?: string }).message ?? 'Kunne ikke rapportere review')
+  }
+
+  return res.json() as Promise<ReviewItem>
+}
+
 export interface UpdateReviewPayload {
   title?: string
   description?: string

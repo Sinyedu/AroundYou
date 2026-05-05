@@ -2,6 +2,26 @@ import { Request, Response } from "express";
 import { EventModel } from "../models/eventModel";
 import { buildDynamicQuery } from "./dynamicQueryBuilder";
 
+function shouldIncludeHidden(req: Request): boolean {
+  return req.originalUrl.startsWith("/api/admin/");
+}
+
+function visibleFilter(req: Request): Record<string, unknown> {
+  if (!shouldIncludeHidden(req)) {
+    return { isHidden: { $ne: true } };
+  }
+
+  if (req.query.visibility === "hidden") {
+    return { isHidden: true };
+  }
+
+  if (req.query.visibility === "all") {
+    return {};
+  }
+
+  return { isHidden: { $ne: true } };
+}
+
 /**
  * CREATE EVENT
  */
@@ -36,7 +56,7 @@ export async function createEvent(req: Request, res: Response): Promise<void> {
  */
 export async function getAllEvents(req: Request, res: Response): Promise<void> {
   try {
-    const result = await EventModel.find({});
+    const result = await EventModel.find(visibleFilter(req));
     res.status(200).json(result);
   } catch (err) {
     console.error("Error fetching events:", err);
@@ -51,7 +71,10 @@ export async function getAllEvents(req: Request, res: Response): Promise<void> {
  */
 export async function getEventById(req: Request, res: Response): Promise<void> {
   try {
-    const result = await EventModel.findById(req.params.id);
+    const result = await EventModel.findOne({
+      _id: req.params.id,
+      ...visibleFilter(req),
+    });
 
     if (!result) {
       res.status(404).json({ message: "Event not found" });
@@ -97,25 +120,61 @@ export async function updateEventById(
 }
 
 /**
- * DELETE EVENT
+ * HIDE EVENT
  */
 export async function deleteEventById(
   req: Request,
   res: Response,
 ): Promise<void> {
   try {
-    const result = await EventModel.findByIdAndDelete(req.params.id);
+    const result = await EventModel.findByIdAndUpdate(
+      req.params.id,
+      {
+        isHidden: true,
+        hiddenAt: new Date(),
+        hiddenBy: req.user?.userID,
+      },
+      { new: true },
+    );
 
     if (!result) {
       res.status(404).json({ message: "Event not found" });
       return;
     }
 
-    res.status(200).json({ message: "Event deleted successfully" });
+    res.status(200).json({ message: "Event hidden successfully", data: result });
   } catch (err) {
     console.error("Error deleting event:", err);
     res.status(500).json({
       message: "Error deleting event",
+    });
+  }
+}
+
+export async function restoreEventById(
+  req: Request,
+  res: Response,
+): Promise<void> {
+  try {
+    const result = await EventModel.findByIdAndUpdate(
+      req.params.id,
+      {
+        isHidden: false,
+        $unset: { hiddenAt: "", hiddenBy: "" },
+      },
+      { new: true },
+    );
+
+    if (!result) {
+      res.status(404).json({ message: "Event not found" });
+      return;
+    }
+
+    res.status(200).json({ message: "Event restored successfully", data: result });
+  } catch (err) {
+    console.error("Error restoring event:", err);
+    res.status(500).json({
+      message: "Error restoring event",
     });
   }
 }
@@ -132,6 +191,7 @@ export async function getEventByQuery(
     const value = req.params.value as string;
 
     const result = await EventModel.find({
+      ...visibleFilter(req),
       [key]: { $regex: value, $options: "i" },
     });
 
@@ -154,7 +214,10 @@ export async function getEventByGenericQuery(
   try {
     const query = buildDynamicQuery(EventModel, req.body);
 
-    const result = await EventModel.find(query);
+    const result = await EventModel.find({
+      ...query,
+      ...visibleFilter(req),
+    });
 
     res.status(200).json(result);
   } catch (err) {

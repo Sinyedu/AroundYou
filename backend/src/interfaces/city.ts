@@ -9,4 +9,7 @@ export interface City extends Document {
   gpsPosition: string;
   population: number;
   visitorCenter: string;
+  isHidden: boolean;
+  hiddenAt?: Date;
+  hiddenBy?: string;
 }

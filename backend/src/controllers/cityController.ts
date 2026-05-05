@@ -16,6 +16,26 @@ function normalizeCityName(value: string): string {
     .replace(/(^-|-$)/g, "");
 }
 
+function shouldIncludeHidden(req: Request): boolean {
+  return req.originalUrl.startsWith("/api/admin/");
+}
+
+function visibleFilter(req: Request): Record<string, unknown> {
+  if (!shouldIncludeHidden(req)) {
+    return { isHidden: { $ne: true } };
+  }
+
+  if (req.query.visibility === "hidden") {
+    return { isHidden: true };
+  }
+
+  if (req.query.visibility === "all") {
+    return {};
+  }
+
+  return { isHidden: { $ne: true } };
+}
+
 /**
  * CREATE CITY
  */
@@ -50,7 +70,7 @@ export async function createCity(req: Request, res: Response): Promise<void> {
  */
 export async function getAllCities(req: Request, res: Response): Promise<void> {
   try {
-    const result = await CityModel.find({});
+    const result = await CityModel.find(visibleFilter(req));
     res.status(200).json(result);
   } catch (err) {
     console.error("Error fetching cities:", err);
@@ -65,7 +85,10 @@ export async function getAllCities(req: Request, res: Response): Promise<void> {
  */
 export async function getCityById(req: Request, res: Response): Promise<void> {
   try {
-    const result = await CityModel.findById(req.params.id);
+    const result = await CityModel.findOne({
+      _id: req.params.id,
+      ...visibleFilter(req),
+    });
 
     if (!result) {
       res.status(404).json({ message: "City not found" });
@@ -95,7 +118,7 @@ export async function getCityByName(req: Request, res: Response): Promise<void> 
     }
 
     const normalizedTarget = normalizeCityName(cityNameParam);
-    const cities = await CityModel.find({});
+    const cities = await CityModel.find(visibleFilter(req));
 
     const matchingCity = cities.find((city) => {
       return normalizeCityName(city.name) === normalizedTarget;
@@ -147,25 +170,61 @@ export async function updateCityById(
 }
 
 /**
- * DELETE CITY
+ * HIDE CITY
  */
 export async function deleteCityById(
   req: Request,
   res: Response,
 ): Promise<void> {
   try {
-    const result = await CityModel.findByIdAndDelete(req.params.id);
+    const result = await CityModel.findByIdAndUpdate(
+      req.params.id,
+      {
+        isHidden: true,
+        hiddenAt: new Date(),
+        hiddenBy: req.user?.userID,
+      },
+      { new: true },
+    );
 
     if (!result) {
       res.status(404).json({ message: "City not found" });
       return;
     }
 
-    res.status(200).json({ message: "City deleted successfully" });
+    res.status(200).json({ message: "City hidden successfully", data: result });
   } catch (err) {
     console.error("Error deleting city:", err);
     res.status(500).json({
       message: "Error deleting city",
+    });
+  }
+}
+
+export async function restoreCityById(
+  req: Request,
+  res: Response,
+): Promise<void> {
+  try {
+    const result = await CityModel.findByIdAndUpdate(
+      req.params.id,
+      {
+        isHidden: false,
+        $unset: { hiddenAt: "", hiddenBy: "" },
+      },
+      { new: true },
+    );
+
+    if (!result) {
+      res.status(404).json({ message: "City not found" });
+      return;
+    }
+
+    res.status(200).json({ message: "City restored successfully", data: result });
+  } catch (err) {
+    console.error("Error restoring city:", err);
+    res.status(500).json({
+      message: "Error restoring city",
     });
   }
 }
@@ -182,6 +241,7 @@ export async function getCityByQuery(
     const value = req.params.value as string;
 
     const result = await CityModel.find({
+      ...visibleFilter(req),
       [key]: { $regex: value, $options: "i" },
     });
 
@@ -204,7 +264,10 @@ export async function getCityByGenericQuery(
   try {
     const query = buildDynamicQuery(CityModel, req.body);
 
-    const result = await CityModel.find(query);
+    const result = await CityModel.find({
+      ...query,
+      ...visibleFilter(req),
+    });
 
     res.status(200).json(result);
   } catch (err) {
