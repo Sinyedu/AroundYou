@@ -31,7 +31,6 @@ export type CreateCityForm = {
   commune: string
   region: string
   country: string
-  address: string
   population: string
   visitorCenter: string
 }
