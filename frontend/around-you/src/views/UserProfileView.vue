@@ -44,7 +44,7 @@
               <span class="text-sm font-semibold text-slate-700">Avatar billede</span>
               <input
                 type="file"
-                accept="image/png,image/jpeg"
+                accept="image/png,image/jpeg,image/jpg,image/webp"
                 @change="handleAvatarSelected"
                 class="block w-full text-sm text-slate-700 file:mr-3 file:rounded-lg file:border-0 file:bg-[#094b7b] file:px-3 file:py-2 file:font-semibold file:text-white"
               />
@@ -207,7 +207,7 @@ const handleAvatarSelected = (event: Event) => {
   if (!file) return
 
   if (!isAllowedImageType(file)) {
-    avatarError.value = 'Vælg et PNG- eller JPEG-billede.'
+    avatarError.value = 'Vælg et PNG-, JPG- eller WEBP-billede.'
     avatarFile.value = null
     target.value = ''
     return

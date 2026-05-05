@@ -23,7 +23,7 @@ export const useCreateContentImages = () => {
     }
 
     if (!isAllowedImageType(file)) {
-      setMessage('Only PNG, JPEG, and WebP images are allowed.')
+      setMessage('Only PNG, JPG and WEBP images are allowed.')
       target.value = ''
       return
     }
@@ -53,7 +53,7 @@ export const useCreateContentImages = () => {
 
     const invalidFile = files.find((file) => !isAllowedImageType(file))
     if (invalidFile) {
-      setMessage('Only PNG, JPEG, and WebP images are allowed.')
+      setMessage('Only PNG, JPG and WEBP images are allowed.')
       if (target) {
         target.value = ''
       }

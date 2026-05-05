@@ -2,6 +2,11 @@ import { Request, Response } from "express";
 import type { FileFilterCallback } from "multer";
 import multer from "multer";
 
+const getFileExtension = (fileName: string): string => {
+  const extension = fileName.split(".").pop();
+  return extension ? extension.toLowerCase() : "";
+};
+
 const imageUpload = multer({
   storage: multer.memoryStorage(),
   limits: { fileSize: 5 * 1024 * 1024 },
@@ -10,10 +15,19 @@ const imageUpload = multer({
     file: Express.Multer.File,
     callback: FileFilterCallback,
   ) => {
-    const allowedMimeTypes = new Set(["image/jpeg", "image/jpg", "image/png", "image/webp"]);
+    const allowedMimeTypes = new Set([
+      "image/jpeg",
+      "image/jpg",
+      "image/png",
+      "image/webp",
+    ]);
+    const allowedExtensions = new Set(["png", "jpg", "jpeg", "webp"]);
 
-    if (!allowedMimeTypes.has(file.mimetype)) {
-      callback(new Error("Only PNG and JPEG images are allowed"));
+    if (
+      !allowedMimeTypes.has(file.mimetype) ||
+      !allowedExtensions.has(getFileExtension(file.originalname))
+    ) {
+      callback(new Error("Only PNG, JPG and WebP images are allowed"));
       return;
     }
 
