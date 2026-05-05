@@ -64,7 +64,7 @@ const isAnimating = ref(false)
 let carouselInterval: ReturnType<typeof setInterval> | null = null
 
 const carouselImages = computed(() => props.images.filter((img) => !!img.trim()))
-const hasCarousel = computed(() => carouselImages.value.length > 0)
+const hasCarousel = computed(() => carouselImages.value.length >= CAROUSEL_VISIBLE_COUNT)
 const canSlideCarousel = computed(() => carouselImages.value.length > CAROUSEL_VISIBLE_COUNT)
 
 // Track: [clone last 3] + [all real] + [clone first 3] — seamless wrap in both directions
