@@ -9,6 +9,23 @@ type SearchFilterProps = {
 
 type SearchFilterEmit = (event: 'update:modelValue', value: SearchFilters) => void
 
+const areStringArraysEqual = (first: string[], second: string[]) => {
+  if (first.length !== second.length) {
+    return false
+  }
+
+  return first.every((item, index) => item === second[index])
+}
+
+const areFiltersEqual = (first: SearchFilters, second: SearchFilters) => {
+  return (
+    first.location === second.location &&
+    first.date === second.date &&
+    areStringArraysEqual(first.types, second.types) &&
+    areStringArraysEqual(first.categories, second.categories)
+  )
+}
+
 export function useSearchFilter(props: SearchFilterProps, emit: SearchFilterEmit) {
   const isLocationOpen = ref(false)
   const isTypeOpen = ref(false)
@@ -34,6 +51,10 @@ export function useSearchFilter(props: SearchFilterProps, emit: SearchFilterEmit
   watch(
     () => props.modelValue,
     (value) => {
+      if (areFiltersEqual(draft, value)) {
+        return
+      }
+
       isSyncingFromParent = true
       draft.location = value.location
       draft.types = [...value.types]
@@ -41,7 +62,7 @@ export function useSearchFilter(props: SearchFilterProps, emit: SearchFilterEmit
       draft.categories = [...value.categories]
       isSyncingFromParent = false
     },
-    { deep: true },
+    { deep: true, flush: 'sync' },
   )
 
   watch(
@@ -51,12 +72,18 @@ export function useSearchFilter(props: SearchFilterProps, emit: SearchFilterEmit
         return
       }
 
-      emit('update:modelValue', {
+      const nextValue = {
         location: draft.location,
         types: [...draft.types],
         date: draft.date,
         categories: [...draft.categories],
-      })
+      }
+
+      if (areFiltersEqual(nextValue, props.modelValue)) {
+        return
+      }
+
+      emit('update:modelValue', nextValue)
     },
     { deep: true },
   )

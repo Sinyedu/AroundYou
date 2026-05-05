@@ -7,6 +7,9 @@ import ContentPlaceholderView from '../views/CreateContentView.vue'
 
 const router = createRouter({
   history: createWebHistory(import.meta.env.BASE_URL),
+  scrollBehavior() {
+    return { top: 0, left: 0 }
+  },
   routes: [
     { path: '/', name: 'home', component: HomeView },
 
@@ -18,6 +21,16 @@ const router = createRouter({
     },
 
     { path: '/search', name: 'search', component: () => import('../views/SearchView.vue') },
+    {
+      path: '/event/:eventId',
+      name: 'single-event',
+      component: () => import('../views/SingleEventView.vue'),
+    },
+    {
+      path: '/city/:cityName',
+      name: 'single-city',
+      component: () => import('../views/SingleCityView.vue'),
+    },
     {
       path: '/user/user-profile',
       name: 'user-profile',

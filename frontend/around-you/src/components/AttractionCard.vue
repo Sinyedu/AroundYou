@@ -1,5 +1,7 @@
 <template>
-  <div
+  <component
+    :is="card.href ? RouterLink : 'div'"
+    :to="card.href"
     class="group rounded-xl overflow-hidden shadow-sm border border-gray-100 cursor-pointer hover:shadow-md transition-shadow"
   >
     <img
@@ -11,16 +13,20 @@
       <p class="text-sm font-semibold text-[#094b7b]">{{ card.name }}</p>
       <p class="text-xs text-gray-500 mt-1 leading-relaxed line-clamp-3">{{ card.description }}</p>
       <div class="flex items-center gap-1 mt-1">
-        <span class="text-xs font-bold text-gray-800">{{ card.rating }}</span>
+        <span class="text-xs font-bold text-gray-800">{{ displayRating.toFixed(1) }}</span>
         <div class="flex text-[#de5826]">
           <span v-for="starIndex in 5" :key="starIndex" class="text-xs">
             {{
-              starIndex <= Math.floor(card.rating) ? '★' : starIndex - card.rating < 1 ? '★' : '☆'
+              starIndex <= Math.floor(displayRating)
+                ? '★'
+                : starIndex - displayRating < 1
+                  ? '★'
+                  : '☆'
             }}
           </span>
         </div>
         <span v-if="card.metaText" class="text-xs text-gray-400">{{ card.metaText }}</span>
-        <span v-else class="text-xs text-gray-400">({{ card.reviews.toLocaleString() }})</span>
+        <span v-else class="text-xs text-gray-400">({{ displayReviewsCount.toLocaleString() }})</span>
       </div>
       <div class="flex flex-wrap gap-1 mt-2">
         <span
@@ -32,13 +38,47 @@
         </span>
       </div>
     </div>
-  </div>
+  </component>
 </template>
 
 <script setup lang="ts">
+import { computed, ref, watch } from 'vue'
+import { getReviewsByTarget } from '@/api/reviews.api'
 import type { ExperienceCard } from '@/types/experience-card'
+import { RouterLink } from 'vue-router'
 
-defineProps<{
+const props = defineProps<{
   card: ExperienceCard
 }>()
+
+const reviewAverage = ref<number | null>(null)
+const reviewCount = ref<number | null>(null)
+
+const isCityCard = computed(() => props.card.href?.startsWith('/city/') ?? false)
+const displayRating = computed(() => reviewAverage.value ?? props.card.rating)
+const displayReviewsCount = computed(() => reviewCount.value ?? props.card.reviews)
+
+watch(
+  () => [props.card.id, props.card.href] as const,
+  async ([targetId]) => {
+    if (!isCityCard.value) {
+      reviewAverage.value = null
+      reviewCount.value = null
+      return
+    }
+
+    try {
+      const reviews = await getReviewsByTarget(targetId)
+      reviewCount.value = reviews.length
+      reviewAverage.value =
+        reviews.length > 0
+          ? reviews.reduce((sum, review) => sum + review.rating, 0) / reviews.length
+          : null
+    } catch {
+      reviewAverage.value = null
+      reviewCount.value = null
+    }
+  },
+  { immediate: true },
+)
 </script>

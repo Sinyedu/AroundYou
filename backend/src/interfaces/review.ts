@@ -1,12 +1,16 @@
-import { User } from "./user";
-import { Document } from "mongoose";
+export type ReviewTargetType = 'city' | 'event' | 'attraction';
 
 export interface Review extends Document {
-  author: User["userName"];
-  title: string;
-  description: string;
-  rating: number;
-  likes: number;
-  image: string;
-  createdAt: Date;
+    reviewID: string;
+    targetId: string;
+    targetType: ReviewTargetType;
+    author: string;
+    title: string;
+    description: string;
+    rating: number;
+    likes: number;
+    likedBy: string[];
+    edited: boolean;
+    image: string;
+    createdAt: Date;
 }

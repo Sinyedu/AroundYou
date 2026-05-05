@@ -8,4 +8,7 @@ export type CityApiItem = {
   gpsPosition: string
   population: number
   rating: number
+  country: string
+  visitorCenter: string
+  slugArray: string[]
 }
