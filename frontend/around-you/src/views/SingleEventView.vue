@@ -64,6 +64,50 @@
 				</section>
 			</div>
 
+			<section v-if="hasCarousel" class="flex items-center gap-3 md:gap-4">
+				<button
+					type="button"
+					class="shrink-0 rounded-full border border-[#C1D2DE] bg-white px-3 py-2 text-xl font-bold text-[#094b7b] shadow-sm transition hover:bg-[#094b7b]/5 disabled:cursor-not-allowed disabled:opacity-45"
+					@click="previousCarousel"
+					:disabled="!canSlideCarousel"
+					aria-label="Forrige billeder"
+				>
+					‹
+				</button>
+
+				<div class="overflow-hidden min-w-0 flex-1">
+					<div
+						class="grid"
+						:class="noTransition ? '' : 'transition-transform duration-700 ease-in-out'"
+						:style="{
+							gridAutoFlow: 'column',
+							gridAutoColumns: `calc(100% / ${CAROUSEL_VISIBLE_COUNT})`,
+							transform: `translateX(${trackTranslateX})`,
+						}"
+					>
+						<figure
+							v-for="(image, index) in loopedImages"
+							:key="`${image}-${index}`"
+							class="overflow-hidden rounded-2xl border border-[#C1D2DE]/70 bg-white shadow-sm px-2"
+						>
+							<img
+								:src="image"
+								:alt="displayEventName"
+								class="h-56 w-full object-cover"
+							/>
+						</figure>
+					</div>
+				</div>
+
+				<button
+					type="button"
+					class="shrink-0 rounded-full border border-[#C1D2DE] bg-white px-3 py-2 text-xl font-bold text-[#094b7b] shadow-sm transition hover:bg-[#094b7b]/5 disabled:cursor-not-allowed disabled:opacity-45"
+					@click="nextCarouselManual"
+				>
+					›
+				</button>
+			</section>
+
 			<div class="flex items-center gap-3 border-t border-[#C1D2DE]/60 pt-6">
 				<span class="text-2xl font-black text-[#094b7b]">
 					{{ reviewRating !== null ? reviewRating.toFixed(1) : '–' }}
@@ -86,7 +130,7 @@
 </template>
 
 <script setup lang="ts">
-import { computed, ref, watch } from 'vue'
+import { computed, nextTick, onBeforeUnmount, ref, watch } from 'vue'
 import { useRoute } from 'vue-router'
 import { getEventByIdentifier } from '@/api/attractions.api'
 import ReviewSection from '@/components/ReviewSection.vue'
@@ -125,7 +169,104 @@ const eventItem = computed(() => eventSection.data.value)
 const reviewRating = ref<number | null>(null)
 const displayEventName = computed(() => eventItem.value?.name ?? '')
 
+const currentItemIndex = ref(0)
+const CAROUSEL_VISIBLE_COUNT = 3
+const CAROUSEL_INTERVAL_MS = 3000
+const noTransition = ref(false)
+const isAnimating = ref(false)
+let carouselInterval: ReturnType<typeof setInterval> | null = null
+
+const carouselImages = computed(() => eventItem.value?.imageArray?.filter((image) => !!image.trim()) ?? [])
+const hasCarousel = computed(() => carouselImages.value.length > 0)
+const canSlideCarousel = computed(() => carouselImages.value.length > CAROUSEL_VISIBLE_COUNT)
+
+// Track: [clone last 3] + [all real] + [clone first 3] — enables seamless wrap in both directions
+const loopedImages = computed(() => [
+	...carouselImages.value.slice(-CAROUSEL_VISIBLE_COUNT),
+	...carouselImages.value,
+	...carouselImages.value.slice(0, CAROUSEL_VISIBLE_COUNT),
+])
+
+// Offset by CAROUSEL_VISIBLE_COUNT to account for prepended clones
+const trackTranslateX = computed(() =>
+	`-${((currentItemIndex.value + CAROUSEL_VISIBLE_COUNT) * 100) / CAROUSEL_VISIBLE_COUNT}%`
+)
+
 const heroImage = computed(() => eventSection.data.value?.heroImage ?? defaultHeroImage)
+
+function advanceCarousel(direction: 1 | -1, resetAutoplay = false): void {
+	if (!canSlideCarousel.value || isAnimating.value) return
+	isAnimating.value = true
+	currentItemIndex.value += direction
+
+	const n = carouselImages.value.length
+	const needsSnap = direction === 1 ? currentItemIndex.value >= n : currentItemIndex.value < 0
+
+	setTimeout(() => {
+		if (needsSnap) {
+			noTransition.value = true
+			currentItemIndex.value = direction === 1 ? 0 : n - 1
+			// Give the browser one frame to apply the position without transition,
+			// then re-enable transition in the following frame
+			requestAnimationFrame(() => {
+				requestAnimationFrame(() => {
+					noTransition.value = false
+				})
+			})
+		}
+		isAnimating.value = false
+		if (resetAutoplay) startCarouselAutoplay()
+	}, 710)
+}
+
+function nextCarousel(): void {
+	advanceCarousel(1)
+}
+
+function previousCarousel(): void {
+	advanceCarousel(-1, true)
+}
+
+function nextCarouselManual(): void {
+	advanceCarousel(1, true)
+}
+
+function stopCarouselAutoplay(): void {
+	if (!carouselInterval) return
+	clearInterval(carouselInterval)
+	carouselInterval = null
+}
+
+function startCarouselAutoplay(): void {
+	stopCarouselAutoplay()
+
+	if (!canSlideCarousel.value) {
+		return
+	}
+
+	carouselInterval = setInterval(() => {
+		nextCarousel()
+	}, CAROUSEL_INTERVAL_MS)
+}
+
+watch(
+	() => eventItem.value?._id,
+	() => {
+		currentItemIndex.value = 0
+		startCarouselAutoplay()
+	},
+)
+
+watch(canSlideCarousel, () => {
+	if (!canSlideCarousel.value) {
+		currentItemIndex.value = 0
+	}
+	startCarouselAutoplay()
+})
+
+onBeforeUnmount(() => {
+	stopCarouselAutoplay()
+})
 
 function formatDate(dateValue: string): string {
 	const parsed = new Date(dateValue)
@@ -149,3 +290,5 @@ function formatOpeningHours(hours: string[]): string {
 	return hours.join(', ')
 }
 </script>
+
+
