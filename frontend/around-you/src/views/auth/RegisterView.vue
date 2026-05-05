@@ -5,20 +5,16 @@
     >
       <div class="flex flex-col justify-between gap-8 bg-[#094b7b] px-8 py-8 text-white">
         <div>
-          <p class="text-xs font-semibold uppercase tracking-[0.32em] text-[#f1b28f]">Around You</p>
-          <h1 class="mt-3 text-3xl font-black tracking-tight">Opret konto</h1>
+          <h1 class="text-3xl font-black tracking-tight">Opret konto</h1>
           <p class="mt-3 max-w-md text-sm leading-6 text-white/80">
             Bliv en del af AroundYou og begynd at oprette oplevelser, events og steder i Danmark.
           </p>
         </div>
-
-        
       </div>
 
       <div class="flex items-center px-6 py-8 sm:px-10">
         <div class="w-full">
-          <p class="text-xs font-semibold uppercase tracking-[0.28em] text-[#de5826]">Register</p>
-          <h2 class="mt-2 text-3xl font-black tracking-tight text-[#094b7b]">Kom i gang</h2>
+          <h2 class="text-3xl font-black tracking-tight text-[#094b7b]">Kom i gang</h2>
 
           <p
             v-if="message"

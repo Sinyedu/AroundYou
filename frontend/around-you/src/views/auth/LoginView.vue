@@ -3,8 +3,7 @@
     <section class="mx-auto grid max-w-5xl overflow-hidden rounded-[28px] bg-white shadow-[0_24px_80px_rgba(9,75,123,0.16)] lg:grid-cols-[0.9fr_1.1fr]">
       <div class="flex flex-col justify-between gap-8 bg-[#094b7b] px-8 py-8 text-white">
         <div>
-          <p class="text-xs font-semibold uppercase tracking-[0.32em] text-[#f1b28f]">Around You</p>
-          <h1 class="mt-3 text-3xl font-black tracking-tight">Velkommen tilbage</h1>
+          <h1 class="text-3xl font-black tracking-tight">Velkommen tilbage</h1>
           <p class="mt-3 max-w-md text-sm leading-6 text-white/80">
             Log ind og fortsæt med at finde oplevelser, byer og attraktioner tæt på dig.
           </p>
@@ -13,8 +12,7 @@
 
       <div class="flex items-center px-6 py-8 sm:px-10">
         <div class="w-full">
-          <p class="text-xs font-semibold uppercase tracking-[0.28em] text-[#de5826]">Login</p>
-          <h2 class="mt-2 text-3xl font-black tracking-tight text-[#094b7b]">Log ind</h2>
+          <h2 class="text-3xl font-black tracking-tight text-[#094b7b]">Log ind</h2>
 
           <p
             v-if="errorMessage"
@@ -72,10 +70,10 @@
 
 <script setup lang="ts">
 import { ref } from 'vue'
-import { RouterLink } from 'vue-router'
+import { RouterLink, useRouter } from 'vue-router'
 import { useAuth } from '../../composables/useAuth'
-import { useRouter } from 'vue-router'
 import { useGeolocationStore } from '../../stores/geolocation'
+
 const router = useRouter()
 
 const identifier = ref('')
@@ -85,6 +83,7 @@ const isSubmitting = ref(false)
 
 const { login, isAuthenticated } = useAuth()
 const geo = useGeolocationStore()
+
 const handleLogin = async () => {
   try {
     if (!identifier.value || !password.value) return
