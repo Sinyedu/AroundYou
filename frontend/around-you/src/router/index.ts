@@ -22,6 +22,11 @@ const router = createRouter({
 
     { path: '/search', name: 'search', component: () => import('../views/SearchView.vue') },
     {
+      path: '/event/:eventId',
+      name: 'single-event',
+      component: () => import('../views/SingleEventView.vue'),
+    },
+    {
       path: '/city/:cityName',
       name: 'single-city',
       component: () => import('../views/SingleCityView.vue'),

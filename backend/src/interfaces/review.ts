@@ -1,12 +1,10 @@
-import { User } from "./user";
-
 export type ReviewTargetType = 'city' | 'event' | 'attraction';
 
 export interface Review extends Document {
     reviewID: string;
     targetId: string;
     targetType: ReviewTargetType;
-    author: User;
+    author: string;
     title: string;
     description: string;
     rating: number;
