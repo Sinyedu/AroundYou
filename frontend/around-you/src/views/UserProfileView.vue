@@ -124,10 +124,10 @@
       aria-labelledby="delete-account-title"
     >
       <div class="w-full max-w-md rounded-3xl bg-white p-6 shadow-[0_24px_80px_rgba(15,23,42,0.32)]">
-        <h2 id="delete-account-title" class="text-2xl font-black text-[#094b7b]">Slet konto?</h2>
+        <h2 id="delete-account-title" class="text-2xl font-black text-[#094b7b]">Er du sikker?</h2>
         <p class="mt-3 text-sm leading-6 text-slate-700">
-          Er du sikker på, at du vil slette din konto? Kontoen bliver deaktiveret, men dine data
-          bliver ikke slettet permanent.
+          Vil du slette din konto? Kontoen bliver deaktiveret, men dine data bliver ikke slettet
+          permanent.
         </p>
         <p v-if="deleteAccountError" class="mt-4 rounded-xl bg-rose-50 px-4 py-3 text-sm font-semibold text-rose-700">
           {{ deleteAccountError }}
