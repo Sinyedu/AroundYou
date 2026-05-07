@@ -3,6 +3,7 @@ import { City } from "../interfaces/city";
 
 const citySchema = new Schema<City>({
   name: { type: String, required: true, min: 3, max: 255 },
+  tagLine: { type: String, required: true, min: 20, max: 100 },
   description: { type: String, required: true, min: 3, max: 1024 },
   heroImage: { type: String, required: true },
   commune: { type: String, required: true },

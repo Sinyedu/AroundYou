@@ -133,7 +133,10 @@ export async function getNearbyLocationContent(
 
   return {
     locationName: nearestCity?.city.name ?? 'din lokation',
-    locationDescription: nearestCity?.city.description ?? DEFAULT_NEARBY_LOCATION_DESCRIPTION,
+    locationDescription:
+      nearestCity?.city.tagLine ??
+      nearestCity?.city.description ??
+      DEFAULT_NEARBY_LOCATION_DESCRIPTION,
     attractions: nearbyAttractions,
   }
 }
