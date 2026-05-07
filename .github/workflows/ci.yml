@@ -9,7 +9,7 @@ defaults:
     working-directory: frontend/around-you
 
 jobs:
-  ci:
+  frontend:
     runs-on: ubuntu-latest
 
     steps:
@@ -41,3 +41,48 @@ jobs:
 
       - name: Build project
         run: npm run build
+
+  backend-api:
+    runs-on: ubuntu-latest
+
+    services:
+      mongo:
+        image: mongo:7
+        ports:
+          - 27017:27017
+        options: >-
+          --health-cmd "mongosh --quiet --eval 'db.adminCommand(\"ping\").ok'"
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+
+    defaults:
+      run:
+        working-directory: backend
+
+    env:
+      PORT: 4000
+      DBHOST: mongodb://127.0.0.1:27017/aroundyou_e2e
+
+    steps:
+      - name: Checkout repo
+        uses: actions/checkout@v4
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+          cache-dependency-path: backend/package-lock.json
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Prepare test environment
+        run: echo "TOKEN_SECRET=$(openssl rand -hex 32)" >> "$GITHUB_ENV"
+
+      - name: Build backend
+        run: npm run build
+
+      - name: Run Playwright API tests
+        run: npm test -- --reporter=list
