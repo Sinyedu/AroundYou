@@ -1,4 +1,4 @@
-import { apiRequest, jsonHeaders } from '@/api/http'
+import { apiRequest, clearApiCache, jsonHeaders } from '@/api/http'
 import type { ContentSuggestion, ContentSuggestionStatus } from '@/types/content-suggestion'
 import type {
   AdminCollectionKey,
@@ -26,6 +26,12 @@ function unwrapMutation<TRecord>(response: AdminMutationResponse<TRecord>): TRec
   return response as TRecord
 }
 
+async function clearCacheAfterMutation<T>(request: Promise<T>): Promise<T> {
+  const result = await request
+  clearApiCache()
+  return result
+}
+
 export function fetchAdminCollection(
   collection: AdminCollectionKey,
   visibility: AdminVisibility = 'active',
@@ -39,12 +45,14 @@ export async function createAdminRecord(
   collection: AdminCollectionKey,
   payload: AdminEditableRecord,
 ): Promise<AdminRecord> {
-  const response = await apiRequest<AdminMutationResponse<AdminRecord>>(`/admin/${collection}`, {
-    method: 'POST',
-    token: getToken(),
-    headers: jsonHeaders(),
-    body: JSON.stringify(payload),
-  })
+  const response = await clearCacheAfterMutation(
+    apiRequest<AdminMutationResponse<AdminRecord>>(`/admin/${collection}`, {
+      method: 'POST',
+      token: getToken(),
+      headers: jsonHeaders(),
+      body: JSON.stringify(payload),
+    }),
+  )
 
   return unwrapMutation(response)
 }
@@ -54,14 +62,16 @@ export async function updateAdminRecord(
   id: string,
   payload: AdminEditableRecord,
 ): Promise<AdminRecord> {
-  const response = await apiRequest<AdminMutationResponse<AdminRecord>>(
-    `/admin/${collection}/${encodeURIComponent(id)}`,
-    {
-      method: 'PUT',
-      token: getToken(),
-      headers: jsonHeaders(),
-      body: JSON.stringify(payload),
-    },
+  const response = await clearCacheAfterMutation(
+    apiRequest<AdminMutationResponse<AdminRecord>>(
+      `/admin/${collection}/${encodeURIComponent(id)}`,
+      {
+        method: 'PUT',
+        token: getToken(),
+        headers: jsonHeaders(),
+        body: JSON.stringify(payload),
+      },
+    ),
   )
 
   return unwrapMutation(response)
@@ -71,12 +81,14 @@ export async function deleteAdminRecord(
   collection: AdminCollectionKey,
   id: string,
 ): Promise<AdminRecord> {
-  const response = await apiRequest<AdminMutationResponse<AdminRecord>>(
-    `/admin/${collection}/${encodeURIComponent(id)}`,
-    {
-      method: 'DELETE',
-      token: getToken(),
-    },
+  const response = await clearCacheAfterMutation(
+    apiRequest<AdminMutationResponse<AdminRecord>>(
+      `/admin/${collection}/${encodeURIComponent(id)}`,
+      {
+        method: 'DELETE',
+        token: getToken(),
+      },
+    ),
   )
 
   return unwrapMutation(response)
@@ -86,22 +98,26 @@ export async function restoreAdminRecord(
   collection: AdminCollectionKey,
   id: string,
 ): Promise<AdminRecord> {
-  const response = await apiRequest<AdminMutationResponse<AdminRecord>>(
-    `/admin/${collection}/${encodeURIComponent(id)}/restore`,
-    {
-      method: 'PATCH',
-      token: getToken(),
-    },
+  const response = await clearCacheAfterMutation(
+    apiRequest<AdminMutationResponse<AdminRecord>>(
+      `/admin/${collection}/${encodeURIComponent(id)}/restore`,
+      {
+        method: 'PATCH',
+        token: getToken(),
+      },
+    ),
   )
 
   return unwrapMutation(response)
 }
 
 export function deleteReportedReview(id: string): Promise<unknown> {
-  return apiRequest(`/admin/reviews/${encodeURIComponent(id)}`, {
-    method: 'DELETE',
-    token: getToken(),
-  })
+  return clearCacheAfterMutation(
+    apiRequest(`/admin/reviews/${encodeURIComponent(id)}`, {
+      method: 'DELETE',
+      token: getToken(),
+    }),
+  )
 }
 
 export function fetchAdminSuggestions(
@@ -113,10 +129,12 @@ export function fetchAdminSuggestions(
 }
 
 export function approveAdminSuggestion(id: string): Promise<unknown> {
-  return apiRequest(`/admin/suggestions/${encodeURIComponent(id)}/approve`, {
-    method: 'POST',
-    token: getToken(),
-  })
+  return clearCacheAfterMutation(
+    apiRequest(`/admin/suggestions/${encodeURIComponent(id)}/approve`, {
+      method: 'POST',
+      token: getToken(),
+    }),
+  )
 }
 
 export function rejectAdminSuggestion(id: string, reason: string): Promise<ContentSuggestion> {
@@ -137,15 +155,19 @@ export function fetchReportedReviews(
 }
 
 export function resolveReviewReport(id: string): Promise<ReportedReview> {
-  return apiRequest<ReportedReview>(`/admin/reviews/${encodeURIComponent(id)}/resolve-report`, {
-    method: 'PATCH',
-    token: getToken(),
-  })
+  return clearCacheAfterMutation(
+    apiRequest<ReportedReview>(`/admin/reviews/${encodeURIComponent(id)}/resolve-report`, {
+      method: 'PATCH',
+      token: getToken(),
+    }),
+  )
 }
 
 export function restoreReportedReview(id: string): Promise<ReportedReview> {
-  return apiRequest<ReportedReview>(`/admin/reviews/${encodeURIComponent(id)}/restore`, {
-    method: 'PATCH',
-    token: getToken(),
-  })
+  return clearCacheAfterMutation(
+    apiRequest<ReportedReview>(`/admin/reviews/${encodeURIComponent(id)}/restore`, {
+      method: 'PATCH',
+      token: getToken(),
+    }),
+  )
 }

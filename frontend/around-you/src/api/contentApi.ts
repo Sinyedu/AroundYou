@@ -4,6 +4,7 @@ import type {
   EventPayload,
   UploadedImageResponse,
 } from '@/types/content'
+import { clearApiCache } from '@/api/http'
 
 const API_BASE_URL = 'http://localhost:4000/api'
 
@@ -36,7 +37,10 @@ export const uploadImageFile = async (file: File, token: string | null) => {
   })
 
   if (!response.ok) {
-    throw await toBackendError(response, `Billedet kunne ikke uploades. Statuskode: ${response.status}`)
+    throw await toBackendError(
+      response,
+      `Billedet kunne ikke uploades. Statuskode: ${response.status}`,
+    )
   }
 
   const body = (await response.json()) as UploadedImageResponse
@@ -59,6 +63,7 @@ const postJson = async <T>(url: string, body: T, token: string | null) => {
     throw await toBackendError(response, `Request failed: ${response.status}`)
   }
 
+  clearApiCache()
   return response.json()
 }
 
