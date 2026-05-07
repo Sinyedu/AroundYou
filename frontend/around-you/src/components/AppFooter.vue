@@ -10,7 +10,7 @@
           <img :src="aroundYouLogo" alt="AroundYou" class="h-11 w-auto" />
         </RouterLink>
         <p class="mt-4 max-w-sm text-sm leading-6 text-slate-600">
-          Find events, attraktioner og byer i Danmark, og gem dine næste oplevelser tæt på dig.
+          Find events, attraktioner og byer i Danmark – og oplev nye steder tæt på dig.
         </p>
       </div>
 
