@@ -116,8 +116,6 @@
               placeholder="Region" />
             <input v-model="cityForm.country" class="rounded-xl border border-slate-200 px-4 py-3"
               placeholder="Country" />
-            <input v-model="cityForm.address" class="rounded-xl border border-slate-200 px-4 py-3"
-              placeholder="Address" />
             <input v-model="cityForm.population" type="number" class="rounded-xl border border-slate-200 px-4 py-3"
               placeholder="Population" />
             <input v-model="cityForm.visitorCenter" class="rounded-xl border border-slate-200 px-4 py-3"

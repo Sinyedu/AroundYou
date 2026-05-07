@@ -43,7 +43,6 @@ export const useCreateContentForm = () => {
     commune: '',
     region: '',
     country: '',
-    address: '',
     population: '',
     visitorCenter: '',
   })

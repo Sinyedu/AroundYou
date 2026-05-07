@@ -33,7 +33,6 @@ const REQUIRED_FIELDS: Record<ContentSuggestionType, string[]> = {
     "country",
     "gpsPosition",
     "population",
-    "visitorCenter",
   ],
 };
 

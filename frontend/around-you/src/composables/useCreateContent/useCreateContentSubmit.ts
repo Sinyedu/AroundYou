@@ -1,8 +1,10 @@
 import { ref } from 'vue'
-import { useRouter } from 'vue-router'
 import { createAttraction, createCity, createEvent, uploadImageFile } from '@/api/contentApi'
+import { createContentSuggestion } from '@/api/contentSuggestions.api'
+import { useAuthService } from '@/api/authService'
 import { getGeocodedCoordinates } from '@/api/geocoding.api'
-import type { AttractionPayload, CityPayload, ContentType, EventPayload } from '@/types/content'
+import type { AttractionPayload, CityPayload, EventPayload } from '@/types/content'
+import type { ContentSuggestionPayload, ContentSuggestionType } from '@/types/content-suggestion'
 import type {
   CreateAttractionForm,
   CreateCityForm,
@@ -22,12 +24,23 @@ const splitList = (value: string) =>
 
 const getAuthToken = () => localStorage.getItem('token')
 
+type ContentSubmissionDestination = 'created' | 'suggested'
+
 const resolveGpsPosition = async (address: string, city: string) => {
   if (!address.trim() || !city.trim()) {
     throw new Error('Please enter both address and city.')
   }
 
   const location = await getGeocodedCoordinates(address.trim(), city.trim())
+  return `${location.latitude},${location.longitude}`
+}
+
+const resolveCityGpsPosition = async (city: string) => {
+  if (!city.trim()) {
+    throw new Error('Indtast en by.')
+  }
+
+  const location = await getGeocodedCoordinates(null, city.trim())
   return `${location.latitude},${location.longitude}`
 }
 
@@ -43,11 +56,32 @@ export const useCreateContentSubmit = (
   attractionImageArrayFiles: CreateContentFileArrayRef,
   compressImageFiles: (files: File[]) => Promise<File[]>,
 ) => {
-  const router = useRouter()
   const isSubmitting = ref(false)
   const isUploadingImage = ref(false)
+  const { currentUser, isAdmin } = useAuthService()
 
-  const submitEvent = async () => {
+  const submitContentByRole = async (
+    type: ContentSuggestionType,
+    payload: ContentSuggestionPayload,
+    token: string | null,
+  ): Promise<ContentSubmissionDestination> => {
+    if (currentUser.value?.role === 'admin' || isAdmin.value) {
+      if (type === 'event') {
+        await createEvent(payload as EventPayload, token)
+      } else if (type === 'attraction') {
+        await createAttraction(payload as AttractionPayload, token)
+      } else {
+        await createCity(payload as CityPayload, token)
+      }
+
+      return 'created'
+    }
+
+    await createContentSuggestion(type, payload)
+    return 'suggested'
+  }
+
+  const submitEvent = async (): Promise<ContentSubmissionDestination> => {
     if (!eventHeroImageFile.value) {
       throw new Error('Please upload an image for this event.')
     }
@@ -79,10 +113,10 @@ export const useCreateContentSubmit = (
       openingHours: splitList(eventForm.openingHoursText),
     }
 
-    await createEvent(payload, token)
+    return submitContentByRole('event', payload, token)
   }
 
-  const submitAttraction = async () => {
+  const submitAttraction = async (): Promise<ContentSubmissionDestination> => {
     if (!attractionHeroImageFile.value) {
       throw new Error('Please upload an image for this attraction.')
     }
@@ -111,16 +145,16 @@ export const useCreateContentSubmit = (
       openingHours: splitList(attractionForm.openingHoursText),
     }
 
-    await createAttraction(payload, token)
+    return submitContentByRole('attraction', payload, token)
   }
 
-  const submitCity = async () => {
+  const submitCity = async (): Promise<ContentSubmissionDestination> => {
     if (!cityHeroImageFile.value) {
       throw new Error('Please upload an image for this city.')
     }
 
     const token = getAuthToken()
-    const gpsPosition = await resolveGpsPosition(cityForm.address, cityForm.name)
+    const gpsPosition = await resolveCityGpsPosition(cityForm.name)
 
     isUploadingImage.value = true
 
@@ -139,7 +173,7 @@ export const useCreateContentSubmit = (
       visitorCenter: cityForm.visitorCenter,
     }
 
-    await createCity(payload, token)
+    return submitContentByRole('city', payload, token)
   }
 
   const submitSelected = async (setMessage: CreateContentMessageSetter) => {
@@ -147,21 +181,23 @@ export const useCreateContentSubmit = (
       isSubmitting.value = true
       setMessage('')
 
+      let destination: ContentSubmissionDestination
+
       if (selectedType.value === 'event') {
-        await submitEvent()
+        destination = await submitEvent()
       } else if (selectedType.value === 'attraction') {
-        await submitAttraction()
+        destination = await submitAttraction()
       } else {
-        await submitCity()
+        destination = await submitCity()
       }
 
-      setMessage(`${selectedType.value} saved successfully.`)
-
-      if (selectedType.value === 'attraction') {
-        await router.push({ name: 'search', query: { type: 'attraction' } })
-      }
+      setMessage(
+        destination === 'created'
+          ? 'Indholdet er oprettet.'
+          : 'Dit forslag er sendt til admin og afventer godkendelse.',
+      )
     } catch (error) {
-      setMessage(error instanceof Error ? error.message : 'Save failed.')
+      setMessage(error instanceof Error ? error.message : 'Kunne ikke sende forslaget.')
     } finally {
       isUploadingImage.value = false
       isSubmitting.value = false
