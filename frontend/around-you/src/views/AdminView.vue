@@ -34,6 +34,7 @@
         :key="activeCollection.key"
         :config="activeCollection"
       />
+      <AdminContactTickets v-else-if="activeTab === 'contact'" />
       <AdminReviewReports v-else />
     </section>
   </main>
@@ -42,17 +43,19 @@
 <script setup lang="ts">
 import { computed, ref } from 'vue'
 import AdminCollectionManager from '@/components/admin/AdminCollectionManager.vue'
+import AdminContactTickets from '@/components/admin/AdminContactTickets.vue'
 import AdminReviewReports from '@/components/admin/AdminReviewReports.vue'
 import { adminCollections } from '@/admin/adminCollections'
 import type { AdminCollectionKey } from '@/types/admin'
 
-type AdminTabKey = AdminCollectionKey | 'reviews'
+type AdminTabKey = AdminCollectionKey | 'reviews' | 'contact'
 
 const tabs: { key: AdminTabKey; label: string }[] = [
   ...adminCollections.map((collection) => ({
     key: collection.key,
     label: collection.label,
   })),
+  { key: 'contact', label: 'Henvendelser' },
   { key: 'reviews', label: 'Anmeldelsesrapporter' },
 ]
 
