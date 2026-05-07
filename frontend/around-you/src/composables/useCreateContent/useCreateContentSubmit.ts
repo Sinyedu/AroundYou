@@ -1,8 +1,10 @@
 import { ref } from 'vue'
-import { uploadImageFile } from '@/api/contentApi'
+import { createAttraction, createCity, createEvent, uploadImageFile } from '@/api/contentApi'
 import { createContentSuggestion } from '@/api/contentSuggestions.api'
+import { useAuthService } from '@/api/authService'
 import { getGeocodedCoordinates } from '@/api/geocoding.api'
 import type { AttractionPayload, CityPayload, EventPayload } from '@/types/content'
+import type { ContentSuggestionPayload, ContentSuggestionType } from '@/types/content-suggestion'
 import type {
   CreateAttractionForm,
   CreateCityForm,
@@ -21,6 +23,8 @@ const splitList = (value: string) =>
     .filter(Boolean)
 
 const getAuthToken = () => localStorage.getItem('token')
+
+type ContentSubmissionDestination = 'created' | 'suggested'
 
 const resolveGpsPosition = async (address: string, city: string) => {
   if (!address.trim() || !city.trim()) {
@@ -54,8 +58,30 @@ export const useCreateContentSubmit = (
 ) => {
   const isSubmitting = ref(false)
   const isUploadingImage = ref(false)
+  const { currentUser, isAdmin } = useAuthService()
 
-  const submitEvent = async () => {
+  const submitContentByRole = async (
+    type: ContentSuggestionType,
+    payload: ContentSuggestionPayload,
+    token: string | null,
+  ): Promise<ContentSubmissionDestination> => {
+    if (currentUser.value?.role === 'admin' || isAdmin.value) {
+      if (type === 'event') {
+        await createEvent(payload as EventPayload, token)
+      } else if (type === 'attraction') {
+        await createAttraction(payload as AttractionPayload, token)
+      } else {
+        await createCity(payload as CityPayload, token)
+      }
+
+      return 'created'
+    }
+
+    await createContentSuggestion(type, payload)
+    return 'suggested'
+  }
+
+  const submitEvent = async (): Promise<ContentSubmissionDestination> => {
     if (!eventHeroImageFile.value) {
       throw new Error('Please upload an image for this event.')
     }
@@ -87,10 +113,10 @@ export const useCreateContentSubmit = (
       openingHours: splitList(eventForm.openingHoursText),
     }
 
-    await createContentSuggestion('event', payload)
+    return submitContentByRole('event', payload, token)
   }
 
-  const submitAttraction = async () => {
+  const submitAttraction = async (): Promise<ContentSubmissionDestination> => {
     if (!attractionHeroImageFile.value) {
       throw new Error('Please upload an image for this attraction.')
     }
@@ -119,10 +145,10 @@ export const useCreateContentSubmit = (
       openingHours: splitList(attractionForm.openingHoursText),
     }
 
-    await createContentSuggestion('attraction', payload)
+    return submitContentByRole('attraction', payload, token)
   }
 
-  const submitCity = async () => {
+  const submitCity = async (): Promise<ContentSubmissionDestination> => {
     if (!cityHeroImageFile.value) {
       throw new Error('Please upload an image for this city.')
     }
@@ -147,7 +173,7 @@ export const useCreateContentSubmit = (
       visitorCenter: cityForm.visitorCenter,
     }
 
-    await createContentSuggestion('city', payload)
+    return submitContentByRole('city', payload, token)
   }
 
   const submitSelected = async (setMessage: CreateContentMessageSetter) => {
@@ -155,15 +181,21 @@ export const useCreateContentSubmit = (
       isSubmitting.value = true
       setMessage('')
 
+      let destination: ContentSubmissionDestination
+
       if (selectedType.value === 'event') {
-        await submitEvent()
+        destination = await submitEvent()
       } else if (selectedType.value === 'attraction') {
-        await submitAttraction()
+        destination = await submitAttraction()
       } else {
-        await submitCity()
+        destination = await submitCity()
       }
 
-      setMessage('Dit forslag er sendt til admin og afventer godkendelse.')
+      setMessage(
+        destination === 'created'
+          ? 'Indholdet er oprettet.'
+          : 'Dit forslag er sendt til admin og afventer godkendelse.',
+      )
     } catch (error) {
       setMessage(error instanceof Error ? error.message : 'Kunne ikke sende forslaget.')
     } finally {
