@@ -36,13 +36,13 @@ export const uploadImageFile = async (file: File, token: string | null) => {
   })
 
   if (!response.ok) {
-    throw await toBackendError(response, `Image upload failed: ${response.status}`)
+    throw await toBackendError(response, `Billedet kunne ikke uploades. Statuskode: ${response.status}`)
   }
 
   const body = (await response.json()) as UploadedImageResponse
 
   if (!body.imageUrl) {
-    throw new Error('Image upload returned no image URL')
+    throw new Error('Billedet blev uploadet, men serveren sendte ikke et billedlink tilbage.')
   }
 
   return body.imageUrl

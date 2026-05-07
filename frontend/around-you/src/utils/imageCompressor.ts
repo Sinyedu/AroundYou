@@ -33,7 +33,7 @@ const loadImage = (file: File) => {
 
     image.onerror = () => {
       URL.revokeObjectURL(objectUrl)
-      reject(new Error('Could not load image.'))
+      reject(new Error('Billedet kunne ikke indlæses.'))
     }
 
     image.src = objectUrl
@@ -59,7 +59,7 @@ const canvasToBlob = (canvas: HTMLCanvasElement, type: string, quality: number) 
     canvas.toBlob(
       (blob) => {
         if (!blob) {
-          reject(new Error('Could not compress image.'))
+          reject(new Error('Billedet kunne ikke komprimeres.'))
           return
         }
 
@@ -81,7 +81,7 @@ export const isAllowedImageType = (file: File) => {
 
 export async function compressImageFile(file: File, options: CompressImageOptions = {}) {
   if (!isAllowedImageType(file)) {
-    throw new Error('Only PNG, JPG and WEBP images are allowed.')
+    throw new Error('Kun PNG-, JPG- og WEBP-billeder er tilladt.')
   }
 
   const maxWidth = options.maxWidth ?? 1000
@@ -96,7 +96,7 @@ export async function compressImageFile(file: File, options: CompressImageOption
 
   const context = canvas.getContext('2d')
   if (!context) {
-    throw new Error('Could not prepare image compression.')
+    throw new Error('Billedet kunne ikke gøres klar til upload.')
   }
 
   context.drawImage(image, 0, 0, dimensions.width, dimensions.height)

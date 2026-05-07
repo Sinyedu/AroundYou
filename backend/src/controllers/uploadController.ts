@@ -29,7 +29,7 @@ const imageUpload = multer({
       !allowedMimeTypes.has(file.mimetype) ||
       !allowedExtensions.has(getFileExtension(file.originalname))
     ) {
-      callback(new Error("Only PNG, JPG and WebP images are allowed"));
+      callback(new Error("Kun PNG-, JPG- og WEBP-billeder er tilladt"));
       return;
     }
 
@@ -71,7 +71,7 @@ export async function uploadImage(req: Request, res: Response): Promise<void> {
   const uploadedFile = req.file;
 
   if (!uploadedFile) {
-    res.status(400).json({ message: "No image file uploaded" });
+    res.status(400).json({ message: "Der blev ikke uploadet noget billede" });
     return;
   }
 
@@ -82,7 +82,7 @@ export async function uploadImage(req: Request, res: Response): Promise<void> {
     res.status(201).json({ imageUrl });
   } catch (error) {
     console.error("Upload image error:", error);
-    res.status(500).json({ message: "Image upload failed" });
+    res.status(500).json({ message: "Billedet kunne ikke uploades" });
   }
 }
 
@@ -93,7 +93,7 @@ export async function getUploadedImage(
   const imageIdParam = req.params.id;
 
   if (!imageIdParam || Array.isArray(imageIdParam) || !ObjectId.isValid(imageIdParam)) {
-    res.status(400).json({ message: "Invalid image id" });
+    res.status(400).json({ message: "Billedet har et ugyldigt id" });
     return;
   }
 
@@ -103,7 +103,7 @@ export async function getUploadedImage(
     const imageFile = await bucket.find({ _id: imageId }).next();
 
     if (!imageFile) {
-      res.status(404).json({ message: "Image not found" });
+      res.status(404).json({ message: "Billedet blev ikke fundet" });
       return;
     }
 
@@ -118,6 +118,6 @@ export async function getUploadedImage(
     bucket.openDownloadStream(imageId).pipe(res);
   } catch (error) {
     console.error("Get uploaded image error:", error);
-    res.status(500).json({ message: "Could not load image" });
+    res.status(500).json({ message: "Billedet kunne ikke indlæses" });
   }
 }
