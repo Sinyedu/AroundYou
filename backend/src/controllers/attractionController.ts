@@ -1,26 +1,12 @@
 import { Request, Response } from "express";
 import { AttractionModel } from "../models/attractionModel";
 import { buildDynamicQuery } from "../controllers/dynamicQueryBuilder";
-
-function shouldIncludeHidden(req: Request): boolean {
-  return req.originalUrl.startsWith("/api/admin/");
-}
-
-function visibleFilter(req: Request): Record<string, unknown> {
-  if (!shouldIncludeHidden(req)) {
-    return { isHidden: { $ne: true } };
-  }
-
-  if (req.query.visibility === "hidden") {
-    return { isHidden: true };
-  }
-
-  if (req.query.visibility === "all") {
-    return {};
-  }
-
-  return { isHidden: { $ne: true } };
-}
+import {
+  getHideUpdate,
+  getRestoreUpdate,
+  sendCreateError,
+  visibleFilter,
+} from "./controllerUtils";
 
 /**
  * Create new attraction
@@ -36,21 +22,7 @@ export async function createAttraction(
     res.status(201).json(result);
   } catch (err) {
     console.error("Error creating attraction:", err);
-
-    if (
-      err instanceof Error &&
-      "name" in err &&
-      err.name === "ValidationError"
-    ) {
-      res.status(400).json({
-        message: err.message,
-      });
-      return;
-    }
-
-    res.status(500).json({
-      message: "An error occurred while creating the attraction",
-    });
+    sendCreateError(res, err, "An error occurred while creating the attraction");
   }
 }
 
@@ -148,11 +120,7 @@ export async function deleteAttractionById(
 
     const result = await AttractionModel.findByIdAndUpdate(
       id,
-      {
-        isHidden: true,
-        hiddenAt: new Date(),
-        hiddenBy: req.user?.userID,
-      },
+      getHideUpdate(req.user?.userID),
       { new: true },
     );
 
@@ -184,10 +152,7 @@ export async function restoreAttractionById(
 
     const result = await AttractionModel.findByIdAndUpdate(
       id,
-      {
-        isHidden: false,
-        $unset: { hiddenAt: "", hiddenBy: "" },
-      },
+      getRestoreUpdate(),
       { new: true },
     );
 

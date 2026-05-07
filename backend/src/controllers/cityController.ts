@@ -1,40 +1,13 @@
 import { Request, Response } from "express";
 import { CityModel } from "../models/cityModel";
 import { buildDynamicQuery } from "./dynamicQueryBuilder";
-
-function normalizeCityName(value: string): string {
-  const withDanishCharsMapped = value
-    .toLowerCase()
-    .replace(/æ/g, "a")
-    .replace(/ø/g, "o")
-    .replace(/å/g, "a");
-
-  return withDanishCharsMapped
-    .normalize("NFD")
-    .replace(/[\u0300-\u036f]/g, "")
-    .replace(/[^a-z0-9]+/g, "-")
-    .replace(/(^-|-$)/g, "");
-}
-
-function shouldIncludeHidden(req: Request): boolean {
-  return req.originalUrl.startsWith("/api/admin/");
-}
-
-function visibleFilter(req: Request): Record<string, unknown> {
-  if (!shouldIncludeHidden(req)) {
-    return { isHidden: { $ne: true } };
-  }
-
-  if (req.query.visibility === "hidden") {
-    return { isHidden: true };
-  }
-
-  if (req.query.visibility === "all") {
-    return {};
-  }
-
-  return { isHidden: { $ne: true } };
-}
+import {
+  getHideUpdate,
+  getRestoreUpdate,
+  normalizeSlug,
+  sendCreateError,
+  visibleFilter,
+} from "./controllerUtils";
 
 /**
  * CREATE CITY
@@ -47,21 +20,7 @@ export async function createCity(req: Request, res: Response): Promise<void> {
     res.status(201).json(result);
   } catch (err) {
     console.error("Error creating city:", err);
-
-    if (
-      err instanceof Error &&
-      "name" in err &&
-      err.name === "ValidationError"
-    ) {
-      res.status(400).json({
-        message: err.message,
-      });
-      return;
-    }
-
-    res.status(500).json({
-      message: "Error creating city",
-    });
+    sendCreateError(res, err, "Error creating city");
   }
 }
 
@@ -117,11 +76,11 @@ export async function getCityByName(req: Request, res: Response): Promise<void> 
       return;
     }
 
-    const normalizedTarget = normalizeCityName(cityNameParam);
+    const normalizedTarget = normalizeSlug(cityNameParam);
     const cities = await CityModel.find(visibleFilter(req));
 
     const matchingCity = cities.find((city) => {
-      return normalizeCityName(city.name) === normalizedTarget;
+      return normalizeSlug(city.name) === normalizedTarget;
     });
 
     if (!matchingCity) {
@@ -179,11 +138,7 @@ export async function deleteCityById(
   try {
     const result = await CityModel.findByIdAndUpdate(
       req.params.id,
-      {
-        isHidden: true,
-        hiddenAt: new Date(),
-        hiddenBy: req.user?.userID,
-      },
+      getHideUpdate(req.user?.userID),
       { new: true },
     );
 
@@ -208,10 +163,7 @@ export async function restoreCityById(
   try {
     const result = await CityModel.findByIdAndUpdate(
       req.params.id,
-      {
-        isHidden: false,
-        $unset: { hiddenAt: "", hiddenBy: "" },
-      },
+      getRestoreUpdate(),
       { new: true },
     );
 

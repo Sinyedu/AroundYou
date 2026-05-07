@@ -1,26 +1,12 @@
 import { Request, Response } from "express";
 import { EventModel } from "../models/eventModel";
 import { buildDynamicQuery } from "./dynamicQueryBuilder";
-
-function shouldIncludeHidden(req: Request): boolean {
-  return req.originalUrl.startsWith("/api/admin/");
-}
-
-function visibleFilter(req: Request): Record<string, unknown> {
-  if (!shouldIncludeHidden(req)) {
-    return { isHidden: { $ne: true } };
-  }
-
-  if (req.query.visibility === "hidden") {
-    return { isHidden: true };
-  }
-
-  if (req.query.visibility === "all") {
-    return {};
-  }
-
-  return { isHidden: { $ne: true } };
-}
+import {
+  getHideUpdate,
+  getRestoreUpdate,
+  sendCreateError,
+  visibleFilter,
+} from "./controllerUtils";
 
 /**
  * CREATE EVENT
@@ -33,21 +19,7 @@ export async function createEvent(req: Request, res: Response): Promise<void> {
     res.status(201).json(result);
   } catch (err) {
     console.error("Error creating event:", err);
-
-    if (
-      err instanceof Error &&
-      "name" in err &&
-      err.name === "ValidationError"
-    ) {
-      res.status(400).json({
-        message: err.message,
-      });
-      return;
-    }
-
-    res.status(500).json({
-      message: "Error creating event",
-    });
+    sendCreateError(res, err, "Error creating event");
   }
 }
 
@@ -129,11 +101,7 @@ export async function deleteEventById(
   try {
     const result = await EventModel.findByIdAndUpdate(
       req.params.id,
-      {
-        isHidden: true,
-        hiddenAt: new Date(),
-        hiddenBy: req.user?.userID,
-      },
+      getHideUpdate(req.user?.userID),
       { new: true },
     );
 
@@ -158,10 +126,7 @@ export async function restoreEventById(
   try {
     const result = await EventModel.findByIdAndUpdate(
       req.params.id,
-      {
-        isHidden: false,
-        $unset: { hiddenAt: "", hiddenBy: "" },
-      },
+      getRestoreUpdate(),
       { new: true },
     );
 
