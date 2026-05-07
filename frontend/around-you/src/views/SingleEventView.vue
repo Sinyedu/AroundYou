@@ -52,6 +52,10 @@
 							<dt class="text-sm font-bold text-[#094b7b]">Åbningstider</dt>
 							<dd class="mt-0.5 text-sm text-slate-600">{{ formatOpeningHours(eventItem.openingHours) }}</dd>
 						</div>
+						<div v-if="eventAddress">
+							<dt class="text-sm font-bold text-[#094b7b]">Adresse</dt>
+							<dd class="mt-0.5 text-sm text-slate-600">{{ eventAddress }}</dd>
+						</div>
 						<div>
 							<dt class="text-sm font-bold text-[#094b7b]">Website</dt>
 							<dd class="mt-0.5 text-sm text-slate-600">
@@ -63,6 +67,12 @@
 					</dl>
 				</section>
 			</div>
+
+			<ImageCarousel
+				v-if="eventItem.imageArray?.length"
+				:images="eventItem.imageArray"
+				:alt="displayEventName"
+			/>
 
 			<div class="flex items-center gap-3 border-t border-[#C1D2DE]/60 pt-6">
 				<span class="text-2xl font-black text-[#094b7b]">
@@ -89,7 +99,8 @@
 import { computed, ref, watch } from 'vue'
 import { useRoute } from 'vue-router'
 import { getEventByIdentifier } from '@/api/attractions.api'
-import ReviewSection from '@/components/ReviewSection.vue'
+import ImageCarousel from '@/components/ImageCarousel.vue'
+import ReviewSection from '@/components/reviews/ReviewSection.vue'
 import { useAsyncData } from '@/composables/useAsyncData'
 import type { EventApiItem } from '@/types/event-api-item'
 
@@ -127,6 +138,34 @@ const displayEventName = computed(() => eventItem.value?.name ?? '')
 
 const heroImage = computed(() => eventSection.data.value?.heroImage ?? defaultHeroImage)
 
+const eventAddress = ref<string | null>(null)
+
+watch(
+	() => eventItem.value?.gpsPosition,
+	async (gpsPosition) => {
+		eventAddress.value = null
+		if (!gpsPosition?.trim()) return
+
+		const [latRaw, lngRaw] = gpsPosition.split(',')
+		const lat = parseFloat(latRaw ?? '')
+		const lng = parseFloat(lngRaw ?? '')
+		if (!Number.isFinite(lat) || !Number.isFinite(lng)) return
+
+		try {
+			const res = await fetch(
+				`https://nominatim.openstreetmap.org/reverse?lat=${lat}&lon=${lng}&format=json`,
+				{ headers: { 'Accept-Language': 'da' } },
+			)
+			if (!res.ok) return
+			const data = await res.json() as { display_name?: string }
+			eventAddress.value = data.display_name ?? null
+		} catch {
+			// silently ignore geocoding errors
+		}
+	},
+	{ immediate: true },
+)
+
 function formatDate(dateValue: string): string {
 	const parsed = new Date(dateValue)
 	if (Number.isNaN(parsed.getTime())) return 'Ikke angivet'
@@ -149,3 +188,5 @@ function formatOpeningHours(hours: string[]): string {
 	return hours.join(', ')
 }
 </script>
+
+

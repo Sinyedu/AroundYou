@@ -70,6 +70,12 @@
 
 			</div>
 
+			<ImageCarousel
+				v-if="city.imageArray?.length"
+				:images="city.imageArray"
+				:alt="displayCityName"
+			/>
+
 			<div class="border-t border-[#C1D2DE]/60 pt-6 flex items-center gap-3">
 				<span class="text-2xl font-black text-[#094b7b]">
 					{{ reviewRating !== null ? reviewRating.toFixed(1) : '–' }}
@@ -98,7 +104,8 @@ import { useRoute } from 'vue-router'
 import { getCityByName } from '@/api/attractions.api'
 import { useAsyncData } from '@/composables/useAsyncData'
 import type { CityApiItem } from '@/types/attractions'
-import ReviewSection from '@/components/ReviewSection.vue'
+import ImageCarousel from '@/components/ImageCarousel.vue'
+import ReviewSection from '@/components/reviews/ReviewSection.vue'
 
 const defaultHeroImage =
 	'https://images.unsplash.com/photo-1524230572899-a752b3835840?auto=format&fit=crop&w=2200&q=80'

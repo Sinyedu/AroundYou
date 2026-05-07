@@ -48,6 +48,23 @@ export async function getEventByIdentifier(eventIdentifier: string): Promise<Eve
   )
 }
 
+export async function getAttractionByIdentifier(attractionIdentifier: string): Promise<AttractionApiItem | null> {
+  if (!attractionIdentifier.trim()) {
+    return null
+  }
+
+  const attractions = await fetchJson<AttractionApiItem[]>('/attractions')
+  const normalizedIdentifier = normalizeEntitySlug(decodeURIComponent(attractionIdentifier))
+
+  return (
+    attractions.find(
+      (attraction) =>
+        attraction._id === attractionIdentifier ||
+        normalizeEntitySlug(attraction.name) === normalizedIdentifier,
+    ) ?? null
+  )
+}
+
 export async function getCityByName(cityName: string): Promise<CityApiItem | null> {
   if (!cityName.trim()) {
     return null
@@ -129,6 +146,7 @@ export async function getNearbyLocationContent(
       reviews: 0,
       tags: attraction.slugArray.slice(0, 3),
       metaText: `${distanceKm.toFixed(1)} km væk`,
+      href: `/attraction/${attraction._id}`,
     }))
 
   return {
@@ -186,7 +204,7 @@ async function getExperiencesBySlug(slug: string, limit = 4): Promise<NatureExpe
       reviews: 0,
       tags: entry.slugArray,
       metaText: entry.type,
-      href: entry.type === 'Event' ? `/event/${entry._id}` : undefined,
+      href: entry.type === 'Event' ? `/event/${entry._id}` : `/attraction/${entry._id}`,
     }))
 }
 

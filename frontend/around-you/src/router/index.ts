@@ -28,6 +28,11 @@ const router = createRouter({
       component: () => import('../views/SingleEventView.vue'),
     },
     {
+      path: '/attraction/:attractionId',
+      name: 'single-attraction',
+      component: () => import('../views/SingleAttractionView.vue'),
+    },
+    {
       path: '/city/:cityName',
       name: 'single-city',
       component: () => import('../views/SingleCityView.vue'),

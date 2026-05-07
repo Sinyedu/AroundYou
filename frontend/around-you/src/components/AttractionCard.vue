@@ -54,19 +54,12 @@ const props = defineProps<{
 const reviewAverage = ref<number | null>(null)
 const reviewCount = ref<number | null>(null)
 
-const isCityCard = computed(() => props.card.href?.startsWith('/city/') ?? false)
 const displayRating = computed(() => reviewAverage.value ?? props.card.rating)
 const displayReviewsCount = computed(() => reviewCount.value ?? props.card.reviews)
 
 watch(
-  () => [props.card.id, props.card.href] as const,
-  async ([targetId]) => {
-    if (!isCityCard.value) {
-      reviewAverage.value = null
-      reviewCount.value = null
-      return
-    }
-
+  () => props.card.id,
+  async (targetId) => {
     try {
       const reviews = await getReviewsByTarget(targetId)
       reviewCount.value = reviews.length

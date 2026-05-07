@@ -59,6 +59,7 @@
                                                     reviews: item.reviews,
                                                     tags: [item.type, item.location, ...item.categories].filter(Boolean),
                                                     metaText: item.date || item.location,
+                                                    href: item.type === 'event' ? `/event/${item.id}` : item.type === 'attraction' ? `/attraction/${item.id}` : undefined,
                                                 }"
                                             />
                                         </div>
