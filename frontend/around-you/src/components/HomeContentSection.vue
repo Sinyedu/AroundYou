@@ -1,7 +1,7 @@
 <template>
   <section class="px-8 py-12">
     <h2 :class="titleClassName">{{ title }}</h2>
-    <p class="text-sm text-gray-500 text-center max-w-3xl mx-auto mb-8">{{ description }}</p>
+    <p :class="descriptionClassName">{{ description }}</p>
 
     <p v-if="loading" class="text-sm text-gray-500 text-center mb-8">
       {{ loadingText }}
@@ -36,12 +36,15 @@ const props = withDefaults(
     loading: boolean
     error: string | null
     titleClass?: string
+    descriptionClass?: string
   }>(),
   {
     titleClass: 'text-3xl font-extrabold text-[#094b7b] text-center mb-2',
+    descriptionClass: 'text-sm text-gray-500 text-center max-w-3xl mx-auto mb-8',
   },
 )
 
 const showCards = computed(() => !props.loading && !props.error && props.cards.length > 0)
 const titleClassName = computed(() => props.titleClass)
+const descriptionClassName = computed(() => props.descriptionClass)
 </script>

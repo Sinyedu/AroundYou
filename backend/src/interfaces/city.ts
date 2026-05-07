@@ -1,6 +1,7 @@
 export interface City extends Document {
   cityID: string;
   name: string;
+  tagLine: string;
   description: string;
   heroImage: string;
   commune: string;
