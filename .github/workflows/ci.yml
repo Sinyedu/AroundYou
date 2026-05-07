@@ -95,4 +95,19 @@ jobs:
         run: npm run build
 
       - name: Run Playwright API tests
-        run: npm test -- --reporter=list
+        run: npm test
+
+      - name: Upload Playwright HTML report
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: backend-playwright-report
+          path: backend/playwright-report
+          if-no-files-found: ignore
+
+      - name: Add Playwright report link to summary
+        if: always()
+        run: |
+          echo "### Backend Playwright report" >> "$GITHUB_STEP_SUMMARY"
+          echo "Download the \`backend-playwright-report\` artifact from this workflow run:" >> "$GITHUB_STEP_SUMMARY"
+          echo "${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}" >> "$GITHUB_STEP_SUMMARY"

@@ -25,22 +25,13 @@ test.describe("AroundYou API", () => {
     }
   });
 
-  test("can look up a returned city by id", async ({ request }) => {
-    const listResponse = await request.get("/api/city");
-    const cities = await expectJsonResponse(listResponse);
+  test("returns not found for a missing city id", async ({ request }) => {
+    const missingMongoId = "000000000000000000000000";
+    const response = await request.get(`/api/city/${missingMongoId}`);
+    const body = await expectJsonResponse(response);
 
-    expect(listResponse.status()).toBe(200);
-    test.skip(cities.length === 0, "No cities are available in the test database.");
-
-    const firstCity = cities[0];
-    expect(firstCity._id).toEqual(expect.any(String));
-
-    const detailResponse = await request.get(`/api/city/${firstCity._id}`);
-    const detail = await expectJsonResponse(detailResponse);
-
-    expect(detailResponse.status()).toBe(200);
-    expect(detail._id).toBe(firstCity._id);
-    expect(detail.name).toBe(firstCity.name);
+    expect(response.status()).toBe(404);
+    expect(body.message).toBe("City not found");
   });
 
   test("rejects protected endpoints without a bearer token", async ({ request }) => {
