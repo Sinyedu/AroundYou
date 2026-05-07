@@ -1,0 +1,144 @@
+import type { ExperienceCard } from '@/types/experience-card'
+import type { Coordinates as MapCoordinates } from '@/types/coordinates'
+import type { Coordinates, SearchFilters, SearchResult } from '@/types/search'
+
+export type SearchMapMarker = {
+  id: string
+  title: string
+  type: SearchResult['type']
+  latitude: number
+  longitude: number
+}
+
+export type SelectedSearchMapMarker = Pick<SearchMapMarker, 'id' | 'title' | 'type'>
+
+export const RESULTS_PER_PAGE = 8
+
+export const getInitialSearchTypes = (routeType: unknown): SearchFilters['types'] => {
+  const type = Array.isArray(routeType) ? routeType[0] : routeType
+
+  return type === 'event' || type === 'attraction' ? [type] : []
+}
+
+export const hasActiveSearchFilters = (filters: SearchFilters) => {
+  return Boolean(
+    filters.location.trim() || filters.types.length || filters.date || filters.categories.length,
+  )
+}
+
+export const getSearchResultDescription = (
+  filters: SearchFilters,
+  isUsingLocationResults: boolean,
+  isShowingLargestCities: boolean,
+) => {
+  if (hasActiveSearchFilters(filters)) {
+    return 'Søg blandt byer, events og attraktioner i hele Danmark.'
+  }
+
+  if (isUsingLocationResults) {
+    return 'Vi viser de nærmeste events og attraktioner ud fra din lokation.'
+  }
+
+  if (isShowingLargestCities) {
+    return 'Del din lokation for at se oplevelser tæt på dig, eller udforsk Danmarks seks største byer her.'
+  }
+
+  return 'Der er over 1.000 ting at se og opleve omkring dig.'
+}
+
+export const getVisibleSearchItems = (results: SearchResult[], citySelectedFromMap: string) => {
+  if (!citySelectedFromMap) {
+    return results
+  }
+
+  return results.filter((item) => item.type !== 'city')
+}
+
+export const getTotalPages = (itemsCount: number, perPage = RESULTS_PER_PAGE) => {
+  return Math.ceil(itemsCount / perPage)
+}
+
+export const getPageNumbers = (totalPages: number) => {
+  return Array.from({ length: totalPages }, (_, index) => index + 1)
+}
+
+export const clampPage = (page: number, totalPages: number) => {
+  return Math.min(Math.max(page, 1), totalPages)
+}
+
+export const paginateSearchItems = (
+  items: SearchResult[],
+  currentPage: number,
+  perPage = RESULTS_PER_PAGE,
+) => {
+  const start = (currentPage - 1) * perPage
+
+  return items.slice(start, start + perPage)
+}
+
+export const getSearchResultCardClass = (id: string, selectedResultId: string | null) => {
+  return selectedResultId === id
+    ? 'ring-4 ring-[#de5826]/70 shadow-[0_0_0_6px_rgba(222,88,38,0.12)]'
+    : 'ring-0'
+}
+
+export const toSearchResultCard = (item: SearchResult): ExperienceCard => {
+  return {
+    id: item.id,
+    name: item.title,
+    description: item.description,
+    image: item.image,
+    rating: item.rating,
+    reviews: item.reviews,
+    tags: [item.type, item.location, ...item.categories].filter(Boolean),
+    metaText: item.date || item.location,
+    href:
+      item.type === 'city'
+        ? `/city/${item.id}`
+        : item.type === 'event'
+          ? `/event/${item.id}`
+          : `/attraction/${item.id}`,
+  }
+}
+
+export const getSelectedCityCenter = (
+  location: string,
+  cityCoordinates: Record<string, Coordinates>,
+): MapCoordinates | null => {
+  const selectedLocation = location.trim().toLowerCase()
+
+  if (!selectedLocation) {
+    return null
+  }
+
+  const city = cityCoordinates[selectedLocation]
+
+  if (!city) {
+    return null
+  }
+
+  return {
+    latitude: city.lat,
+    longitude: city.lng,
+  }
+}
+
+export const toSearchMapMarker = (item: SearchResult): SearchMapMarker | null => {
+  if (!item.coordinates) {
+    return null
+  }
+
+  return {
+    id: item.id,
+    title: item.title,
+    type: item.type,
+    latitude: item.coordinates.lat,
+    longitude: item.coordinates.lng,
+  }
+}
+
+export const toSearchMapMarkers = (items: SearchResult[]) => {
+  return items
+    .map((item) => toSearchMapMarker(item))
+    .filter((marker): marker is SearchMapMarker => Boolean(marker))
+}
