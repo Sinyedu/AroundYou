@@ -105,7 +105,7 @@ import { getCityByName } from '@/api/attractions.api'
 import { useAsyncData } from '@/composables/useAsyncData'
 import type { CityApiItem } from '@/types/attractions'
 import ImageCarousel from '@/components/ImageCarousel.vue'
-import ReviewSection from '@/components/ReviewSection.vue'
+import ReviewSection from '@/components/reviews/ReviewSection.vue'
 
 const defaultHeroImage =
 	'https://images.unsplash.com/photo-1524230572899-a752b3835840?auto=format&fit=crop&w=2200&q=80'

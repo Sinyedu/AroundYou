@@ -100,7 +100,7 @@ import { computed, ref, watch } from 'vue'
 import { useRoute } from 'vue-router'
 import { getEventByIdentifier } from '@/api/attractions.api'
 import ImageCarousel from '@/components/ImageCarousel.vue'
-import ReviewSection from '@/components/ReviewSection.vue'
+import ReviewSection from '@/components/reviews/ReviewSection.vue'
 import { useAsyncData } from '@/composables/useAsyncData'
 import type { EventApiItem } from '@/types/event-api-item'
 
