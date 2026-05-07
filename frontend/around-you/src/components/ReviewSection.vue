@@ -113,6 +113,16 @@
 							</span>
 						</div>
 						<button
+							v-if="isAuthenticated && review.author !== userName"
+							@click="openReportModal(review)"
+							type="button"
+							class="text-xs text-slate-400 underline underline-offset-2"
+							:class="isReviewReported(review._id) ? 'text-slate-300 cursor-not-allowed' : 'hover:text-[#094b7b]'"
+							:disabled="isReviewReported(review._id)"
+						>
+							{{ isReviewReported(review._id) ? 'Anmeldt' : 'Anmeld' }}
+						</button>
+						<button
 							v-if="review.author === userName"
 							@click="startEdit(review)"
 							type="button"
@@ -213,6 +223,82 @@
 				</button>
 			</li>
 		</ul>
+
+		<div
+			v-if="reportModalOpen && reportTargetReview"
+			class="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/60 px-4"
+			role="dialog"
+			aria-modal="true"
+		>
+			<div class="w-full max-w-lg rounded-2xl bg-white p-6 shadow-2xl">
+				<div class="mb-4 flex items-start justify-between gap-3">
+					<div>
+						<h3 class="text-base font-semibold text-[#094b7b]">Anmeld review</h3>
+						<p class="mt-1 text-xs text-slate-500">
+							Du anmelder: <span class="font-medium text-slate-700">{{ reportTargetReview.title }}</span>
+						</p>
+					</div>
+					<button
+						type="button"
+						@click="closeReportModal"
+						class="text-sm text-slate-400 transition hover:text-slate-600"
+						aria-label="Luk"
+					>
+						✕
+					</button>
+				</div>
+
+				<form @submit.prevent="submitReport" class="space-y-4">
+					<div>
+						<label for="report-reason" class="mb-1 block text-sm font-medium text-slate-700">Årsag</label>
+						<select
+							id="report-reason"
+							v-model="reportForm.reason"
+							required
+							class="w-full rounded-lg border border-[#C1D2DE] px-3 py-2 text-sm text-slate-700 outline-none focus:border-[#094b7b] focus:ring-2 focus:ring-[#094b7b]/20"
+						>
+							<option value="">Vælg en årsag</option>
+							<option value="upassende-sprog">Upassende sprog</option>
+							<option value="chikane">Chikane eller hadefuldt indhold</option>
+							<option value="spam">Spam eller reklame</option>
+							<option value="andet">Andet</option>
+						</select>
+					</div>
+
+					<div>
+						<label for="report-details" class="mb-1 block text-sm font-medium text-slate-700">
+							Beskriv kort problemet <span class="font-normal text-slate-400">(valgfrit)</span>
+						</label>
+						<textarea
+							id="report-details"
+							v-model="reportForm.details"
+							maxlength="500"
+							rows="4"
+							placeholder="Skriv evt. hvorfor reviewet er upassende..."
+							class="w-full rounded-lg border border-[#C1D2DE] px-3 py-2 text-sm text-slate-700 outline-none focus:border-[#094b7b] focus:ring-2 focus:ring-[#094b7b]/20"
+						></textarea>
+					</div>
+
+					<p v-if="reportError" class="text-sm text-[#de5826]">{{ reportError }}</p>
+
+					<div class="flex items-center justify-end gap-2">
+						<button
+							type="button"
+							@click="closeReportModal"
+							class="rounded-full border border-slate-200 px-4 py-1.5 text-xs font-medium text-slate-500 transition hover:border-slate-300"
+						>
+							Annuller
+						</button>
+						<button
+							type="submit"
+							class="rounded-full bg-[#094b7b] px-4 py-1.5 text-xs font-semibold text-white transition hover:bg-[#094b7b]/85"
+						>
+							Send anmeldelse
+						</button>
+					</div>
+				</form>
+			</div>
+		</div>
 	</section>
 </template>
 
@@ -264,6 +350,12 @@ const editForm = ref({ title: '', description: '', rating: 0, image: '' })
 const editSaving = ref(false)
 const editError = ref<string | null>(null)
 
+const reportModalOpen = ref(false)
+const reportTargetReview = ref<ReviewItem | null>(null)
+const reportForm = ref({ reason: '', details: '' })
+const reportError = ref<string | null>(null)
+const reportedReviewIds = ref<string[]>([])
+
 function startEdit(review: ReviewItem) {
 	editingId.value = review._id
 	editForm.value = { title: review.title, description: review.description, rating: review.rating, image: review.image ?? '' }
@@ -273,6 +365,36 @@ function startEdit(review: ReviewItem) {
 function cancelEdit() {
 	editingId.value = null
 	editError.value = null
+}
+
+function isReviewReported(reviewId: string): boolean {
+	return reportedReviewIds.value.includes(reviewId)
+}
+
+function openReportModal(review: ReviewItem) {
+	if (isReviewReported(review._id)) return
+	reportTargetReview.value = review
+	reportForm.value = { reason: '', details: '' }
+	reportError.value = null
+	reportModalOpen.value = true
+}
+
+function closeReportModal() {
+	reportModalOpen.value = false
+	reportTargetReview.value = null
+	reportError.value = null
+}
+
+function submitReport() {
+	if (!reportTargetReview.value) return
+	if (!reportForm.value.reason) {
+		reportError.value = 'Vælg en årsag for anmeldelsen.'
+		return
+	}
+	if (!reportedReviewIds.value.includes(reportTargetReview.value._id)) {
+		reportedReviewIds.value.push(reportTargetReview.value._id)
+	}
+	closeReportModal()
 }
 
 async function saveEdit(reviewId: string) {
