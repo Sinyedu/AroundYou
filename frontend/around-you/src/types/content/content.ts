@@ -29,6 +29,7 @@ export type AttractionPayload = {
 
 export type CityPayload = {
   name: string
+  tagLine: string
   description: string
   heroImage: string
   commune: string

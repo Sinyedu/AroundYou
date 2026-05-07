@@ -8,6 +8,7 @@ export const adminCollections: AdminCollectionConfig[] = [
     description: 'Godkend afventende byforslag, og vedligehold bysamlingen.',
     emptyRecord: {
       name: '',
+      tagLine: '',
       description: '',
       heroImage: '',
       commune: '',
@@ -19,6 +20,7 @@ export const adminCollections: AdminCollectionConfig[] = [
     },
     fields: [
       { key: 'name', label: 'Navn', type: 'text', required: true },
+      { key: 'tagLine', label: 'Tagline', type: 'text', required: true },
       { key: 'description', label: 'Beskrivelse', type: 'textarea', required: true },
       { key: 'heroImage', label: 'Hero-billede', type: 'text', required: true },
       { key: 'commune', label: 'Kommune', type: 'text', required: true },

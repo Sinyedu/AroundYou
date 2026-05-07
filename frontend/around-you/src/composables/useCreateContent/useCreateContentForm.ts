@@ -39,6 +39,7 @@ export const useCreateContentForm = () => {
 
   const cityForm = reactive<CreateCityForm>({
     name: '',
+    tagLine: '',
     description: '',
     commune: '',
     region: '',
