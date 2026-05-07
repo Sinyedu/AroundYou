@@ -30,7 +30,13 @@
             Velkommen {{ displayUserName }}
           </span>
 
-          <RouterLink v-if="showAdminLink" :to="{ name: 'admin' }"> Admin </RouterLink>
+          <RouterLink
+            v-if="showAdminLink"
+            :to="{ name: 'admin' }"
+            :class="getNavLinkClass('admin')"
+          >
+            Admin
+          </RouterLink>
 
           <div class="relative">
             <button

@@ -4,6 +4,7 @@ import AdminView from '../views/AdminView.vue'
 import CreateContentView from '../views/CreateContentView.vue'
 import { useAuthService } from '@/api/authService'
 import ContentPlaceholderView from '../views/CreateContentView.vue'
+import ContactView from '../views/ContactView.vue'
 
 const router = createRouter({
   history: createWebHistory(import.meta.env.BASE_URL),
@@ -48,7 +49,8 @@ const router = createRouter({
     {
       path: '/contact',
       name: 'contact',
-      component: ContentPlaceholderView,
+      component: ContactView,
+      meta: { requiresAuth: true },
     },
 
     {

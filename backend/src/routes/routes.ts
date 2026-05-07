@@ -61,6 +61,12 @@ import {
   rejectContentSuggestion,
 } from "../controllers/contentSuggestionController";
 import {
+  completeContactTicket,
+  createContactTicket,
+  getAdminContactTickets,
+  reopenContactTicket,
+} from "../controllers/contactTicketController";
+import {
   forwardGeocode,
   reverseGeocode,
 } from "../controllers/geocodingController";
@@ -128,6 +134,8 @@ router.post(
   requirePermission("content:suggest"),
   createContentSuggestion,
 );
+
+router.post("/contact/tickets", verifyToken, createContactTicket);
 
 /**
  * @swagger
@@ -239,6 +247,25 @@ router.post(
   requireAdmin,
   requirePermission("admin:access"),
   rejectContentSuggestion,
+);
+
+router.get(
+  "/admin/contact/tickets",
+  verifyToken,
+  requireAdmin,
+  getAdminContactTickets,
+);
+router.patch(
+  "/admin/contact/tickets/:id/complete",
+  verifyToken,
+  requireAdmin,
+  completeContactTicket,
+);
+router.patch(
+  "/admin/contact/tickets/:id/reopen",
+  verifyToken,
+  requireAdmin,
+  reopenContactTicket,
 );
 
 router.get("/admin/city", verifyToken, requireAdmin, getAllCities);
