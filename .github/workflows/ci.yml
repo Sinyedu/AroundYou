@@ -1,4 +1,4 @@
-name: CI
+name: 🚀 CI
 
 on:
   pull_request:
@@ -10,40 +10,42 @@ defaults:
 
 jobs:
   frontend:
-  runs-on: ubuntu-latest
+    name: 🎨 Frontend (Node ${{ matrix.node-version }})
+    runs-on: ubuntu-latest
 
-  strategy:
-    fail-fast: false
-    matrix:
-      node-version: [20, 22]
+    strategy:
+      fail-fast: false
+      matrix:
+        node-version: [20, 22]
 
-  steps:
-    - name: Checkout repo
-      uses: actions/checkout@v4
+    steps:
+      - name: 📥 Checkout repo
+        uses: actions/checkout@v4
 
-    - name: Setup Node ${{ matrix.node-version }}
-      uses: actions/setup-node@v4
-      with:
-        node-version: ${{ matrix.node-version }}
-        cache: npm
-        cache-dependency-path: frontend/around-you/package-lock.json
+      - name: 🟢 Setup Node ${{ matrix.node-version }}
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ matrix.node-version }}
+          cache: npm
+          cache-dependency-path: frontend/around-you/package-lock.json
 
-    - name: Install dependencies
-      run: npm ci
+      - name: 📦 Install dependencies
+        run: npm ci
 
-    - name: Type check
-      run: npm run type-check
+      - name: 🔍 Type check
+        run: npm run type-check
 
-    - name: Run tests
-      run: npm run test
+      - name: 🧪 Run tests
+        run: npm run test
 
-    - name: Coverage
-      run: npm run test:coverage
+      - name: 📊 Coverage
+        run: npm run test:coverage
 
-    - name: Build project
-      run: npm run build
+      - name: 🏗️ Build project
+        run: npm run build
 
   backend-api:
+    name: ⚙️ Backend API (Node ${{ matrix.node-version }})
     runs-on: ubuntu-latest
     environment: BACKEND_DEV
 
@@ -72,38 +74,40 @@ jobs:
       DBHOST: mongodb://127.0.0.1:27017/aroundyou_e2e
 
     steps:
-      - name: Checkout repo
+      - name: 📥 Checkout repo
         uses: actions/checkout@v4
 
-      - name: Setup Node ${{ matrix.node-version }}
+      - name: 🟢 Setup Node ${{ matrix.node-version }}
         uses: actions/setup-node@v4
         with:
           node-version: ${{ matrix.node-version }}
           cache: npm
           cache-dependency-path: backend/package-lock.json
 
-      - name: Install dependencies
+      - name: 📦 Install dependencies
         run: npm ci
 
-      - name: Create backend env file
+      - name: 🔐 Create backend env file
         env:
           BACKEND_ENV: ${{ secrets.BACKEND_DEV }}
         run: |
           touch .env
+
           if [ -n "$BACKEND_ENV" ]; then
             printf '%s\n' "$BACKEND_ENV" > .env
           fi
+
           if ! grep -q '^TOKEN_SECRET=' .env; then
             echo "TOKEN_SECRET=$(openssl rand -hex 32)" >> .env
           fi
 
-      - name: Build backend
+      - name: 🏗️ Build backend
         run: npm run build
 
-      - name: Run Playwright API tests
+      - name: 🧪 Run Playwright API tests
         run: npm test
 
-      - name: Upload Playwright HTML report
+      - name: 📤 Upload Playwright HTML report
         if: always()
         uses: actions/upload-artifact@v4
         with:
@@ -111,9 +115,9 @@ jobs:
           path: backend/playwright-report
           if-no-files-found: ignore
 
-      - name: Add Playwright report link to summary
+      - name: 📝 Add Playwright report link to summary
         if: always()
         run: |
-          echo "### Backend Playwright report - Node ${{ matrix.node-version }}" >> "$GITHUB_STEP_SUMMARY"
+          echo "### 🧪 Backend Playwright report - Node ${{ matrix.node-version }}" >> "$GITHUB_STEP_SUMMARY"
           echo "Download the \`backend-playwright-report-node-${{ matrix.node-version }}\` artifact from this workflow run:" >> "$GITHUB_STEP_SUMMARY"
           echo "${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}" >> "$GITHUB_STEP_SUMMARY"
