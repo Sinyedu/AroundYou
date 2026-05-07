@@ -44,7 +44,7 @@
               <span class="text-sm font-semibold text-slate-700">Avatar billede</span>
               <input
                 type="file"
-                accept="image/png,image/jpeg"
+                accept="image/png,image/jpeg,image/jpg,image/webp"
                 @change="handleAvatarSelected"
                 class="block w-full text-sm text-slate-700 file:mr-3 file:rounded-lg file:border-0 file:bg-[#094b7b] file:px-3 file:py-2 file:font-semibold file:text-white"
               />
@@ -171,6 +171,7 @@ const successMessage = ref('')
 const avatarError = ref('')
 const avatarFile = ref<File | null>(null)
 const avatarPreview = ref('')
+const hasInvalidAvatarFile = ref(false)
 const uploadingAvatar = ref(false)
 const deletingAccount = ref(false)
 const deleteAccountError = ref('')
@@ -204,15 +205,20 @@ const handleAvatarSelected = (event: Event) => {
   avatarError.value = ''
   successMessage.value = ''
 
-  if (!file) return
+  if (!file) {
+    hasInvalidAvatarFile.value = false
+    return
+  }
 
   if (!isAllowedImageType(file)) {
-    avatarError.value = 'Vælg et PNG- eller JPEG-billede.'
+    avatarError.value = 'Vælg et PNG-, JPG- eller WEBP-billede.'
     avatarFile.value = null
+    hasInvalidAvatarFile.value = true
     target.value = ''
     return
   }
 
+  hasInvalidAvatarFile.value = false
   revokeAvatarPreview()
   avatarFile.value = file
   avatarPreview.value = URL.createObjectURL(file)
@@ -251,6 +257,12 @@ const uploadAvatarIfSelected = async () => {
 
 const handleUpdate = async () => {
   successMessage.value = ''
+
+  if (hasInvalidAvatarFile.value) {
+    avatarError.value = 'Vælg et PNG-, JPG- eller WEBP-billede, før du gemmer.'
+    return
+  }
+
   avatarError.value = ''
 
   const avatarUploaded = await uploadAvatarIfSelected()

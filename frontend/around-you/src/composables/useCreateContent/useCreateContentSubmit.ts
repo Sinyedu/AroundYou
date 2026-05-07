@@ -83,7 +83,7 @@ export const useCreateContentSubmit = (
 
   const submitEvent = async (): Promise<ContentSubmissionDestination> => {
     if (!eventHeroImageFile.value) {
-      throw new Error('Please upload an image for this event.')
+      throw new Error('Upload et billede til dette event.')
     }
 
     const token = getAuthToken()
@@ -118,7 +118,7 @@ export const useCreateContentSubmit = (
 
   const submitAttraction = async (): Promise<ContentSubmissionDestination> => {
     if (!attractionHeroImageFile.value) {
-      throw new Error('Please upload an image for this attraction.')
+      throw new Error('Upload et billede til denne attraktion.')
     }
 
     const token = getAuthToken()
@@ -150,7 +150,7 @@ export const useCreateContentSubmit = (
 
   const submitCity = async (): Promise<ContentSubmissionDestination> => {
     if (!cityHeroImageFile.value) {
-      throw new Error('Please upload an image for this city.')
+      throw new Error('Upload et billede til denne by.')
     }
 
     const token = getAuthToken()

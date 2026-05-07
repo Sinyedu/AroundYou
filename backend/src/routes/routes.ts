@@ -68,6 +68,7 @@ import { verifyToken } from "../middleware/verifyUserToken";
 import { requirePermission } from "../middleware/requirePermission";
 import { requireAdmin } from "../middleware/requireAdmin";
 import {
+  getUploadedImage,
   uploadImage,
   uploadSingleImage,
 } from "../controllers/uploadController";
@@ -75,6 +76,7 @@ import {
 const router: Router = Router();
 
 router.post("/upload/image", uploadSingleImage, uploadImage);
+router.get("/images/:id", getUploadedImage);
 
 router.get("/", (req: Request, res: Response) => {
   // connect
