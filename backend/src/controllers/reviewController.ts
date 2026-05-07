@@ -1,6 +1,6 @@
 import { Request, Response } from "express";
 import { ReviewModel } from "../models/reviewModel";
-import { buildDynamicQuery } from "./dynamicQueryBuilder";
+import { buildDynamicQuery } from "../utils/dynamicQueryBuilder";
 import { pickTrimmedStringFields } from "../utils/stringFields";
 import { getHideUpdate, getRestoreUpdate, visibleFilter } from "./controllerUtils";
 

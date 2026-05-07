@@ -1,4 +1,13 @@
 import { Request, Response } from "express";
+export { getHideUpdate, getRestoreUpdate, normalizeSlug } from "../utils/resourceUtils";
+
+export function getRouteParam(value: string | string[] | undefined): string {
+  if (Array.isArray(value)) {
+    return value[0] ?? "";
+  }
+
+  return value ?? "";
+}
 
 export function visibleFilter(req: Request): Record<string, unknown> {
   if (!req.originalUrl.startsWith("/api/admin/")) {
@@ -16,21 +25,6 @@ export function visibleFilter(req: Request): Record<string, unknown> {
   return { isHidden: { $ne: true } };
 }
 
-export function getHideUpdate(hiddenBy?: string): Record<string, unknown> {
-  return {
-    isHidden: true,
-    hiddenAt: new Date(),
-    hiddenBy,
-  };
-}
-
-export function getRestoreUpdate(): Record<string, unknown> {
-  return {
-    isHidden: false,
-    $unset: { hiddenAt: "", hiddenBy: "" },
-  };
-}
-
 export function isValidationError(error: unknown): error is Error {
   return error instanceof Error && error.name === "ValidationError";
 }
@@ -46,16 +40,4 @@ export function sendCreateError(
   }
 
   res.status(500).json({ message: fallbackMessage });
-}
-
-export function normalizeSlug(value: string): string {
-  return value
-    .toLowerCase()
-    .replace(/æ/g, "a")
-    .replace(/ø/g, "o")
-    .replace(/å/g, "a")
-    .normalize("NFD")
-    .replace(/[\u0300-\u036f]/g, "")
-    .replace(/[^a-z0-9]+/g, "-")
-    .replace(/(^-|-$)/g, "");
 }

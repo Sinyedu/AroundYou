@@ -1,21 +1,23 @@
 import { Request, Response } from "express";
-import { CityModel } from "../models/cityModel";
-import { buildDynamicQuery } from "./dynamicQueryBuilder";
+import { getRouteParam, sendCreateError, visibleFilter } from "./controllerUtils";
 import {
-  getHideUpdate,
-  getRestoreUpdate,
-  normalizeSlug,
-  sendCreateError,
-  visibleFilter,
-} from "./controllerUtils";
+  createCityRecord,
+  findCities,
+  findCityById,
+  findCityByName as findCityByNameRecord,
+  hideCityRecord,
+  queryCities,
+  queryCitiesByField,
+  restoreCityRecord,
+  updateCityRecord,
+} from "../services/city.service";
 
 /**
  * CREATE CITY
  */
 export async function createCity(req: Request, res: Response): Promise<void> {
   try {
-    const city = new CityModel(req.body);
-    const result = await city.save();
+    const result = await createCityRecord(req.body as Record<string, unknown>);
 
     res.status(201).json(result);
   } catch (err) {
@@ -29,7 +31,7 @@ export async function createCity(req: Request, res: Response): Promise<void> {
  */
 export async function getAllCities(req: Request, res: Response): Promise<void> {
   try {
-    const result = await CityModel.find(visibleFilter(req));
+    const result = await findCities(visibleFilter(req));
     res.status(200).json(result);
   } catch (err) {
     console.error("Error fetching cities:", err);
@@ -44,10 +46,7 @@ export async function getAllCities(req: Request, res: Response): Promise<void> {
  */
 export async function getCityById(req: Request, res: Response): Promise<void> {
   try {
-    const result = await CityModel.findOne({
-      _id: req.params.id,
-      ...visibleFilter(req),
-    });
+    const result = await findCityById(getRouteParam(req.params.id), visibleFilter(req));
 
     if (!result) {
       res.status(404).json({ message: "City not found" });
@@ -68,20 +67,14 @@ export async function getCityById(req: Request, res: Response): Promise<void> {
  */
 export async function getCityByName(req: Request, res: Response): Promise<void> {
   try {
-    const cityNameRaw = req.params.cityName;
-    const cityNameParam = Array.isArray(cityNameRaw) ? cityNameRaw[0] : cityNameRaw;
+    const cityNameParam = getRouteParam(req.params.cityName);
 
     if (!cityNameParam) {
       res.status(400).json({ message: "City name is required" });
       return;
     }
 
-    const normalizedTarget = normalizeSlug(cityNameParam);
-    const cities = await CityModel.find(visibleFilter(req));
-
-    const matchingCity = cities.find((city) => {
-      return normalizeSlug(city.name) === normalizedTarget;
-    });
+    const matchingCity = await findCityByNameRecord(cityNameParam, visibleFilter(req));
 
     if (!matchingCity) {
       res.status(404).json({ message: "City not found" });
@@ -105,9 +98,10 @@ export async function updateCityById(
   res: Response,
 ): Promise<void> {
   try {
-    const result = await CityModel.findByIdAndUpdate(req.params.id, req.body, {
-      new: true,
-    });
+    const result = await updateCityRecord(
+      getRouteParam(req.params.id),
+      req.body as Record<string, unknown>,
+    );
 
     if (!result) {
       res.status(404).json({
@@ -136,11 +130,7 @@ export async function deleteCityById(
   res: Response,
 ): Promise<void> {
   try {
-    const result = await CityModel.findByIdAndUpdate(
-      req.params.id,
-      getHideUpdate(req.user?.userID),
-      { new: true },
-    );
+    const result = await hideCityRecord(getRouteParam(req.params.id), req.user?.userID);
 
     if (!result) {
       res.status(404).json({ message: "City not found" });
@@ -161,11 +151,7 @@ export async function restoreCityById(
   res: Response,
 ): Promise<void> {
   try {
-    const result = await CityModel.findByIdAndUpdate(
-      req.params.id,
-      getRestoreUpdate(),
-      { new: true },
-    );
+    const result = await restoreCityRecord(getRouteParam(req.params.id));
 
     if (!result) {
       res.status(404).json({ message: "City not found" });
@@ -192,10 +178,7 @@ export async function getCityByQuery(
     const key = req.params.key as string;
     const value = req.params.value as string;
 
-    const result = await CityModel.find({
-      ...visibleFilter(req),
-      [key]: { $regex: value, $options: "i" },
-    });
+    const result = await queryCitiesByField(key, value, visibleFilter(req));
 
     res.status(200).json(result);
   } catch (err) {
@@ -214,12 +197,7 @@ export async function getCityByGenericQuery(
   res: Response,
 ): Promise<void> {
   try {
-    const query = buildDynamicQuery(CityModel, req.body);
-
-    const result = await CityModel.find({
-      ...query,
-      ...visibleFilter(req),
-    });
+    const result = await queryCities(req.body, visibleFilter(req));
 
     res.status(200).json(result);
   } catch (err) {

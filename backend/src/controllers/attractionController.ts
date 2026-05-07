@@ -1,12 +1,15 @@
 import { Request, Response } from "express";
-import { AttractionModel } from "../models/attractionModel";
-import { buildDynamicQuery } from "../controllers/dynamicQueryBuilder";
+import { getRouteParam, sendCreateError, visibleFilter } from "./controllerUtils";
 import {
-  getHideUpdate,
-  getRestoreUpdate,
-  sendCreateError,
-  visibleFilter,
-} from "./controllerUtils";
+  createAttractionRecord,
+  findAttractionById,
+  findAttractions,
+  hideAttractionRecord,
+  queryAttractions,
+  queryAttractionsByField,
+  restoreAttractionRecord,
+  updateAttractionRecord,
+} from "../services/attraction.service";
 
 /**
  * Create new attraction
@@ -16,8 +19,9 @@ export async function createAttraction(
   res: Response,
 ): Promise<void> {
   try {
-    const attraction = new AttractionModel(req.body);
-    const result = await attraction.save();
+    const result = await createAttractionRecord(
+      req.body as Record<string, unknown>,
+    );
 
     res.status(201).json(result);
   } catch (err) {
@@ -34,9 +38,7 @@ export async function getAllAttractions(
   res: Response,
 ): Promise<void> {
   try {
-    const result = await AttractionModel.find(visibleFilter(req)).sort({
-      updateAt: -1,
-    });
+    const result = await findAttractions(visibleFilter(req));
     res.status(200).json(result);
   } catch (err) {
     console.error("Error retrieving attractions:", err);
@@ -54,12 +56,9 @@ export async function getAttractionById(
   res: Response,
 ): Promise<void> {
   try {
-    const id = req.params.id;
+    const id = getRouteParam(req.params.id);
 
-    const result = await AttractionModel.findOne({
-      _id: id,
-      ...visibleFilter(req),
-    });
+    const result = await findAttractionById(id, visibleFilter(req));
 
     if (!result) {
       res.status(404).json({ message: "Attraction not found" });
@@ -83,11 +82,12 @@ export async function updateAttractionById(
   res: Response,
 ): Promise<void> {
   try {
-    const id = req.params.id;
+    const id = getRouteParam(req.params.id);
 
-    const result = await AttractionModel.findByIdAndUpdate(id, req.body, {
-      new: true,
-    });
+    const result = await updateAttractionRecord(
+      id,
+      req.body as Record<string, unknown>,
+    );
 
     if (!result) {
       res.status(404).json({
@@ -116,13 +116,9 @@ export async function deleteAttractionById(
   res: Response,
 ): Promise<void> {
   try {
-    const id = req.params.id;
+    const id = getRouteParam(req.params.id);
 
-    const result = await AttractionModel.findByIdAndUpdate(
-      id,
-      getHideUpdate(req.user?.userID),
-      { new: true },
-    );
+    const result = await hideAttractionRecord(id, req.user?.userID);
 
     if (!result) {
       res.status(404).json({
@@ -148,13 +144,9 @@ export async function restoreAttractionById(
   res: Response,
 ): Promise<void> {
   try {
-    const id = req.params.id;
+    const id = getRouteParam(req.params.id);
 
-    const result = await AttractionModel.findByIdAndUpdate(
-      id,
-      getRestoreUpdate(),
-      { new: true },
-    );
+    const result = await restoreAttractionRecord(id);
 
     if (!result) {
       res.status(404).json({
@@ -186,10 +178,7 @@ export async function getAttractionsByQuery(
     const key = req.params.key as string;
     const value = req.params.value as string;
 
-    const result = await AttractionModel.find({
-      ...visibleFilter(req),
-      [key]: { $regex: value, $options: "i" },
-    });
+    const result = await queryAttractionsByField(key, value, visibleFilter(req));
 
     res.status(200).json(result);
   } catch (err) {
@@ -208,14 +197,7 @@ export async function getAttractionsByQueryGeneric(
   res: Response,
 ): Promise<void> {
   try {
-    const body = req.body;
-
-    const query = buildDynamicQuery(AttractionModel, body);
-
-    const result = await AttractionModel.find({
-      ...query,
-      ...visibleFilter(req),
-    });
+    const result = await queryAttractions(req.body, visibleFilter(req));
 
     res.status(200).json(result);
   } catch (err) {
