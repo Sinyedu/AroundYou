@@ -14,7 +14,7 @@ export default defineConfig({
   workers: process.env.CI ? 1 : undefined,
   reporter: "list",
   use: {
-    baseURL: `${apiOrigin}/api`,
+    baseURL: apiOrigin,
     trace: "on-first-retry",
   },
   webServer: {

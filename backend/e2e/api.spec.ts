@@ -7,14 +7,14 @@ async function expectJsonResponse(response: APIResponse) {
 
 test.describe("AroundYou API", () => {
   test("serves a basic API health response", async ({ request }) => {
-    const response = await request.get("/");
+    const response = await request.get("/api");
 
     expect(response.status()).toBe(200);
     await expect(response.text()).resolves.toBe("Welcome to the AroundYou API");
   });
 
   test("returns public collection endpoints as JSON arrays", async ({ request }) => {
-    const endpoints = ["/city", "/events", "/attractions"];
+    const endpoints = ["/api/city", "/api/events", "/api/attractions"];
 
     for (const endpoint of endpoints) {
       const response = await request.get(endpoint);
@@ -26,7 +26,7 @@ test.describe("AroundYou API", () => {
   });
 
   test("can look up a returned city by id", async ({ request }) => {
-    const listResponse = await request.get("/city");
+    const listResponse = await request.get("/api/city");
     const cities = await expectJsonResponse(listResponse);
 
     expect(listResponse.status()).toBe(200);
@@ -35,7 +35,7 @@ test.describe("AroundYou API", () => {
     const firstCity = cities[0];
     expect(firstCity._id).toEqual(expect.any(String));
 
-    const detailResponse = await request.get(`/city/${firstCity._id}`);
+    const detailResponse = await request.get(`/api/city/${firstCity._id}`);
     const detail = await expectJsonResponse(detailResponse);
 
     expect(detailResponse.status()).toBe(200);
@@ -44,7 +44,7 @@ test.describe("AroundYou API", () => {
   });
 
   test("rejects protected endpoints without a bearer token", async ({ request }) => {
-    const response = await request.get("/user/me");
+    const response = await request.get("/api/user/me");
     const body = await expectJsonResponse(response);
 
     expect(response.status()).toBe(401);
@@ -52,7 +52,7 @@ test.describe("AroundYou API", () => {
   });
 
   test("rejects malformed login requests before authentication", async ({ request }) => {
-    const response = await request.post("/user/login", {
+    const response = await request.post("/api/user/login", {
       data: {
         identifier: "",
         password: "123",
@@ -65,7 +65,7 @@ test.describe("AroundYou API", () => {
   });
 
   test("rejects invalid credentials without issuing a token", async ({ request }) => {
-    const response = await request.post("/user/login", {
+    const response = await request.post("/api/user/login", {
       data: {
         identifier: "not-a-real-user@example.com",
         password: "password123",
@@ -79,7 +79,7 @@ test.describe("AroundYou API", () => {
   });
 
   test("rejects invalid registration payloads without creating users", async ({ request }) => {
-    const response = await request.post("/user/register", {
+    const response = await request.post("/api/user/register", {
       data: {
         firstName: "A",
         lastName: "",
