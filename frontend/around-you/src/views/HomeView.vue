@@ -1,16 +1,10 @@
 <template>
   <!-- Map background wrapper -->
-  <div class="min-h-screen bg-[#d6cfc5] relative py-[50px]">
-    <!-- Denmark map background -->
-    <div
-      class="fixed inset-0 pointer-events-none"
-      style="
-        background-image: url('https://staticmap.openstreetmap.de/staticmap.php?center=56.0,10.5&zoom=6&size=1600x900');
-        background-size: cover;
-        background-position: center;
-        opacity: 0.55;
-      "
-    ></div>
+  <div
+    class="min-h-screen relative bg-cover bg-center bg-no-repeat py-[50px]"
+    style="background-image: url('/danmarkskort_1800x1280.jpg')"
+  >
+    <div class="pointer-events-none absolute inset-0 bg-[#e8c7aa]/55"></div>
 
     <!-- White content card -->
     <div class="relative z-10 mx-[50px] bg-white shadow-2xl rounded-xl overflow-hidden">
