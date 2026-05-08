@@ -1,4 +1,4 @@
-name: CI
+name: Continuous Integration
 
 on:
   pull_request:
@@ -9,35 +9,115 @@ defaults:
     working-directory: frontend/around-you
 
 jobs:
-  ci:
+  frontend:
+    name: 🎨 Frontend (Node ${{ matrix.node-version }})
     runs-on: ubuntu-latest
 
+    strategy:
+      fail-fast: false
+      matrix:
+        node-version: [20, 22]
+
     steps:
-      - name: Checkout repo
+      - name: 📥 Checkout repo
         uses: actions/checkout@v4
 
-      - name: Setup Node
+      - name: 🟢 Setup Node ${{ matrix.node-version }}
         uses: actions/setup-node@v4
         with:
-          node-version: 22
+          node-version: ${{ matrix.node-version }}
           cache: npm
           cache-dependency-path: frontend/around-you/package-lock.json
 
-      - name: Install dependencies
+      - name: 📦 Install dependencies
         run: npm ci
 
-      - name: Type check
+      - name: 🔍 Type check
         run: npm run type-check
 
-      # - name: Lint
-      #   run: npm run lint
-
-      - name: Run tests
+      - name: 🧪 Run tests
         run: npm run test
 
-      - name: Coverage (PR only)
-        if: github.event_name == 'pull_request'
+      - name: 📊 Coverage
         run: npm run test:coverage
 
-      - name: Build project
+      - name: 🏗️ Build project
         run: npm run build
+
+  backend-api:
+    name: ⚙️ Backend API (Node ${{ matrix.node-version }})
+    runs-on: ubuntu-latest
+    environment: BACKEND_DEV
+
+    strategy:
+      fail-fast: false
+      matrix:
+        node-version: [20, 22]
+
+    services:
+      mongo:
+        image: mongo:7
+        ports:
+          - 27017:27017
+        options: >-
+          --health-cmd "mongosh --quiet --eval 'db.adminCommand(\"ping\").ok'"
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+
+    defaults:
+      run:
+        working-directory: backend
+
+    env:
+      PORT: 4000
+      DBHOST: mongodb://127.0.0.1:27017/aroundyou_e2e
+
+    steps:
+      - name: 📥 Checkout repo
+        uses: actions/checkout@v4
+
+      - name: 🟢 Setup Node ${{ matrix.node-version }}
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ matrix.node-version }}
+          cache: npm
+          cache-dependency-path: backend/package-lock.json
+
+      - name: 📦 Install dependencies
+        run: npm ci
+
+      - name: 🔐 Create backend env file
+        env:
+          BACKEND_ENV: ${{ secrets.BACKEND_DEV }}
+        run: |
+          touch .env
+
+          if [ -n "$BACKEND_ENV" ]; then
+            printf '%s\n' "$BACKEND_ENV" > .env
+          fi
+
+          if ! grep -q '^TOKEN_SECRET=' .env; then
+            echo "TOKEN_SECRET=$(openssl rand -hex 32)" >> .env
+          fi
+
+      - name: 🏗️ Build backend
+        run: npm run build
+
+      - name: 🧪 Run Playwright API tests
+        run: npm test
+
+      - name: 📤 Upload Playwright HTML report
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: backend-playwright-report-node-${{ matrix.node-version }}
+          path: backend/playwright-report
+          if-no-files-found: ignore
+
+      - name: 📝 Add Playwright report link to summary
+        if: always()
+        run: |
+          echo "### 🧪 Backend Playwright report - Node ${{ matrix.node-version }}" >> "$GITHUB_STEP_SUMMARY"
+          echo "Download the \`backend-playwright-report-node-${{ matrix.node-version }}\` artifact from this workflow run:" >> "$GITHUB_STEP_SUMMARY"
+          echo "${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}" >> "$GITHUB_STEP_SUMMARY"

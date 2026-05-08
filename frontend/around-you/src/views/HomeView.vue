@@ -15,6 +15,7 @@
     <!-- White content card -->
     <div class="relative z-10 mx-[50px] bg-white shadow-2xl rounded-xl overflow-hidden">
       <HomeContentSection
+        v-if="showNearbySection"
         :title="`Oplevelser nær ${userLocation}`"
         :description="userLocationDescription"
         :loading="nearbyLoading"
@@ -23,6 +24,7 @@
         loading-text="Henter seværdigheder nær din lokation..."
         empty-text="Der blev ikke fundet seværdigheder i nærheden."
         title-class="text-5xl font-extrabold text-[#094b7b] text-center mb-2"
+        description-class="text-xl text-gray-500 text-center max-w-3xl mx-auto mb-8"
       />
 
       <HomeContentSection
@@ -64,6 +66,7 @@ import HomeContentSection from '@/components/HomeContentSection.vue'
 import { useHomeViewData } from '@/composables/useHomeViewData'
 
 const {
+  showNearbySection,
   userLocation,
   userLocationDescription,
   nearbyCards,

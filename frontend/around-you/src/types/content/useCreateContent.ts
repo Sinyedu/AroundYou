@@ -27,11 +27,11 @@ export type CreateAttractionForm = {
 
 export type CreateCityForm = {
   name: string
+  tagLine: string
   description: string
   commune: string
   region: string
   country: string
-  address: string
   population: string
   visitorCenter: string
 }

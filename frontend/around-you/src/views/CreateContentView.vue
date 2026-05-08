@@ -32,7 +32,7 @@
             <input v-model="eventForm.name" class="rounded-xl border border-slate-200 px-4 py-3" placeholder="Name" />
             <div class="rounded-xl border border-slate-200 px-4 py-3">
               <label class="mb-2 block text-sm font-semibold text-slate-700">Hero image file</label>
-              <input type="file" accept="image/png,image/jpeg,image/webp" capture="environment"
+              <input type="file" accept="image/png,image/jpeg,image/jpg,image/webp" capture="environment"
                 @change="(event) => onHeroImageSelected('event', event)"
                 class="block w-full text-sm text-slate-700 file:mr-3 file:rounded-lg file:border-0 file:bg-[#094b7b] file:px-3 file:py-2 file:font-semibold file:text-white" />
               <p v-if="eventHeroImageFile" class="mt-2 text-xs text-slate-600 break-all">Selected: {{
@@ -49,7 +49,7 @@
             <input v-model="eventForm.endDate" type="date" class="rounded-xl border border-slate-200 px-4 py-3" />
             <div class="rounded-xl border border-slate-200 px-4 py-3">
               <label class="mb-2 block text-sm font-semibold text-slate-700">Additional image files</label>
-              <input type="file" multiple accept="image/png,image/jpeg,image/webp" capture="environment"
+              <input type="file" multiple accept="image/png,image/jpeg,image/jpg,image/webp" capture="environment"
                 @change="(event) => onImageArraySelected('event', event)"
                 class="block w-full text-sm text-slate-700 file:mr-3 file:rounded-lg file:border-0 file:bg-[#094b7b] file:px-3 file:py-2 file:font-semibold file:text-white" />
               <p class="mt-2 text-xs text-slate-600">{{ eventImageArrayFiles.length }} image(s) selected</p>
@@ -71,7 +71,7 @@
               placeholder="Name" />
             <div class="rounded-xl border border-slate-200 px-4 py-3">
               <label class="mb-2 block text-sm font-semibold text-slate-700">Hero image file</label>
-              <input type="file" accept="image/png,image/jpeg,image/webp" capture="environment"
+              <input type="file" accept="image/png,image/jpeg,image/jpg,image/webp" capture="environment"
                 @change="(event) => onHeroImageSelected('attraction', event)"
                 class="block w-full text-sm text-slate-700 file:mr-3 file:rounded-lg file:border-0 file:bg-[#094b7b] file:px-3 file:py-2 file:font-semibold file:text-white" />
               <p v-if="attractionHeroImageFile" class="mt-2 text-xs text-slate-600 break-all">Selected: {{
@@ -87,7 +87,7 @@
               placeholder="City" />
             <div class="rounded-xl border border-slate-200 px-4 py-3">
               <label class="mb-2 block text-sm font-semibold text-slate-700">Additional image files</label>
-              <input type="file" multiple accept="image/png,image/jpeg,image/webp" capture="environment"
+              <input type="file" multiple accept="image/png,image/jpeg,image/jpg,image/webp" capture="environment"
                 @change="(event) => onImageArraySelected('attraction', event)"
                 class="block w-full text-sm text-slate-700 file:mr-3 file:rounded-lg file:border-0 file:bg-[#094b7b] file:px-3 file:py-2 file:font-semibold file:text-white" />
               <p class="mt-2 text-xs text-slate-600">{{ attractionImageArrayFiles.length }} image(s) selected</p>
@@ -102,9 +102,16 @@
 
           <template v-if="selectedType === 'city'">
             <input v-model="cityForm.name" class="rounded-xl border border-slate-200 px-4 py-3" placeholder="City" />
+            <input
+              v-model="cityForm.tagLine"
+              class="rounded-xl border border-slate-200 px-4 py-3"
+              minlength="20"
+              maxlength="100"
+              placeholder="Tagline (20-100 characters)"
+            />
             <div class="rounded-xl border border-slate-200 px-4 py-3">
               <label class="mb-2 block text-sm font-semibold text-slate-700">Hero image file</label>
-              <input type="file" accept="image/png,image/jpeg,image/webp" capture="environment"
+              <input type="file" accept="image/png,image/jpeg,image/jpg,image/webp" capture="environment"
                 @change="(event) => onHeroImageSelected('city', event)"
                 class="block w-full text-sm text-slate-700 file:mr-3 file:rounded-lg file:border-0 file:bg-[#094b7b] file:px-3 file:py-2 file:font-semibold file:text-white" />
               <p v-if="cityHeroImageFile" class="mt-2 text-xs text-slate-600 break-all">Selected: {{
@@ -116,8 +123,6 @@
               placeholder="Region" />
             <input v-model="cityForm.country" class="rounded-xl border border-slate-200 px-4 py-3"
               placeholder="Country" />
-            <input v-model="cityForm.address" class="rounded-xl border border-slate-200 px-4 py-3"
-              placeholder="Address" />
             <input v-model="cityForm.population" type="number" class="rounded-xl border border-slate-200 px-4 py-3"
               placeholder="Population" />
             <input v-model="cityForm.visitorCenter" class="rounded-xl border border-slate-200 px-4 py-3"

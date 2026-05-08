@@ -1,33 +1,27 @@
 import { Request, Response } from "express";
-import { EventModel } from "../models/eventModel";
-import { buildDynamicQuery } from "./dynamicQueryBuilder";
+import { getRouteParam, sendCreateError, visibleFilter } from "./controllerUtils";
+import {
+  createEventRecord,
+  findEventById,
+  findEvents,
+  hideEventRecord,
+  queryEvents,
+  queryEventsByField,
+  restoreEventRecord,
+  updateEventRecord,
+} from "../services/event.service";
 
 /**
  * CREATE EVENT
  */
 export async function createEvent(req: Request, res: Response): Promise<void> {
   try {
-    const event = new EventModel(req.body);
-    const result = await event.save();
+    const result = await createEventRecord(req.body as Record<string, unknown>);
 
     res.status(201).json(result);
   } catch (err) {
     console.error("Error creating event:", err);
-
-    if (
-      err instanceof Error &&
-      "name" in err &&
-      err.name === "ValidationError"
-    ) {
-      res.status(400).json({
-        message: err.message,
-      });
-      return;
-    }
-
-    res.status(500).json({
-      message: "Error creating event",
-    });
+    sendCreateError(res, err, "Error creating event");
   }
 }
 
@@ -36,7 +30,7 @@ export async function createEvent(req: Request, res: Response): Promise<void> {
  */
 export async function getAllEvents(req: Request, res: Response): Promise<void> {
   try {
-    const result = await EventModel.find({});
+    const result = await findEvents(visibleFilter(req));
     res.status(200).json(result);
   } catch (err) {
     console.error("Error fetching events:", err);
@@ -51,7 +45,7 @@ export async function getAllEvents(req: Request, res: Response): Promise<void> {
  */
 export async function getEventById(req: Request, res: Response): Promise<void> {
   try {
-    const result = await EventModel.findById(req.params.id);
+    const result = await findEventById(getRouteParam(req.params.id), visibleFilter(req));
 
     if (!result) {
       res.status(404).json({ message: "Event not found" });
@@ -75,9 +69,10 @@ export async function updateEventById(
   res: Response,
 ): Promise<void> {
   try {
-    const result = await EventModel.findByIdAndUpdate(req.params.id, req.body, {
-      new: true,
-    });
+    const result = await updateEventRecord(
+      getRouteParam(req.params.id),
+      req.body as Record<string, unknown>,
+    );
 
     if (!result) {
       res.status(404).json({ message: "Event not found" });
@@ -97,25 +92,46 @@ export async function updateEventById(
 }
 
 /**
- * DELETE EVENT
+ * HIDE EVENT
  */
 export async function deleteEventById(
   req: Request,
   res: Response,
 ): Promise<void> {
   try {
-    const result = await EventModel.findByIdAndDelete(req.params.id);
+    const result = await hideEventRecord(getRouteParam(req.params.id), req.user?.userID);
 
     if (!result) {
       res.status(404).json({ message: "Event not found" });
       return;
     }
 
-    res.status(200).json({ message: "Event deleted successfully" });
+    res.status(200).json({ message: "Event hidden successfully", data: result });
   } catch (err) {
     console.error("Error deleting event:", err);
     res.status(500).json({
       message: "Error deleting event",
+    });
+  }
+}
+
+export async function restoreEventById(
+  req: Request,
+  res: Response,
+): Promise<void> {
+  try {
+    const result = await restoreEventRecord(getRouteParam(req.params.id));
+
+    if (!result) {
+      res.status(404).json({ message: "Event not found" });
+      return;
+    }
+
+    res.status(200).json({ message: "Event restored successfully", data: result });
+  } catch (err) {
+    console.error("Error restoring event:", err);
+    res.status(500).json({
+      message: "Error restoring event",
     });
   }
 }
@@ -131,9 +147,7 @@ export async function getEventByQuery(
     const key = req.params.key as string;
     const value = req.params.value as string;
 
-    const result = await EventModel.find({
-      [key]: { $regex: value, $options: "i" },
-    });
+    const result = await queryEventsByField(key, value, visibleFilter(req));
 
     res.status(200).json(result);
   } catch (err) {
@@ -152,9 +166,7 @@ export async function getEventByGenericQuery(
   res: Response,
 ): Promise<void> {
   try {
-    const query = buildDynamicQuery(EventModel, req.body);
-
-    const result = await EventModel.find(query);
+    const result = await queryEvents(req.body, visibleFilter(req));
 
     res.status(200).json(result);
   } catch (err) {

@@ -4,6 +4,14 @@ type RequestOptions = RequestInit & {
   token?: string | null
 }
 
+type CachedGetEntry<T> = {
+  expiresAt: number
+  promise: Promise<T>
+}
+
+const DEFAULT_PUBLIC_GET_CACHE_TTL_MS = 30_000
+const publicGetCache = new Map<string, CachedGetEntry<unknown>>()
+
 export async function apiRequest<T>(path: string, options: RequestOptions = {}): Promise<T> {
   const { token, headers, ...requestOptions } = options
   const response = await fetch(`${API_BASE_URL}${path}`, {
@@ -28,6 +36,31 @@ export async function apiRequest<T>(path: string, options: RequestOptions = {}):
   }
 
   return response.json() as Promise<T>
+}
+
+export function apiGetCached<T>(path: string, ttlMs = DEFAULT_PUBLIC_GET_CACHE_TTL_MS): Promise<T> {
+  const now = Date.now()
+  const cached = publicGetCache.get(path) as CachedGetEntry<T> | undefined
+
+  if (cached && cached.expiresAt > now) {
+    return cached.promise
+  }
+
+  const promise = apiRequest<T>(path).catch((error) => {
+    publicGetCache.delete(path)
+    throw error
+  })
+
+  publicGetCache.set(path, {
+    expiresAt: now + ttlMs,
+    promise,
+  })
+
+  return promise
+}
+
+export function clearApiCache(): void {
+  publicGetCache.clear()
 }
 
 export function jsonHeaders(): HeadersInit {

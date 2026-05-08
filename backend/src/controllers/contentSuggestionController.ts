@@ -26,6 +26,7 @@ const REQUIRED_FIELDS: Record<ContentSuggestionType, string[]> = {
   ],
   city: [
     "name",
+    "tagLine",
     "description",
     "heroImage",
     "commune",
@@ -33,7 +34,6 @@ const REQUIRED_FIELDS: Record<ContentSuggestionType, string[]> = {
     "country",
     "gpsPosition",
     "population",
-    "visitorCenter",
   ],
 };
 

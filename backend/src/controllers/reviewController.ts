@@ -1,7 +1,8 @@
 import { Request, Response } from "express";
 import { ReviewModel } from "../models/reviewModel";
-import { buildDynamicQuery } from "./dynamicQueryBuilder";
+import { buildDynamicQuery } from "../utils/dynamicQueryBuilder";
 import { pickTrimmedStringFields } from "../utils/stringFields";
+import { getHideUpdate, getRestoreUpdate, visibleFilter } from "./controllerUtils";
 
 function canModifyReview(req: Request, author: string): boolean {
   return req.user?.role === "admin" || req.user?.userName === author;
@@ -42,7 +43,7 @@ export async function getAllReviews(
   res: Response,
 ): Promise<void> {
   try {
-    const result = await ReviewModel.find({});
+    const result = await ReviewModel.find(visibleFilter(req));
     res.status(200).json(result);
   } catch (err) {
     console.error("Error fetching reviews:", err);
@@ -60,7 +61,10 @@ export async function getReviewById(
   res: Response,
 ): Promise<void> {
   try {
-    const result = await ReviewModel.findById(req.params.id);
+    const result = await ReviewModel.findOne({
+      _id: req.params.id,
+      ...visibleFilter(req),
+    });
 
     if (!result) {
       res.status(404).json({ message: "Review not found" });
@@ -84,7 +88,10 @@ export async function updateReviewById(
   res: Response,
 ): Promise<void> {
   try {
-    const review = await ReviewModel.findById(req.params.id);
+    const review = await ReviewModel.findOne({
+      _id: req.params.id,
+      ...visibleFilter(req),
+    });
 
     if (!review) {
       res.status(404).json({ message: "Review not found" });
@@ -128,14 +135,17 @@ export async function updateReviewById(
 }
 
 /**
- * DELETE REVIEW
+ * HIDE REVIEW
  */
 export async function deleteReviewById(
   req: Request,
   res: Response,
 ): Promise<void> {
   try {
-    const review = await ReviewModel.findById(req.params.id);
+    const review = await ReviewModel.findOne({
+      _id: req.params.id,
+      ...visibleFilter(req),
+    });
 
     if (!review) {
       res.status(404).json({ message: "Review not found" });
@@ -147,13 +157,52 @@ export async function deleteReviewById(
       return;
     }
 
-    await ReviewModel.findByIdAndDelete(req.params.id);
+    const result = await ReviewModel.findByIdAndUpdate(
+      req.params.id,
+      getHideUpdate(req.user?.userID),
+      { new: true },
+    );
 
-    res.status(200).json({ message: "Review deleted successfully" });
+    res.status(200).json({ message: "Review hidden successfully", data: result });
   } catch (err) {
     console.error("Error deleting review:", err);
     res.status(500).json({
       message: "Error deleting review",
+    });
+  }
+}
+
+export async function restoreReviewById(
+  req: Request,
+  res: Response,
+): Promise<void> {
+  try {
+    const review = await ReviewModel.findById(req.params.id);
+
+    if (!review) {
+      res.status(404).json({ message: "Review not found" });
+      return;
+    }
+
+    if (req.user?.role !== "admin") {
+      res.status(403).json({ message: "Admin access required" });
+      return;
+    }
+
+    const result = await ReviewModel.findByIdAndUpdate(
+      req.params.id,
+      getRestoreUpdate(),
+      { new: true },
+    );
+
+    res.status(200).json({
+      message: "Review restored successfully",
+      data: result,
+    });
+  } catch (err) {
+    console.error("Error restoring review:", err);
+    res.status(500).json({
+      message: "Error restoring review",
     });
   }
 }
@@ -170,6 +219,7 @@ export async function getReviewByQuery(
     const value = req.params.value as string;
 
     const result = await ReviewModel.find({
+      ...visibleFilter(req),
       [key]: { $regex: value, $options: "i" },
     });
 
@@ -192,7 +242,10 @@ export async function getReviewByGenericQuery(
   try {
     const query = buildDynamicQuery(ReviewModel, req.body);
 
-    const result = await ReviewModel.find(query);
+    const result = await ReviewModel.find({
+      ...query,
+      ...visibleFilter(req),
+    });
 
     res.status(200).json(result);
   } catch (err) {
@@ -209,7 +262,10 @@ export async function getReviewByGenericQuery(
 export async function getReviewsByTarget(req: Request, res: Response): Promise<void> {
   try {
     const { targetId } = req.params;
-    const result = await ReviewModel.find({ targetId }).sort({ createdAt: -1 });
+    const result = await ReviewModel.find({
+      targetId,
+      ...visibleFilter(req),
+    }).sort({ createdAt: -1 });
     res.status(200).json(result);
   } catch (err) {
     console.error("Error fetching reviews by target:", err);
@@ -230,7 +286,10 @@ export async function editReview(req: Request, res: Response): Promise<void> {
       image?: string;
     };
 
-    const review = await ReviewModel.findById(id);
+    const review = await ReviewModel.findOne({
+      _id: id,
+      ...visibleFilter(req),
+    });
 
     if (!review) {
       res.status(404).json({ message: "Review not found" });
@@ -269,7 +328,10 @@ export async function likeReview(req: Request, res: Response): Promise<void> {
       return;
     }
 
-    const review = await ReviewModel.findById(id);
+    const review = await ReviewModel.findOne({
+      _id: id,
+      ...visibleFilter(req),
+    });
 
     if (!review) {
       res.status(404).json({ message: "Review not found" });
@@ -291,5 +353,98 @@ export async function likeReview(req: Request, res: Response): Promise<void> {
   } catch (err) {
     console.error("Error liking review:", err);
     res.status(500).json({ message: "Error updating like" });
+  }
+}
+
+export async function reportReview(req: Request, res: Response): Promise<void> {
+  try {
+    const { id } = req.params;
+    const reportedBy = req.user?.userID;
+    const reason =
+      typeof req.body.reason === "string" ? req.body.reason.trim() : "";
+
+    if (!reportedBy) {
+      res.status(401).json({ message: "Unauthorized" });
+      return;
+    }
+
+    const review = await ReviewModel.findOne({
+      _id: id,
+      ...visibleFilter(req),
+    });
+
+    if (!review) {
+      res.status(404).json({ message: "Review not found" });
+      return;
+    }
+
+    const alreadyReported = review.reports.some(
+      (report) => report.reportedBy === reportedBy,
+    );
+
+    if (alreadyReported) {
+      res.status(409).json({ message: "Review already reported by user" });
+      return;
+    }
+
+    review.reports.push({
+      reportedBy,
+      reason,
+      createdAt: new Date(),
+    });
+    review.reportCount = review.reports.length;
+    review.reportResolved = false;
+    review.reportResolvedAt = undefined;
+    review.reportResolvedBy = undefined;
+
+    const result = await review.save();
+    res.status(200).json(result);
+  } catch (err) {
+    console.error("Error reporting review:", err);
+    res.status(500).json({ message: "Error reporting review" });
+  }
+}
+
+export async function getReportedReviews(
+  req: Request,
+  res: Response,
+): Promise<void> {
+  try {
+    const includeResolved = req.query.includeResolved === "true";
+
+    const result = await ReviewModel.find({
+      reportCount: { $gt: 0 },
+      ...visibleFilter(req),
+      ...(includeResolved ? {} : { reportResolved: false }),
+    }).sort({ reportCount: -1, createdAt: -1 });
+
+    res.status(200).json(result);
+  } catch (err) {
+    console.error("Error fetching reported reviews:", err);
+    res.status(500).json({ message: "Error retrieving reported reviews" });
+  }
+}
+
+export async function resolveReviewReport(
+  req: Request,
+  res: Response,
+): Promise<void> {
+  try {
+    const review = await ReviewModel.findById(req.params.id);
+
+    if (!review) {
+      res.status(404).json({ message: "Review not found" });
+      return;
+    }
+
+    review.reportResolved = true;
+    review.reportResolvedAt = new Date();
+    review.reportResolvedBy = req.user?.userID;
+
+    const result = await review.save();
+    res.status(200).json(result);
+  } catch (err) {
+    console.error("Error resolving review report:", err);
+    res.status(500).json({ message: "Error resolving review report" });
   }
 }

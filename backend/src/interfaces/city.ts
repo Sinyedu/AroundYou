@@ -1,6 +1,7 @@
 export interface City extends Document {
   cityID: string;
   name: string;
+  tagLine: string;
   description: string;
   heroImage: string;
   commune: string;
@@ -9,4 +10,7 @@ export interface City extends Document {
   gpsPosition: string;
   population: number;
   visitorCenter: string;
+  isHidden: boolean;
+  hiddenAt?: Date;
+  hiddenBy?: string;
 }

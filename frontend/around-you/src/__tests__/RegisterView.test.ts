@@ -1,16 +1,26 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest'
-import { mount, type VueWrapper } from '@vue/test-utils'
-import { nextTick } from 'vue'
+import { flushPromises, mount, type VueWrapper } from '@vue/test-utils'
 import RegisterView from '../views/auth/RegisterView.vue'
 
 const registerMock = vi.fn()
-const alertSpy = vi.spyOn(window, 'alert').mockImplementation(() => {})
 
 vi.mock('@/composables/useAuth', () => ({
   useAuth: () => ({
     register: registerMock,
   }),
 }))
+
+const mountRegisterView = () =>
+  mount(RegisterView, {
+    global: {
+      stubs: {
+        RouterLink: {
+          props: ['to'],
+          template: '<a><slot /></a>',
+        },
+      },
+    },
+  })
 
 const fillForm = async (wrapper: VueWrapper) => {
   await wrapper.find('#firstName').setValue('John')
@@ -23,47 +33,46 @@ const fillForm = async (wrapper: VueWrapper) => {
 describe('RegisterView', () => {
   beforeEach(() => {
     vi.clearAllMocks()
-    alertSpy.mockClear()
   })
 
   it('calls register with correct form data', async () => {
     registerMock.mockResolvedValueOnce(undefined)
 
-    const wrapper = mount(RegisterView)
+    const wrapper = mountRegisterView()
 
     await fillForm(wrapper)
     await wrapper.find('form').trigger('submit.prevent')
-    await nextTick()
+    await flushPromises()
 
     expect(registerMock).toHaveBeenCalledWith('John', 'Doe', 'johndoe', 'john@test.com', '123456')
   })
 
-  it('shows success alert on successful registration', async () => {
+  it('shows success message on successful registration', async () => {
     registerMock.mockResolvedValueOnce(undefined)
 
-    const wrapper = mount(RegisterView)
+    const wrapper = mountRegisterView()
 
     await fillForm(wrapper)
     await wrapper.find('form').trigger('submit.prevent')
-    await nextTick()
+    await flushPromises()
 
-    expect(alertSpy).toHaveBeenCalledWith('Registration successful!')
+    expect(wrapper.text()).toContain('Din konto er oprettet. Du kan logge ind nu.')
   })
 
-  it('shows error alert on failed registration', async () => {
+  it('shows error message on failed registration', async () => {
     registerMock.mockRejectedValueOnce(new Error('fail'))
 
-    const wrapper = mount(RegisterView)
+    const wrapper = mountRegisterView()
 
     await fillForm(wrapper)
     await wrapper.find('form').trigger('submit.prevent')
-    await nextTick()
+    await flushPromises()
 
-    expect(alertSpy).toHaveBeenCalledWith('Registration failed. Please check your details.')
+    expect(wrapper.text()).toContain('fail')
   })
 
   it('does not call register if form is empty', async () => {
-    const wrapper = mount(RegisterView)
+    const wrapper = mountRegisterView()
 
     await wrapper.find('form').trigger('submit.prevent')
 

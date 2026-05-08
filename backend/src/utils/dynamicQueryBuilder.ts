@@ -1,6 +1,6 @@
 import { QueryFilter, Model } from "mongoose";
 
-interface SearchBody {
+export interface SearchBody {
   key: string;
   value: unknown;
 }

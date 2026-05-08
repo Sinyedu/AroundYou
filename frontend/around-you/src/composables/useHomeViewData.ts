@@ -52,6 +52,7 @@ export const useHomeViewData = () => {
   const userLocation = computed(() => nearbySection.data.value.locationName)
   const userLocationDescription = computed(() => nearbySection.data.value.locationDescription)
   const nearbyCards = computed(() => nearbySection.data.value.attractions)
+  const showNearbySection = computed(() => Boolean(geolocationStore.coords))
 
   watch(
     () => geolocationStore.coords,
@@ -100,6 +101,7 @@ export const useHomeViewData = () => {
   })
 
   return {
+    showNearbySection,
     userLocation,
     userLocationDescription,
     nearbyCards,

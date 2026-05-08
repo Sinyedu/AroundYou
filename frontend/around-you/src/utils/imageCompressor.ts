@@ -1,4 +1,5 @@
-const ALLOWED_IMAGE_TYPES = new Set(['image/jpeg', 'image/png'])
+const ALLOWED_IMAGE_TYPES = new Set(['image/jpeg', 'image/jpg', 'image/png', 'image/webp'])
+const ALLOWED_IMAGE_EXTENSIONS = new Set(['png', 'jpg', 'jpeg', 'webp'])
 
 type CompressImageOptions = {
   maxWidth?: number
@@ -7,7 +8,11 @@ type CompressImageOptions = {
 }
 
 const getFileExtension = (type: string) => {
-  return type === 'image/png' ? 'png' : type === 'image/jpeg' ? 'jpg' : "webp"
+  return type === 'image/png' ? 'png' : type === 'image/webp' ? 'webp' : 'jpg'
+}
+
+const getOutputType = (type: string) => {
+  return type === 'image/jpg' ? 'image/jpeg' : type
 }
 
 const getCompressedFileName = (file: File, type: string) => {
@@ -28,7 +33,7 @@ const loadImage = (file: File) => {
 
     image.onerror = () => {
       URL.revokeObjectURL(objectUrl)
-      reject(new Error('Could not load image.'))
+      reject(new Error('Billedet kunne ikke indlæses.'))
     }
 
     image.src = objectUrl
@@ -54,23 +59,29 @@ const canvasToBlob = (canvas: HTMLCanvasElement, type: string, quality: number) 
     canvas.toBlob(
       (blob) => {
         if (!blob) {
-          reject(new Error('Could not compress image.'))
+          reject(new Error('Billedet kunne ikke komprimeres.'))
           return
         }
 
         resolve(blob)
       },
       type,
-      type === 'image/jpeg' ? quality : undefined,
+      type === 'image/jpeg' || type === 'image/webp' ? quality : undefined,
     )
   })
 }
 
-export const isAllowedImageType = (file: File) => ALLOWED_IMAGE_TYPES.has(file.type)
+const getFileExtensionFromName = (fileName: string) => {
+  return fileName.split('.').pop()?.toLowerCase() ?? ''
+}
+
+export const isAllowedImageType = (file: File) => {
+  return ALLOWED_IMAGE_TYPES.has(file.type) && ALLOWED_IMAGE_EXTENSIONS.has(getFileExtensionFromName(file.name))
+}
 
 export async function compressImageFile(file: File, options: CompressImageOptions = {}) {
   if (!isAllowedImageType(file)) {
-    throw new Error('Only PNG, JPEG, and WebP images are allowed.')
+    throw new Error('Kun PNG-, JPG- og WEBP-billeder er tilladt.')
   }
 
   const maxWidth = options.maxWidth ?? 1000
@@ -85,19 +96,20 @@ export async function compressImageFile(file: File, options: CompressImageOption
 
   const context = canvas.getContext('2d')
   if (!context) {
-    throw new Error('Could not prepare image compression.')
+    throw new Error('Billedet kunne ikke gøres klar til upload.')
   }
 
   context.drawImage(image, 0, 0, dimensions.width, dimensions.height)
 
-  const blob = await canvasToBlob(canvas, file.type, quality)
+  const outputType = getOutputType(file.type)
+  const blob = await canvasToBlob(canvas, outputType, quality)
 
   if (blob.size >= file.size) {
     return file
   }
 
-  return new File([blob], getCompressedFileName(file, file.type), {
-    type: file.type,
+  return new File([blob], getCompressedFileName(file, outputType), {
+    type: outputType,
     lastModified: Date.now(),
   })
 }

@@ -43,18 +43,24 @@ export async function forwardGeocode(
   const address = parseText(req.query.address);
   const city = parseText(req.query.city);
 
-  if (!address || !city) {
-    res.status(400).json({ message: "Address and city are required" });
+  if (!city) {
+    res.status(400).json({ message: "City is required" });
     return;
   }
 
   try {
-    const query = new URLSearchParams({
-      format: "json",
-      street: address,
-      city,
-      limit: "1",
-    });
+    const query = address
+      ? new URLSearchParams({
+          format: "json",
+          street: address,
+          city,
+          limit: "1",
+        })
+      : new URLSearchParams({
+          format: "json",
+          q: city,
+          limit: "1",
+        });
 
     const response = await fetch(`https://nominatim.openstreetmap.org/search?${query}`, {
       headers: {
@@ -87,7 +93,7 @@ export async function forwardGeocode(
     res.status(200).json({
       latitude,
       longitude,
-      displayName: firstMatch.display_name ?? `${address}, ${city}`,
+      displayName: firstMatch.display_name ?? (address ? `${address}, ${city}` : city),
     });
   } catch (err) {
     console.error("Geocoding failed:", err);

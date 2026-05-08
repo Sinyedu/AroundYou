@@ -1,7 +1,9 @@
+import type { AttractionPayload, CityPayload, EventPayload } from '@/types/content'
+
 export type ContentSuggestionType = 'attraction' | 'event' | 'city'
 export type ContentSuggestionStatus = 'pending' | 'approved' | 'rejected'
 
-export type ContentSuggestionPayload = Record<string, string | number | boolean | string[]>
+export type ContentSuggestionPayload = AttractionPayload | EventPayload | CityPayload
 
 export type ContentSuggestion = {
   _id: string

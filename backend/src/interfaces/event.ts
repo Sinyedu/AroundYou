@@ -13,4 +13,7 @@ export interface Event extends Document {
     startDate: Date;
     endDate: Date;
     openingHours: string[];
+    isHidden: boolean;
+    hiddenAt?: Date;
+    hiddenBy?: string;
 }

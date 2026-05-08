@@ -7,74 +7,39 @@ import type { LargestCityCard } from '@/types/largest-city-card'
 import type { NatureExperienceCard } from '@/types/nature-experience-card'
 import type { NatureExperienceSource } from '@/types/nature-experience-source'
 import type { NearbyLocationContent } from '@/types/nearby-location-content'
-import { apiRequest } from '@/api/http'
+import { apiGetCached } from '@/api/http'
 import { distanceKm, parseGpsPosition } from '@/utils/geo'
 
 export const DEFAULT_NEARBY_LOCATION_DESCRIPTION =
   'Gå på opdagelse i spændende oplevelser tæt på din egen lokation, hvor natur, kultur, attraktioner og restauranter er lige inden for rækkevidde. Oplev alt fra populære seværdigheder og hyggelige udflugtsmål til lokale favoritter og skjulte perler lige i nærheden.'
 
 async function fetchJson<T>(path: string): Promise<T> {
-  const response = await fetch(`${API_BASE_URL}${path}`)
-  if (!response.ok) {
-    throw new Error(`Request failed for ${path}: ${response.status}`)
-  }
-  return response.json() as Promise<T>
-}
-
-function parseGpsPosition(value?: string): Coordinates | null {
-  if (!value) {
-    return null
-  }
-
-  const [latitudeRaw, longitudeRaw] = value.split(',').map((part) => part.trim())
-  const latitude = Number(latitudeRaw)
-  const longitude = Number(longitudeRaw)
-
-  if (!Number.isFinite(latitude) || !Number.isFinite(longitude)) {
-    return null
-  }
-
-  return { latitude, longitude }
+  return apiGetCached<T>(path)
 }
 
 function toRadians(value: number): number {
   return (value * Math.PI) / 180
 }
 
-function distanceKm(from: Coordinates, to: Coordinates): number {
-  const earthRadius = 6371
-  const dLatitude = toRadians(to.latitude - from.latitude)
-  const dLongitude = toRadians(to.longitude - from.longitude)
-  const fromLatitude = toRadians(from.latitude)
-  const toLatitude = toRadians(to.latitude)
-
-  const a =
-    Math.sin(dLatitude / 2) * Math.sin(dLatitude / 2) +
-    Math.cos(fromLatitude) * Math.cos(toLatitude) * Math.sin(dLongitude / 2) * Math.sin(dLongitude / 2)
-
-  return earthRadius * (2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a)))
-}
-
 function normalizedRating(entry: NatureExperienceSource): number {
   return typeof entry.rating === 'number' ? entry.rating : 0
 }
 
-function normalizeEntitySlug(value: string): string {
-  return value
-    .trim()
-    .toLowerCase()
-    .replace(/æ/g, 'a')
-    .replace(/ø/g, 'o')
-    .replace(/å/g, 'a')
-    .normalize('NFD')
-    .replace(/[\u0300-\u036f]/g, '')
-    .replace(/[^a-z0-9]+/g, '-')
-    .replace(/^-+|-+$/g, '')
+function isMongoObjectId(value: string): boolean {
+  return /^[a-f\d]{24}$/i.test(value)
 }
 
 export async function getEventByIdentifier(eventIdentifier: string): Promise<EventApiItem | null> {
   if (!eventIdentifier.trim()) {
     return null
+  }
+
+  if (isMongoObjectId(eventIdentifier)) {
+    try {
+      return await fetchJson<EventApiItem>(`/events/${encodeURIComponent(eventIdentifier)}`)
+    } catch {
+      // Fall back to collection lookup for old routes or deleted records.
+    }
   }
 
   const events = await fetchJson<EventApiItem[]>('/events')
@@ -88,9 +53,52 @@ export async function getEventByIdentifier(eventIdentifier: string): Promise<Eve
   )
 }
 
+export async function getAttractionByIdentifier(
+  attractionIdentifier: string,
+): Promise<AttractionApiItem | null> {
+  if (!attractionIdentifier.trim()) {
+    return null
+  }
+
+  if (isMongoObjectId(attractionIdentifier)) {
+    try {
+      return await fetchJson<AttractionApiItem>(
+        `/attractions/${encodeURIComponent(attractionIdentifier)}`,
+      )
+    } catch {
+      // Fall back to collection lookup for old routes or deleted records.
+    }
+  }
+
+  const attractions = await fetchJson<AttractionApiItem[]>('/attractions')
+  const normalizedIdentifier = normalizeEntitySlug(decodeURIComponent(attractionIdentifier))
+
+  return (
+    attractions.find(
+      (attraction) =>
+        attraction._id === attractionIdentifier ||
+        normalizeEntitySlug(attraction.name) === normalizedIdentifier,
+    ) ?? null
+  )
+}
+
 export async function getCityByName(cityName: string): Promise<CityApiItem | null> {
   if (!cityName.trim()) {
     return null
+  }
+
+  if (isMongoObjectId(cityName)) {
+    try {
+      return await fetchJson<CityApiItem>(`/city/${encodeURIComponent(cityName)}`)
+    } catch {
+      // Fall back to name lookup for old routes or deleted records.
+    }
+  }
+
+  try {
+    return await fetchJson<CityApiItem>(`/city/name/${encodeURIComponent(cityName)}`)
+  } catch {
+    // Fall back to collection lookup to preserve existing slug matching behavior.
   }
 
   const cities = await fetchJson<CityApiItem[]>('/city')
@@ -101,6 +109,19 @@ export async function getCityByName(cityName: string): Promise<CityApiItem | nul
       (city) => city._id === cityName || normalizeEntitySlug(city.name) === normalizedInput,
     ) ?? null
   )
+}
+
+function normalizeEntitySlug(value: string): string {
+  return value
+    .trim()
+    .toLowerCase()
+    .replace(/æ/g, 'a')
+    .replace(/ø/g, 'o')
+    .replace(/å/g, 'a')
+    .normalize('NFD')
+    .replace(/[\u0300-\u036f]/g, '')
+    .replace(/[^a-z0-9]+/g, '-')
+    .replace(/^-+|-+$/g, '')
 }
 
 export async function getNearbyLocationContent(
@@ -155,11 +176,15 @@ export async function getNearbyLocationContent(
       reviews: 0,
       tags: attraction.slugArray.slice(0, 3),
       metaText: `${distanceKm.toFixed(1)} km væk`,
+      href: `/attraction/${attraction._id}`,
     }))
 
   return {
     locationName: nearestCity?.city.name ?? 'din lokation',
-    locationDescription: nearestCity?.city.description ?? DEFAULT_NEARBY_LOCATION_DESCRIPTION,
+    locationDescription:
+      nearestCity?.city.tagLine ??
+      nearestCity?.city.description ??
+      DEFAULT_NEARBY_LOCATION_DESCRIPTION,
     attractions: nearbyAttractions,
   }
 }
@@ -209,6 +234,7 @@ async function getExperiencesBySlug(slug: string, limit = 4): Promise<NatureExpe
       reviews: 0,
       tags: entry.slugArray,
       metaText: entry.type,
+      href: entry.type === 'Event' ? `/event/${entry._id}` : `/attraction/${entry._id}`,
     }))
 }
 
