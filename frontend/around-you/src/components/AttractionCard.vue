@@ -26,7 +26,9 @@
           </span>
         </div>
         <span v-if="card.metaText" class="text-xs text-gray-400">{{ card.metaText }}</span>
-        <span v-else class="text-xs text-gray-400">({{ displayReviewsCount.toLocaleString() }})</span>
+        <span v-else class="text-xs text-gray-400"
+          >({{ displayReviewsCount.toLocaleString() }})</span
+        >
       </div>
       <div class="flex flex-wrap gap-1 mt-2">
         <span
@@ -42,36 +44,14 @@
 </template>
 
 <script setup lang="ts">
-import { computed, ref, watch } from 'vue'
-import { getReviewsByTarget } from '@/api/reviews.api'
-import type { ExperienceCard } from '@/types/experience-card'
+import { computed } from 'vue'
 import { RouterLink } from 'vue-router'
+import type { ExperienceCard } from '@/types/experience-card'
 
 const props = defineProps<{
   card: ExperienceCard
 }>()
 
-const reviewAverage = ref<number | null>(null)
-const reviewCount = ref<number | null>(null)
-
-const displayRating = computed(() => reviewAverage.value ?? props.card.rating)
-const displayReviewsCount = computed(() => reviewCount.value ?? props.card.reviews)
-
-watch(
-  () => props.card.id,
-  async (targetId) => {
-    try {
-      const reviews = await getReviewsByTarget(targetId)
-      reviewCount.value = reviews.length
-      reviewAverage.value =
-        reviews.length > 0
-          ? reviews.reduce((sum, review) => sum + review.rating, 0) / reviews.length
-          : null
-    } catch {
-      reviewAverage.value = null
-      reviewCount.value = null
-    }
-  },
-  { immediate: true },
-)
+const displayRating = computed(() => props.card.rating)
+const displayReviewsCount = computed(() => props.card.reviews)
 </script>

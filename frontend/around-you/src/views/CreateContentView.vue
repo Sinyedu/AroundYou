@@ -102,6 +102,13 @@
 
           <template v-if="selectedType === 'city'">
             <input v-model="cityForm.name" class="rounded-xl border border-slate-200 px-4 py-3" placeholder="City" />
+            <input
+              v-model="cityForm.tagLine"
+              class="rounded-xl border border-slate-200 px-4 py-3"
+              minlength="20"
+              maxlength="100"
+              placeholder="Tagline (20-100 characters)"
+            />
             <div class="rounded-xl border border-slate-200 px-4 py-3">
               <label class="mb-2 block text-sm font-semibold text-slate-700">Hero image file</label>
               <input type="file" accept="image/png,image/jpeg,image/jpg,image/webp" capture="environment"

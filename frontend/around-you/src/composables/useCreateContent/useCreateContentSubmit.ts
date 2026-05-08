@@ -44,6 +44,18 @@ const resolveCityGpsPosition = async (city: string) => {
   return `${location.latitude},${location.longitude}`
 }
 
+export const validateCityForm = (cityForm: Pick<CreateCityForm, 'tagLine'>) => {
+  const tagLine = cityForm.tagLine.trim()
+
+  if (!tagLine) {
+    throw new Error('Indtast en tagline til byen.')
+  }
+
+  if (tagLine.length < 20 || tagLine.length > 100) {
+    throw new Error('Byens tagline skal være mellem 20 og 100 tegn.')
+  }
+}
+
 export const useCreateContentSubmit = (
   selectedType: CreateContentFormType,
   eventForm: CreateEventForm,
@@ -149,6 +161,8 @@ export const useCreateContentSubmit = (
   }
 
   const submitCity = async (): Promise<ContentSubmissionDestination> => {
+    validateCityForm(cityForm)
+
     if (!cityHeroImageFile.value) {
       throw new Error('Upload et billede til denne by.')
     }
@@ -163,6 +177,7 @@ export const useCreateContentSubmit = (
 
     const payload: CityPayload = {
       name: cityForm.name,
+      tagLine: cityForm.tagLine.trim(),
       description: cityForm.description,
       heroImage,
       commune: cityForm.commune,

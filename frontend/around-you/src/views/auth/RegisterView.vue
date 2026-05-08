@@ -107,41 +107,19 @@
 </template>
 
 <script setup lang="ts">
-import { ref } from 'vue'
 import { RouterLink } from 'vue-router'
-import { useAuth } from '../../composables/useAuth'
 
-const { register } = useAuth()
+import { useRegisterView } from '@/composables/auth/useRegisterView'
 
-const firstName = ref('')
-const lastName = ref('')
-const userName = ref('')
-const email = ref('')
-const password = ref('')
-const message = ref('')
-const isSuccess = ref(false)
-const isSubmitting = ref(false)
-
-const handleRegister = async () => {
-  if (!firstName.value || !lastName.value || !userName.value || !email.value || !password.value) {
-    return
-  }
-
-  try {
-    isSubmitting.value = true
-    message.value = ''
-    isSuccess.value = false
-
-    await register(firstName.value, lastName.value, userName.value, email.value, password.value)
-
-    isSuccess.value = true
-    message.value = 'Din konto er oprettet. Du kan logge ind nu.'
-  } catch (error) {
-    console.error(error)
-    isSuccess.value = false
-    message.value = error instanceof Error ? error.message : 'Registration failed.'
-  } finally {
-    isSubmitting.value = false
-  }
-}
+const {
+  email,
+  firstName,
+  handleRegister,
+  isSubmitting,
+  isSuccess,
+  lastName,
+  message,
+  password,
+  userName,
+} = useRegisterView()
 </script>

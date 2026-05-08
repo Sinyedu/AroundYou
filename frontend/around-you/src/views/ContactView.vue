@@ -18,7 +18,10 @@
       </header>
 
       <div class="grid gap-6 lg:grid-cols-[minmax(0,0.82fr)_minmax(0,1fr)]">
-        <form class="rounded-lg border border-slate-200 bg-white p-5" @submit.prevent="submitTicket">
+        <form
+          class="rounded-lg border border-slate-200 bg-white p-5"
+          @submit.prevent="submitTicket"
+        >
           <div>
             <h2 class="text-xl font-black text-[#094b7b]">Ny henvendelse</h2>
             <p class="mt-1 text-sm text-slate-600">
@@ -32,7 +35,9 @@
               v-for="option in contactTicketCategoryOptions"
               :key="option.key"
               class="cursor-pointer rounded-lg border border-slate-200 p-3 transition hover:border-[#094b7b]/40"
-              :class="form.category === option.key ? 'bg-slate-50 ring-2 ring-[#094b7b]' : 'bg-white'"
+              :class="
+                form.category === option.key ? 'bg-slate-50 ring-2 ring-[#094b7b]' : 'bg-white'
+              "
             >
               <input v-model="form.category" class="sr-only" type="radio" :value="option.key" />
               <span class="flex flex-wrap items-center justify-between gap-2">
@@ -68,10 +73,16 @@
             />
           </label>
 
-          <p v-if="errorMessage" class="mt-4 rounded-md bg-rose-50 px-3 py-2 text-sm font-bold text-rose-700">
+          <p
+            v-if="errorMessage"
+            class="mt-4 rounded-md bg-rose-50 px-3 py-2 text-sm font-bold text-rose-700"
+          >
             {{ errorMessage }}
           </p>
-          <p v-if="successMessage" class="mt-4 rounded-md bg-emerald-50 px-3 py-2 text-sm font-bold text-emerald-700">
+          <p
+            v-if="successMessage"
+            class="mt-4 rounded-md bg-emerald-50 px-3 py-2 text-sm font-bold text-emerald-700"
+          >
             {{ successMessage }}
           </p>
 
@@ -105,12 +116,8 @@
                     {{ selectedCategory.label }}
                   </span>
                 </div>
-                <p class="mt-1 text-sm text-slate-600">
-                  {{ displayUserName }} · {{ userEmail }}
-                </p>
-                <p class="mt-1 text-xs font-bold text-slate-500">
-                  Oprettes {{ previewDate }}
-                </p>
+                <p class="mt-1 text-sm text-slate-600">{{ displayUserName }} · {{ userEmail }}</p>
+                <p class="mt-1 text-xs font-bold text-slate-500">Oprettes {{ previewDate }}</p>
               </div>
               <span class="rounded-full bg-slate-100 px-2 py-1 text-xs font-black text-slate-700">
                 Klar til afsendelse
@@ -125,10 +132,15 @@
             </p>
 
             <div class="mt-4 grid gap-2 text-sm text-slate-600">
-              <p><span class="font-black text-slate-800">Kategori:</span> {{ selectedCategory.label }}</p>
+              <p>
+                <span class="font-black text-slate-800">Kategori:</span>
+                {{ selectedCategory.label }}
+              </p>
               <p><span class="font-black text-slate-800">Dato:</span> {{ previewDate }}</p>
               <p><span class="font-black text-slate-800">Status:</span> Sendes som åben sag</p>
-              <p><span class="font-black text-slate-800">Kontakt:</span> Admin kan svare via email</p>
+              <p>
+                <span class="font-black text-slate-800">Kontakt:</span> Admin kan svare via email
+              </p>
             </div>
           </article>
         </section>
@@ -138,56 +150,20 @@
 </template>
 
 <script setup lang="ts">
-import { computed, reactive, ref } from 'vue'
-import { createContactTicket } from '@/api/contactTickets.api'
-import { useAuth } from '@/composables/useAuth'
-import {
+import { useContactView } from '@/composables/contact/useContactView'
+
+const {
   contactTicketCategoryOptions,
-  getContactTicketCategoryMeta,
-  type CreateContactTicketPayload,
-} from '@/types/contact-ticket'
-
-const { currentUser } = useAuth()
-
-const isSubmitting = ref(false)
-const errorMessage = ref('')
-const successMessage = ref('')
-const form = reactive<CreateContactTicketPayload>({
-  category: 'bug',
-  subject: '',
-  message: '',
-})
-
-const userEmail = computed(() => currentUser.value?.email ?? 'din konto-email')
-const displayUserName = computed(() => currentUser.value?.userName ?? 'Bruger')
-const selectedCategory = computed(() => getContactTicketCategoryMeta(form.category))
-const previewDate = computed(() =>
-  new Date().toLocaleString('da-DK', {
-    dateStyle: 'medium',
-    timeStyle: 'short',
-  }),
-)
-const previewSubject = computed(() => form.subject || 'Din titel vises her')
-const previewMessage = computed(
-  () =>
-    form.message ||
-    'Din beskrivelse vises her, mens du skriver. Admin modtager teksten sammen med din kategori, titel og konto-email.',
-)
-
-async function submitTicket(): Promise<void> {
-  isSubmitting.value = true
-  errorMessage.value = ''
-  successMessage.value = ''
-
-  try {
-    await createContactTicket({ ...form })
-    form.subject = ''
-    form.message = ''
-    successMessage.value = 'Din henvendelse er sendt til admin.'
-  } catch (error) {
-    errorMessage.value = error instanceof Error ? error.message : 'Kunne ikke sende henvendelsen.'
-  } finally {
-    isSubmitting.value = false
-  }
-}
+  displayUserName,
+  errorMessage,
+  form,
+  isSubmitting,
+  previewDate,
+  previewMessage,
+  previewSubject,
+  selectedCategory,
+  submitTicket,
+  successMessage,
+  userEmail,
+} = useContactView()
 </script>

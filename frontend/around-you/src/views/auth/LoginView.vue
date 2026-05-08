@@ -1,6 +1,8 @@
 <template>
   <main class="min-h-[calc(100vh-88px)] bg-[#C1D2DE] px-4 py-8">
-    <section class="mx-auto grid max-w-5xl overflow-hidden rounded-[28px] bg-white shadow-[0_24px_80px_rgba(9,75,123,0.16)] lg:grid-cols-[0.9fr_1.1fr]">
+    <section
+      class="mx-auto grid max-w-5xl overflow-hidden rounded-[28px] bg-white shadow-[0_24px_80px_rgba(9,75,123,0.16)] lg:grid-cols-[0.9fr_1.1fr]"
+    >
       <div class="flex flex-col justify-between gap-8 bg-[#094b7b] px-8 py-8 text-white">
         <div>
           <h1 class="text-3xl font-black tracking-tight">Velkommen tilbage</h1>
@@ -58,7 +60,10 @@
 
           <p class="mt-5 text-sm text-slate-600">
             Har du ikke en konto?
-            <RouterLink to="/auth/register" class="font-semibold text-[#094b7b] hover:text-[#de5826]">
+            <RouterLink
+              to="/auth/register"
+              class="font-semibold text-[#094b7b] hover:text-[#de5826]"
+            >
               Opret konto
             </RouterLink>
           </p>
@@ -69,39 +74,9 @@
 </template>
 
 <script setup lang="ts">
-import { ref } from 'vue'
-import { RouterLink, useRouter } from 'vue-router'
-import { useAuth } from '../../composables/useAuth'
-import { useGeolocationStore } from '../../stores/geolocation'
+import { RouterLink } from 'vue-router'
 
-const router = useRouter()
+import { useLoginView } from '@/composables/auth/useLoginView'
 
-const identifier = ref('')
-const password = ref('')
-const errorMessage = ref('')
-const isSubmitting = ref(false)
-
-const { login, isAuthenticated } = useAuth()
-const geo = useGeolocationStore()
-
-const handleLogin = async () => {
-  try {
-    if (!identifier.value || !password.value) return
-
-    isSubmitting.value = true
-    errorMessage.value = ''
-
-    await login(identifier.value.trim(), password.value)
-
-    if (!isAuthenticated.value) return
-
-    geo.getLocation()
-    router.push('/')
-  } catch (error) {
-    console.error('Login failed:', error)
-    errorMessage.value = error instanceof Error ? error.message : 'Login failed.'
-  } finally {
-    isSubmitting.value = false
-  }
-}
+const { errorMessage, handleLogin, identifier, isSubmitting, password } = useLoginView()
 </script>

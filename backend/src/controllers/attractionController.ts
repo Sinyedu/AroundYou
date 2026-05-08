@@ -1,26 +1,15 @@
 import { Request, Response } from "express";
-import { AttractionModel } from "../models/attractionModel";
-import { buildDynamicQuery } from "../controllers/dynamicQueryBuilder";
-
-function shouldIncludeHidden(req: Request): boolean {
-  return req.originalUrl.startsWith("/api/admin/");
-}
-
-function visibleFilter(req: Request): Record<string, unknown> {
-  if (!shouldIncludeHidden(req)) {
-    return { isHidden: { $ne: true } };
-  }
-
-  if (req.query.visibility === "hidden") {
-    return { isHidden: true };
-  }
-
-  if (req.query.visibility === "all") {
-    return {};
-  }
-
-  return { isHidden: { $ne: true } };
-}
+import { getRouteParam, sendCreateError, visibleFilter } from "./controllerUtils";
+import {
+  createAttractionRecord,
+  findAttractionById,
+  findAttractions,
+  hideAttractionRecord,
+  queryAttractions,
+  queryAttractionsByField,
+  restoreAttractionRecord,
+  updateAttractionRecord,
+} from "../services/attraction.service";
 
 /**
  * Create new attraction
@@ -30,27 +19,14 @@ export async function createAttraction(
   res: Response,
 ): Promise<void> {
   try {
-    const attraction = new AttractionModel(req.body);
-    const result = await attraction.save();
+    const result = await createAttractionRecord(
+      req.body as Record<string, unknown>,
+    );
 
     res.status(201).json(result);
   } catch (err) {
     console.error("Error creating attraction:", err);
-
-    if (
-      err instanceof Error &&
-      "name" in err &&
-      err.name === "ValidationError"
-    ) {
-      res.status(400).json({
-        message: err.message,
-      });
-      return;
-    }
-
-    res.status(500).json({
-      message: "An error occurred while creating the attraction",
-    });
+    sendCreateError(res, err, "An error occurred while creating the attraction");
   }
 }
 
@@ -62,9 +38,7 @@ export async function getAllAttractions(
   res: Response,
 ): Promise<void> {
   try {
-    const result = await AttractionModel.find(visibleFilter(req)).sort({
-      updateAt: -1,
-    });
+    const result = await findAttractions(visibleFilter(req));
     res.status(200).json(result);
   } catch (err) {
     console.error("Error retrieving attractions:", err);
@@ -82,12 +56,9 @@ export async function getAttractionById(
   res: Response,
 ): Promise<void> {
   try {
-    const id = req.params.id;
+    const id = getRouteParam(req.params.id);
 
-    const result = await AttractionModel.findOne({
-      _id: id,
-      ...visibleFilter(req),
-    });
+    const result = await findAttractionById(id, visibleFilter(req));
 
     if (!result) {
       res.status(404).json({ message: "Attraction not found" });
@@ -111,11 +82,12 @@ export async function updateAttractionById(
   res: Response,
 ): Promise<void> {
   try {
-    const id = req.params.id;
+    const id = getRouteParam(req.params.id);
 
-    const result = await AttractionModel.findByIdAndUpdate(id, req.body, {
-      new: true,
-    });
+    const result = await updateAttractionRecord(
+      id,
+      req.body as Record<string, unknown>,
+    );
 
     if (!result) {
       res.status(404).json({
@@ -144,17 +116,9 @@ export async function deleteAttractionById(
   res: Response,
 ): Promise<void> {
   try {
-    const id = req.params.id;
+    const id = getRouteParam(req.params.id);
 
-    const result = await AttractionModel.findByIdAndUpdate(
-      id,
-      {
-        isHidden: true,
-        hiddenAt: new Date(),
-        hiddenBy: req.user?.userID,
-      },
-      { new: true },
-    );
+    const result = await hideAttractionRecord(id, req.user?.userID);
 
     if (!result) {
       res.status(404).json({
@@ -180,16 +144,9 @@ export async function restoreAttractionById(
   res: Response,
 ): Promise<void> {
   try {
-    const id = req.params.id;
+    const id = getRouteParam(req.params.id);
 
-    const result = await AttractionModel.findByIdAndUpdate(
-      id,
-      {
-        isHidden: false,
-        $unset: { hiddenAt: "", hiddenBy: "" },
-      },
-      { new: true },
-    );
+    const result = await restoreAttractionRecord(id);
 
     if (!result) {
       res.status(404).json({
@@ -221,10 +178,7 @@ export async function getAttractionsByQuery(
     const key = req.params.key as string;
     const value = req.params.value as string;
 
-    const result = await AttractionModel.find({
-      ...visibleFilter(req),
-      [key]: { $regex: value, $options: "i" },
-    });
+    const result = await queryAttractionsByField(key, value, visibleFilter(req));
 
     res.status(200).json(result);
   } catch (err) {
@@ -243,14 +197,7 @@ export async function getAttractionsByQueryGeneric(
   res: Response,
 ): Promise<void> {
   try {
-    const body = req.body;
-
-    const query = buildDynamicQuery(AttractionModel, body);
-
-    const result = await AttractionModel.find({
-      ...query,
-      ...visibleFilter(req),
-    });
+    const result = await queryAttractions(req.body, visibleFilter(req));
 
     res.status(200).json(result);
   } catch (err) {

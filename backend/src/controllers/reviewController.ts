@@ -1,28 +1,8 @@
 import { Request, Response } from "express";
 import { ReviewModel } from "../models/reviewModel";
-import { buildDynamicQuery } from "./dynamicQueryBuilder";
+import { buildDynamicQuery } from "../utils/dynamicQueryBuilder";
 import { pickTrimmedStringFields } from "../utils/stringFields";
-
-
-function shouldIncludeHidden(req: Request): boolean {
-  return req.originalUrl.startsWith("/api/admin/");
-}
-
-function visibleFilter(req: Request): Record<string, unknown> {
-  if (!shouldIncludeHidden(req)) {
-    return { isHidden: { $ne: true } };
-  }
-
-  if (req.query.visibility === "hidden") {
-    return { isHidden: true };
-  }
-
-  if (req.query.visibility === "all") {
-    return {};
-  }
-
-  return { isHidden: { $ne: true } };
-}
+import { getHideUpdate, getRestoreUpdate, visibleFilter } from "./controllerUtils";
 
 function canModifyReview(req: Request, author: string): boolean {
   return req.user?.role === "admin" || req.user?.userName === author;
@@ -179,11 +159,7 @@ export async function deleteReviewById(
 
     const result = await ReviewModel.findByIdAndUpdate(
       req.params.id,
-      {
-        isHidden: true,
-        hiddenAt: new Date(),
-        hiddenBy: req.user?.userID,
-      },
+      getHideUpdate(req.user?.userID),
       { new: true },
     );
 
@@ -215,10 +191,7 @@ export async function restoreReviewById(
 
     const result = await ReviewModel.findByIdAndUpdate(
       req.params.id,
-      {
-        isHidden: false,
-        $unset: { hiddenAt: "", hiddenBy: "" },
-      },
+      getRestoreUpdate(),
       { new: true },
     );
 
@@ -438,16 +411,10 @@ export async function getReportedReviews(
 ): Promise<void> {
   try {
     const includeResolved = req.query.includeResolved === "true";
-    const visibilityFilter =
-      req.query.visibility === "hidden"
-        ? { isHidden: true }
-        : req.query.visibility === "all"
-          ? {}
-          : { isHidden: { $ne: true } };
 
     const result = await ReviewModel.find({
       reportCount: { $gt: 0 },
-      ...visibilityFilter,
+      ...visibleFilter(req),
       ...(includeResolved ? {} : { reportResolved: false }),
     }).sort({ reportCount: -1, createdAt: -1 });
 

@@ -27,6 +27,7 @@ export type CreateAttractionForm = {
 
 export type CreateCityForm = {
   name: string
+  tagLine: string
   description: string
   commune: string
   region: string
