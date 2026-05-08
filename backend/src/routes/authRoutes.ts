@@ -1,6 +1,20 @@
-import router from "./routes";
-
-import { getMe } from "../controllers/authController";
+import { Router } from "express";
+import {
+  getMe,
+  loginUser,
+  registerUser,
+  restrictUser,
+  updateMe,
+} from "../controllers/authController";
+import { authRateLimiter, contentWriteRateLimiter } from "../middleware/rateLimit";
 import { verifyToken } from "../middleware/verifyUserToken";
 
-router.get("/me", verifyToken, getMe);
+const router = Router();
+
+router.post("/user/register", authRateLimiter, registerUser);
+router.post("/user/login", authRateLimiter, loginUser);
+router.get("/user/me", verifyToken, getMe);
+router.put("/user/me", verifyToken, contentWriteRateLimiter, updateMe);
+router.patch("/user/me/restrict", verifyToken, restrictUser);
+
+export default router;

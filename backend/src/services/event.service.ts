@@ -1,9 +1,10 @@
 import { EventModel } from "../models/eventModel";
 import { buildDynamicQuery, SearchBody } from "../utils/dynamicQueryBuilder";
+import { sanitizeContentPayload, sanitizeContentUpdatePayload } from "../utils/contentPayload";
 import { getHideUpdate, getRestoreUpdate } from "../utils/resourceUtils";
 
 export async function createEventRecord(payload: Record<string, unknown>) {
-  const event = new EventModel(payload);
+  const event = new EventModel(sanitizeContentPayload("event", payload));
   return event.save();
 }
 
@@ -19,8 +20,9 @@ export function findEventById(id: string, visibilityFilter: Record<string, unkno
 }
 
 export function updateEventRecord(id: string, payload: Record<string, unknown>) {
-  return EventModel.findByIdAndUpdate(id, payload, {
+  return EventModel.findByIdAndUpdate(id, sanitizeContentUpdatePayload("event", payload), {
     new: true,
+    runValidators: true,
   });
 }
 

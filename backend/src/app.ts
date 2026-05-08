@@ -11,16 +11,39 @@ dotenvFlow.config();
 
 const app: Application = express();
 
+function getAllowedCorsOrigins(): string[] {
+  const configuredOrigins = [
+    process.env.FRONTEND_ORIGIN,
+    ...(process.env.CORS_ORIGINS ?? "").split(","),
+  ]
+    .map((origin) => origin?.trim())
+    .filter((origin): origin is string => Boolean(origin));
+
+  return configuredOrigins.length
+    ? configuredOrigins
+    : ["http://localhost:5173", "http://127.0.0.1:5173"];
+}
+
 /**
  * CORS configuration
  */
 function setupCors() {
+  const allowedOrigins = new Set(getAllowedCorsOrigins());
+
   app.use(
     cors({
-      origin: "http://localhost:5173",
+      origin(origin, callback) {
+        if (!origin || allowedOrigins.has(origin)) {
+          callback(null, true);
+          return;
+        }
+
+        callback(null, false);
+      },
       credentials: true,
       methods: ["GET", "POST", "PUT", "PATCH", "DELETE"],
       allowedHeaders: ["Authorization", "Content-Type"],
+      optionsSuccessStatus: 204,
     }),
   );
 }
@@ -29,7 +52,7 @@ function setupCors() {
  * Middleware setup
  */
 function setupMiddleware() {
-  app.use(express.json({ limit: "50mb" }));
+  app.use(express.json({ limit: "2mb" }));
 }
 
 /**

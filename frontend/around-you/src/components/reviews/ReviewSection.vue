@@ -117,7 +117,6 @@ const {
 } = useReviewSection({
   targetId: toRef(props, 'targetId'),
   targetType: toRef(props, 'targetType'),
-  userName,
 })
 
 watch(averageRating, (val) => emit('averageRating', val), { immediate: true })
