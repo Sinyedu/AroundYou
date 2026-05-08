@@ -68,9 +68,10 @@
           </button>
           <button
             type="submit"
+            :disabled="submitting"
             class="rounded-full bg-[#094b7b] px-4 py-1.5 text-xs font-semibold text-white transition hover:bg-[#094b7b]/85"
           >
-            Send anmeldelse
+            {{ submitting ? 'Sender...' : 'Send anmeldelse' }}
           </button>
         </div>
       </form>
@@ -91,6 +92,7 @@ const props = defineProps<{
   review: ReviewItem | null
   modelValue: ReportFormModel
   error: string | null
+  submitting: boolean
 }>()
 
 const emit = defineEmits<{

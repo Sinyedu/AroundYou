@@ -55,6 +55,7 @@ export function useReviewSection(options: {
   const reportTargetReview = ref<ReviewItem | null>(null)
   const reportForm = ref<ReportFormState>({ reason: '', details: '' })
   const reportError = ref<string | null>(null)
+  const reportSubmitting = ref(false)
   const reportedReviewIds = ref<string[]>([])
 
   const averageRating = computed(() => {
@@ -98,7 +99,7 @@ export function useReviewSection(options: {
   }
 
   async function submitReport() {
-    if (!reportTargetReview.value) return
+    if (!reportTargetReview.value || reportSubmitting.value) return
     if (!reportForm.value.reason) {
       reportError.value = 'Vælg en årsag for anmeldelsen.'
       return
@@ -110,10 +111,18 @@ export function useReviewSection(options: {
       .join(': ')
 
     try {
-      await reportReview(review._id, normalizeText(reason, { field: 'Årsag', required: true, max: 500 }))
+      reportSubmitting.value = true
+      const updated = await reportReview(
+        review._id,
+        normalizeText(reason, { field: 'Årsag', required: true, max: 500 }),
+      )
+      const index = reviews.value.findIndex((entry) => entry._id === review._id)
+      if (index !== -1) reviews.value[index] = updated
     } catch (err) {
       reportError.value = err instanceof Error ? err.message : 'Kunne ikke anmelde review.'
       return
+    } finally {
+      reportSubmitting.value = false
     }
 
     if (!reportedReviewIds.value.includes(reportTargetReview.value._id)) {
@@ -235,6 +244,7 @@ export function useReviewSection(options: {
     reportTargetReview,
     reportForm,
     reportError,
+    reportSubmitting,
     startEdit,
     cancelEdit,
     isReviewReported,
