@@ -1,12 +1,12 @@
 <template>
   <main
-    class="min-h-screen relative bg-cover bg-center bg-no-repeat py-[50px]"
+    class="min-h-screen relative bg-cover bg-center bg-no-repeat py-4 sm:py-[50px]"
     style="background-image: url('/danmarkskort_1800x1280.jpg')"
   >
     <div class="pointer-events-none absolute inset-0 bg-[#e8c7aa]/55"></div>
 
-    <div class="relative z-10 mx-[50px] bg-white shadow-2xl rounded-xl overflow-hidden">
-      <section class="px-8 py-10">
+    <div class="relative z-10 mx-4 sm:mx-[50px] bg-white shadow-2xl rounded-xl overflow-hidden">
+      <section class="px-4 py-8 sm:px-8 sm:py-10">
         <div class="flex flex-col gap-8">
           <header class="flex flex-wrap items-center justify-between gap-6">
             <div class="space-y-2">
@@ -22,7 +22,7 @@
           />
 
           <div class="grid gap-6 lg:grid-cols-[calc(50vw-90px)_minmax(400px,1fr)] lg:justify-between">
-            <div class="max-w-[calc(50vw-90px)]">
+            <div class="lg:max-w-[calc(50vw-90px)]">
               <div
                 v-if="isLoading"
                 class="rounded-2xl bg-white p-6 text-sm font-semibold text-slate-500"
@@ -38,7 +38,7 @@
               </div>
 
               <div v-else class="space-y-5">
-                <div ref="resultsGrid" class="grid gap-4 sm:grid-cols-2 xl:grid-cols-2">
+                <div ref="resultsGrid" class="grid gap-4 grid-cols-2 xl:grid-cols-2">
                   <template v-for="item in paginatedResults" :key="item.id">
                     <div :data-result-id="item.id" :class="resultCardClass(item.id)">
                       <CityCard v-if="item.type === 'city'" :card="toSearchResultCard(item)" />
