@@ -1,6 +1,9 @@
 import { Request, Response } from "express";
 import Joi from "joi";
+import { Types } from "mongoose";
+import { NotificationModel } from "../models/notificationModel";
 import { ReviewModel } from "../models/reviewModel";
+import { UserModel } from "../models/userModel";
 import { buildDynamicQuery } from "../utils/dynamicQueryBuilder";
 import {
   getHideUpdate,
@@ -11,6 +14,77 @@ import {
 
 function canModifyReview(req: Request, author: string): boolean {
   return req.user?.role === "admin" || req.user?.userName === author;
+}
+
+async function getReviewAuthorUserId(author: string): Promise<string | null> {
+  const user = await UserModel.findOne({ userName: author }).select("_id");
+  return user?._id.toString() ?? null;
+}
+
+function uniqueUserIds(userIds: Array<string | null | undefined>): string[] {
+  return [...new Set(userIds.filter((userId): userId is string => !!userId))];
+}
+
+async function notifyReviewReporters(
+  review: {
+    _id: Types.ObjectId;
+    title: string;
+    reports: { reportedBy: string }[];
+  },
+  actionTaken: boolean,
+): Promise<void> {
+  const recipients = uniqueUserIds(
+    review.reports.map((report) => report.reportedBy),
+  );
+  if (recipients.length === 0) return;
+
+  await NotificationModel.insertMany(
+    recipients.map((recipientUserId) => ({
+      recipientUserId,
+      type: actionTaken
+        ? "review_report_action_taken"
+        : "review_report_no_action",
+      title: actionTaken ? "Din rapport er behandlet" : "Din rapport er lukket",
+      message: actionTaken
+        ? `Tak for din rapport. Anmeldelsen "${review.title}" er blevet fjernet efter gennemgang.`
+        : `Tak for din rapport. Anmeldelsen "${review.title}" er gennemgået, og der blev ikke fundet regelbrud.`,
+      reviewId: review._id.toString(),
+    })),
+  );
+}
+
+async function notifyReviewAuthorReviewRemoved(review: {
+  _id: Types.ObjectId;
+  author: string;
+  title: string;
+}): Promise<void> {
+  const authorUserId = await getReviewAuthorUserId(review.author);
+  if (!authorUserId) return;
+
+  await NotificationModel.create({
+    recipientUserId: authorUserId,
+    type: "review_removed",
+    title: "Din anmeldelse er fjernet",
+    message: `Din anmeldelse "${review.title}" er blevet fjernet efter en moderatorgennemgang.`,
+    reviewId: review._id.toString(),
+  });
+}
+
+async function notifyReviewAuthorReportClosed(review: {
+  _id: Types.ObjectId;
+  author: string;
+  title: string;
+}): Promise<void> {
+  const authorUserId = await getReviewAuthorUserId(review.author);
+  if (!authorUserId) return;
+
+  await NotificationModel.create({
+    recipientUserId: authorUserId,
+    type: "review_report_closed",
+    title: "En rapport om din anmeldelse er lukket",
+    message: `En rapport om din anmeldelse "${review.title}" er blevet gennemgået og lukket uden yderligere handling.`,
+    reviewId: review._id.toString(),
+  });
 }
 
 const reviewBodySchema = Joi.object({
@@ -35,15 +109,14 @@ function validateReviewBody(
   payload: Record<string, unknown>,
   isUpdate = false,
 ): Record<string, unknown> {
-  const { error, value } = (isUpdate ? reviewUpdateSchema : reviewBodySchema).validate(
-    payload,
-    {
-      abortEarly: false,
-      convert: true,
-      noDefaults: isUpdate,
-      stripUnknown: true,
-    },
-  );
+  const { error, value } = (
+    isUpdate ? reviewUpdateSchema : reviewBodySchema
+  ).validate(payload, {
+    abortEarly: false,
+    convert: true,
+    noDefaults: isUpdate,
+    stripUnknown: true,
+  });
 
   if (error) {
     const validationError = new Error(
@@ -216,7 +289,16 @@ export async function deleteReviewById(
       { new: true },
     );
 
-    res.status(200).json({ message: "Review hidden successfully", data: result });
+    if (req.user?.role === "admin") {
+      await notifyReviewAuthorReviewRemoved(review);
+      if (review.reports.length > 0) {
+        await notifyReviewReporters(review, true);
+      }
+    }
+
+    res
+      .status(200)
+      .json({ message: "Review hidden successfully", data: result });
   } catch (err) {
     console.error("Error deleting review:", err);
     res.status(500).json({
@@ -312,7 +394,10 @@ export async function getReviewByGenericQuery(
 /**
  * GET REVIEWS BY TARGET (city / event / attraction)
  */
-export async function getReviewsByTarget(req: Request, res: Response): Promise<void> {
+export async function getReviewsByTarget(
+  req: Request,
+  res: Response,
+): Promise<void> {
   try {
     const { targetId } = req.params;
     const result = await ReviewModel.find({
@@ -332,7 +417,10 @@ export async function getReviewsByTarget(req: Request, res: Response): Promise<v
 export async function editReview(req: Request, res: Response): Promise<void> {
   try {
     const { id } = req.params;
-    const updates = validateReviewBody(req.body as Record<string, unknown>, true);
+    const updates = validateReviewBody(
+      req.body as Record<string, unknown>,
+      true,
+    );
 
     const review = await ReviewModel.findOne({
       _id: id,
@@ -498,6 +586,8 @@ export async function resolveReviewReport(
     review.reportResolvedBy = req.user?.userID;
 
     const result = await review.save();
+    await notifyReviewAuthorReportClosed(review);
+    await notifyReviewReporters(review, false);
     res.status(200).json(result);
   } catch (err) {
     console.error("Error resolving review report:", err);

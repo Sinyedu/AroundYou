@@ -17,9 +17,7 @@
         class="flex basis-full flex-wrap items-center justify-start gap-x-4 gap-y-3 md:ml-20 md:basis-auto md:flex-1 md:justify-end md:gap-x-8"
       >
         <RouterLink :to="{ name: 'home' }" :class="getNavLinkClass('home')">Hjem</RouterLink>
-        <RouterLink :to="{ name: 'search' }" :class="getNavLinkClass('search')"
-          >Udforsk</RouterLink
-        >
+        <RouterLink :to="{ name: 'search' }" :class="getNavLinkClass('search')">Udforsk</RouterLink>
         <RouterLink :to="{ name: 'create' }" :class="getNavLinkClass('create')">Tilføj</RouterLink>
         <RouterLink :to="{ name: 'contact' }" :class="getNavLinkClass('contact')"
           >Kontakt</RouterLink
@@ -41,11 +39,87 @@
           <div class="relative">
             <button
               type="button"
+              class="relative rounded-full border border-[#094b7b]/12 px-3 py-2 text-sm font-bold text-[#094b7b] transition hover:bg-[#C1D2DE]"
+              aria-haspopup="menu"
+              :aria-expanded="isNotificationMenuOpen"
+              aria-label="Notifikationer"
+              @click.stop="toggleNotificationMenu"
+            >
+              Notifikationer
+              <span
+                v-if="unreadNotificationCount"
+                class="absolute -right-1 -top-2 flex h-5 min-w-5 items-center justify-center rounded-full bg-[#de5826] px-1 text-[0.68rem] font-black text-white"
+              >
+                {{ unreadNotificationCount }}
+              </span>
+            </button>
+
+            <div
+              v-if="isNotificationMenuOpen"
+              class="absolute right-0 top-full mt-3 w-[min(22rem,calc(100vw-2rem))] overflow-hidden rounded-2xl border border-[#094b7b] bg-white shadow-[0_22px_60px_rgba(9,75,123,0.2)]"
+              role="menu"
+            >
+              <div
+                class="flex items-center justify-between gap-3 border-b border-[#094b7b]/8 px-4 py-3"
+              >
+                <p class="text-sm font-black text-[#094b7b]">Notifikationer</p>
+                <button
+                  v-if="unreadNotificationCount"
+                  type="button"
+                  class="text-xs font-bold text-[#de5826]"
+                  @click="markAllRead"
+                >
+                  Marker alle læst
+                </button>
+              </div>
+
+              <p v-if="notificationError" class="px-4 py-3 text-sm font-semibold text-rose-700">
+                {{ notificationError }}
+              </p>
+              <p
+                v-else-if="notificationsLoading"
+                class="px-4 py-3 text-sm font-semibold text-slate-500"
+              >
+                Henter notifikationer...
+              </p>
+              <p
+                v-else-if="!notifications.length"
+                class="px-4 py-3 text-sm font-semibold text-slate-500"
+              >
+                Ingen notifikationer endnu.
+              </p>
+              <div v-else class="max-h-96 overflow-y-auto">
+                <button
+                  v-for="notification in notifications"
+                  :key="notification._id"
+                  type="button"
+                  class="block w-full border-b border-slate-100 px-4 py-3 text-left transition hover:bg-[#C1D2DE]/45"
+                  :class="notification.readAt ? 'bg-white' : 'bg-[#C1D2DE]/25'"
+                  role="menuitem"
+                  @click="markRead(notification._id)"
+                >
+                  <span class="block text-sm font-black text-slate-900">
+                    {{ notification.title }}
+                  </span>
+                  <span class="mt-1 block text-sm leading-relaxed text-slate-600">
+                    {{ notification.message }}
+                  </span>
+                  <span class="mt-2 block text-xs font-bold text-slate-400">
+                    {{ formatNotificationDate(notification.createdAt) }}
+                  </span>
+                </button>
+              </div>
+            </div>
+          </div>
+
+          <div class="relative">
+            <button
+              type="button"
               class="flex h-11 w-11 items-center justify-center overflow-hidden rounded-full border border-[#094b7b]/12 bg-gradient-to-br from-[#094b7b] to-[#de5826] text-sm font-bold text-white shadow-[0_10px_30px_rgba(9,75,123,0.18)] transition hover:scale-[1.02]"
               aria-haspopup="menu"
               :aria-expanded="isAvatarMenuOpen"
               aria-label="Brugermenu"
-              @click="toggleAvatarMenu"
+              @click.stop="toggleAvatarMenu"
             >
               <img
                 v-if="displayUserAvatar"
@@ -108,16 +182,26 @@
 </template>
 
 <script setup lang="ts">
-import { computed, onBeforeUnmount, onMounted, ref } from 'vue'
+import { computed, onBeforeUnmount, onMounted, ref, watch } from 'vue'
 import type { ComponentPublicInstance } from 'vue'
 import { RouterLink, useRoute, useRouter } from 'vue-router'
+import {
+  fetchNotifications,
+  markAllNotificationsRead,
+  markNotificationRead,
+} from '@/api/notifications.api'
 import aroundYouLogo from '@/assets/around-you-logo.svg'
 import { useAuth } from '@/composables/useAuth'
+import type { AppNotification } from '@/types/notification'
 
 const route = useRoute()
 const router = useRouter()
 const navRef = ref<ComponentPublicInstance | HTMLElement | null>(null)
 const isAvatarMenuOpen = ref(false)
+const isNotificationMenuOpen = ref(false)
+const notifications = ref<AppNotification[]>([])
+const notificationsLoading = ref(false)
+const notificationError = ref('')
 
 const { avatarInitials, checkSession, isAdmin, isAuthenticated, logout, userAvatar, userName } =
   useAuth()
@@ -127,6 +211,10 @@ const displayUserAvatar = computed(() => userAvatar.value?.trim() || '')
 
 const showAdminLink = computed(() => {
   return isAuthenticated.value && isAdmin.value
+})
+
+const unreadNotificationCount = computed(() => {
+  return notifications.value.filter((notification) => !notification.readAt).length
 })
 
 const getNavLinkClass = (routeName: string) => {
@@ -140,30 +228,107 @@ const getNavLinkClass = (routeName: string) => {
   ]
 }
 
+async function loadNotifications(): Promise<void> {
+  if (!isAuthenticated.value) {
+    notifications.value = []
+    return
+  }
+
+  notificationsLoading.value = true
+  notificationError.value = ''
+
+  try {
+    notifications.value = await fetchNotifications()
+  } catch (error) {
+    notificationError.value =
+      error instanceof Error ? error.message : 'Kunne ikke hente notifikationer.'
+  } finally {
+    notificationsLoading.value = false
+  }
+}
+
 const closeAvatarMenu = () => (isAvatarMenuOpen.value = false)
-const toggleAvatarMenu = () => (isAvatarMenuOpen.value = !isAvatarMenuOpen.value)
+const closeNotificationMenu = () => (isNotificationMenuOpen.value = false)
+const toggleAvatarMenu = () => {
+  isAvatarMenuOpen.value = !isAvatarMenuOpen.value
+  if (isAvatarMenuOpen.value) closeNotificationMenu()
+}
+const toggleNotificationMenu = () => {
+  isNotificationMenuOpen.value = !isNotificationMenuOpen.value
+  if (isNotificationMenuOpen.value) {
+    closeAvatarMenu()
+    void loadNotifications()
+  }
+}
+
+async function markRead(id: string): Promise<void> {
+  const notification = notifications.value.find((entry) => entry._id === id)
+  if (!notification || notification.readAt) return
+
+  try {
+    const updated = await markNotificationRead(id)
+    notifications.value = notifications.value.map((entry) => (entry._id === id ? updated : entry))
+  } catch (error) {
+    notificationError.value =
+      error instanceof Error ? error.message : 'Kunne ikke opdatere notifikationen.'
+  }
+}
+
+async function markAllRead(): Promise<void> {
+  try {
+    notifications.value = await markAllNotificationsRead()
+  } catch (error) {
+    notificationError.value =
+      error instanceof Error ? error.message : 'Kunne ikke opdatere notifikationer.'
+  }
+}
+
+function formatNotificationDate(value: string): string {
+  return new Date(value).toLocaleString('da-DK', {
+    day: '2-digit',
+    month: '2-digit',
+    hour: '2-digit',
+    minute: '2-digit',
+  })
+}
 
 const handleLogout = async () => {
   closeAvatarMenu()
+  closeNotificationMenu()
+  notifications.value = []
   logout()
   await router.push('/')
 }
 
 const handleDocumentClick = (event: MouseEvent) => {
-  if (!isAvatarMenuOpen.value) return
+  if (!isAvatarMenuOpen.value && !isNotificationMenuOpen.value) return
 
   const navElement = navRef.value instanceof HTMLElement ? navRef.value : navRef.value?.$el
 
   if (navElement && event.target instanceof Node && !navElement.contains(event.target)) {
     closeAvatarMenu()
+    closeNotificationMenu()
   }
 }
+
+watch(isAuthenticated, (authenticated) => {
+  if (authenticated) {
+    void loadNotifications()
+    return
+  }
+
+  notifications.value = []
+  closeNotificationMenu()
+})
 
 onMounted(() => {
   document.addEventListener('click', handleDocumentClick)
 
   if (isAuthenticated.value && !isAdmin.value) {
     void checkSession()
+  }
+  if (isAuthenticated.value) {
+    void loadNotifications()
   }
 })
 onBeforeUnmount(() => document.removeEventListener('click', handleDocumentClick))
