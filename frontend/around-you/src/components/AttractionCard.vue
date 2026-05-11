@@ -5,7 +5,7 @@
     class="group rounded-xl overflow-hidden shadow-sm border border-gray-100 cursor-pointer hover:shadow-md transition-shadow"
   >
     <img
-      :src="card.image"
+      :src="resolvedImage"
       :alt="card.name"
       class="w-full h-40 object-cover transition-transform duration-300 group-hover:scale-105"
     />
@@ -46,6 +46,7 @@
 <script setup lang="ts">
 import { computed, ref, watch } from 'vue'
 import { RouterLink } from 'vue-router'
+import { resolveApiAssetUrl } from '@/constants/config'
 import { getReviewsByTarget } from '@/api/reviews.api'
 import type { ExperienceCard } from '@/types/experience-card'
 
@@ -53,6 +54,7 @@ const props = defineProps<{
   card: ExperienceCard
 }>()
 
+const resolvedImage = computed(() => resolveApiAssetUrl(props.card.image))
 const reviewAverage = ref<number | null>(null)
 const reviewCount = ref<number | null>(null)
 

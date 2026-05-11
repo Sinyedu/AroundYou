@@ -4,7 +4,7 @@
   >
     <div
       class="h-40 rounded-2xl bg-cover bg-center"
-      :style="{ backgroundImage: `url(${result.image})` }"
+      :style="{ backgroundImage: `url(${resolvedImage})` }"
     />
     <div class="mt-4 space-y-2">
       <div
@@ -21,9 +21,13 @@
 </template>
 
 <script setup lang="ts">
+import { computed } from 'vue'
+import { resolveApiAssetUrl } from '@/constants/config'
 import type { SearchResult } from '@/types/search-result'
 
-defineProps<{
+const props = defineProps<{
   result: SearchResult
 }>()
+
+const resolvedImage = computed(() => resolveApiAssetUrl(props.result.image))
 </script>

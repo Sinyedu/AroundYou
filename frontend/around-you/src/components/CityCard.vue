@@ -3,7 +3,7 @@
         :is="card.href ? RouterLink : 'div'"
         :to="card.href"
         class="group rounded-xl overflow-hidden shadow-sm border border-gray-100 cursor-pointer hover:shadow-md transition-shadow bg-[#C1D2DE]">
-        <img :src="card.image" :alt="card.name"
+        <img :src="resolvedImage" :alt="card.name"
             class="w-full h-40 object-cover transition-transform duration-300 group-hover:scale-105" />
         <div class="p-3">
             <p class="text-sm font-semibold text-[#094b7b]">{{ card.name }}</p>
@@ -32,12 +32,14 @@
 import { computed, ref, watch } from 'vue'
 import { getReviewsByTarget } from '@/api/reviews.api'
 import { RouterLink } from 'vue-router'
+import { resolveApiAssetUrl } from '@/constants/config'
 import type { ExperienceCard } from '@/types/attractions'
 
 const props = defineProps<{
     card: ExperienceCard
 }>()
 
+const resolvedImage = computed(() => resolveApiAssetUrl(props.card.image))
 const reviewAverage = ref<number | null>(null)
 const reviewCount = ref<number | null>(null)
 
