@@ -22,7 +22,7 @@ export const getCardComponentClass = (
   return [
     'group cursor-pointer overflow-hidden shadow-sm transition-shadow hover:shadow-md',
     variant === 'search'
-      ? `h-full rounded-2xl border-2 border-[#C1D2DE] ${surfaceClass}`
+      ? `flex h-full flex-col rounded-xl border border-gray-100 ${surfaceClass}`
       : `rounded-xl border border-gray-100 ${surfaceClass}`,
   ].join(' ')
 }

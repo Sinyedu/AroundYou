@@ -1,6 +1,6 @@
 <template>
   <component :is="card.href ? RouterLink : 'div'" :to="card.href" :class="cardClass">
-    <div class="h-40 w-full bg-[#C1D2DE]/35">
+    <div class="h-40 w-full shrink-0 bg-[#C1D2DE]/35">
       <img
         v-if="card.image && !imageFailed"
         :src="card.image"
