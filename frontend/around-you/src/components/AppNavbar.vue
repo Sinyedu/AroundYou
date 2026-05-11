@@ -48,8 +48,8 @@
               @click="toggleAvatarMenu"
             >
               <img
-                v-if="userAvatar"
-                :src="userAvatar"
+                v-if="displayUserAvatar"
+                :src="displayUserAvatar"
                 :alt="`${displayUserName} avatar`"
                 class="h-full w-full object-cover"
               />
@@ -75,14 +75,6 @@
                 @click="closeAvatarMenu"
               >
                 Profil
-              </RouterLink>
-              <RouterLink
-                :to="{ name: 'settings' }"
-                class="block px-5 py-3 text-sm text-slate-700 transition hover:bg-[#C1D2DE] hover:text-[#094b7b]"
-                role="menuitem"
-                @click="closeAvatarMenu"
-              >
-                Indstillinger
               </RouterLink>
               <button
                 type="button"
@@ -131,6 +123,7 @@ const { avatarInitials, checkSession, isAdmin, isAuthenticated, logout, userAvat
   useAuth()
 
 const displayUserName = computed(() => userName.value || 'Guest')
+const displayUserAvatar = computed(() => userAvatar.value?.trim() || '')
 
 const showAdminLink = computed(() => {
   return isAuthenticated.value && isAdmin.value
