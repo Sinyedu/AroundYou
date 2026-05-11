@@ -41,9 +41,7 @@
                 <div ref="resultsGrid" class="grid gap-4 grid-cols-2 xl:grid-cols-2">
                   <template v-for="item in paginatedResults" :key="item.id">
                     <div :data-result-id="item.id" :class="resultCardClass(item.id)">
-                      <CityCard v-if="item.type === 'city'" :card="toSearchResultCard(item)" />
-
-                      <AttractionCard v-else :card="toSearchResultCard(item)" />
+                      <SearchResultCard :result="item" />
                     </div>
                   </template>
                 </div>
@@ -110,10 +108,9 @@
   </main>
 </template>
 <script setup lang="ts">
-import AttractionCard from '@/components/AttractionCard.vue'
-import CityCard from '@/components/CityCard.vue'
 import LocationMap from '@/components/LocationMap.vue'
 import SearchFilter from '@/components/SearchFilter.vue'
+import SearchResultCard from '@/components/SearchResultCard.vue'
 import { useSearchView } from '@/composables/search/useSearchView'
 
 const {
@@ -133,7 +130,6 @@ const {
   resultsGrid,
   selectedCityCenter,
   selectedResultId,
-  toSearchResultCard,
   totalPages,
 } = useSearchView()
 </script>

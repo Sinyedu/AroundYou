@@ -15,16 +15,16 @@
       {{ emptyText }}
     </p>
 
-    <div v-if="showCards" class="grid grid-cols-2 lg:grid-cols-4 gap-4">
-      <AttractionCard v-for="card in cards" :key="card.id" :card="card" />
+    <div v-if="showCards" class="grid grid-cols-4 gap-4">
+      <CardComponent v-for="card in cards" :key="card.id" :card="card" />
     </div>
   </section>
 </template>
 
 <script setup lang="ts">
 import { computed } from 'vue'
-import AttractionCard from '@/components/AttractionCard.vue'
-import type { ExperienceCard } from '@/types/experience-card'
+import CardComponent from '@/components/CardComponent.vue'
+import type { ExperienceCard as ExperienceCardData } from '@/types/experience-card'
 
 const props = withDefaults(
   defineProps<{
@@ -32,7 +32,7 @@ const props = withDefaults(
     description: string
     loadingText: string
     emptyText: string
-    cards: ExperienceCard[]
+    cards: ExperienceCardData[]
     loading: boolean
     error: string | null
     titleClass?: string
