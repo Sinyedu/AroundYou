@@ -1,13 +1,7 @@
 <template>
-    <component
-        :is="card.href ? RouterLink : 'div'"
-        :to="card.href"
-        :class="cardClass">
+    <component :is="card.href ? RouterLink : 'div'" :to="card.href" :class="cardClass">
         <div class="h-40 w-full bg-[#C1D2DE]/35">
-            <img
-                v-if="card.image && !imageFailed"
-                :src="card.image"
-                :alt="card.name"
+            <img v-if="card.image && !imageFailed" :src="card.image" :alt="card.name"
                 class="h-full w-full object-cover transition-transform duration-300 group-hover:scale-105"
                 @error="imageFailed = true" />
             <div v-else class="flex h-full items-center justify-center px-4 text-center">
@@ -39,6 +33,7 @@
 
 <script setup lang="ts">
 import { computed, ref, watch } from 'vue'
+import { getReviewsByTarget } from '@/api/reviews.api'
 import { RouterLink } from 'vue-router'
 import type { ExperienceCard } from '@/types/attractions'
 
@@ -56,14 +51,35 @@ const cardClass = computed(() =>
     ].join(' '),
 )
 
-const displayRating = computed(() => props.card.rating)
-const displayReviewsCount = computed(() => props.card.reviews)
 const imageFailed = ref(false)
+const reviewAverage = ref<number | null>(null)
+const reviewCount = ref<number | null>(null)
+
+const displayRating = computed(() => reviewAverage.value ?? props.card.rating)
+const displayReviewsCount = computed(() => reviewCount.value ?? props.card.reviews)
 
 watch(
     () => props.card.image,
     () => {
         imageFailed.value = false
     },
+)
+
+watch(
+    () => props.card.id,
+    async (targetId) => {
+        try {
+            const reviews = await getReviewsByTarget(targetId)
+            reviewCount.value = reviews.length
+            reviewAverage.value =
+                reviews.length > 0
+                    ? reviews.reduce((sum, review) => sum + review.rating, 0) / reviews.length
+                    : null
+        } catch {
+            reviewCount.value = null
+            reviewAverage.value = null
+        }
+    },
+    { immediate: true },
 )
 </script>

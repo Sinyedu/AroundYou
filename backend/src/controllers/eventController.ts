@@ -1,5 +1,10 @@
 import { Request, Response } from "express";
-import { getRouteParam, sendCreateError, visibleFilter } from "./controllerUtils";
+import {
+  getRouteParam,
+  isValidationError,
+  sendCreateError,
+  visibleFilter,
+} from "./controllerUtils";
 import {
   createEventRecord,
   findEventById,
@@ -85,6 +90,11 @@ export async function updateEventById(
     });
   } catch (err) {
     console.error("Error updating event:", err);
+    if (isValidationError(err)) {
+      res.status(400).json({ message: err.message });
+      return;
+    }
+
     res.status(500).json({
       message: "Error updating event",
     });

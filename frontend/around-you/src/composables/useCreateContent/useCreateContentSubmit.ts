@@ -15,6 +15,12 @@ import type {
   CreateEventForm,
 } from '@/types/content/useCreateContent'
 import { compressImageFile } from '@/utils/imageCompressor'
+import {
+  normalizeDateRange,
+  normalizeNonNegativeNumber,
+  normalizeStringArray,
+  normalizeText,
+} from '@/utils/validators'
 
 const splitList = (value: string) =>
   value
@@ -100,6 +106,7 @@ export const useCreateContentSubmit = (
 
     const token = getAuthToken()
     const gpsPosition = await resolveGpsPosition(eventForm.address, eventForm.city)
+    const dates = normalizeDateRange(eventForm.startDate, eventForm.endDate)
 
     isUploadingImage.value = true
 
@@ -111,18 +118,23 @@ export const useCreateContentSubmit = (
     )
 
     const payload: EventPayload = {
-      name: eventForm.name,
-      description: eventForm.description,
+      name: normalizeText(eventForm.name, { field: 'Navn', required: true, min: 3, max: 255 }),
+      description: normalizeText(eventForm.description, {
+        field: 'Beskrivelse',
+        required: true,
+        min: 3,
+        max: 1024,
+      }),
       heroImage,
       imageArray,
-      price: Number(eventForm.price) || 0,
-      link: eventForm.link,
+      price: normalizeNonNegativeNumber(eventForm.price, 'Pris'),
+      link: normalizeText(eventForm.link, { field: 'Link', required: true, max: 2048 }),
       gpsPosition,
-      slugArray: eventForm.slugArray,
+      slugArray: normalizeStringArray(eventForm.slugArray),
       isAnnual: eventForm.isAnnual,
-      startDate: eventForm.startDate,
-      endDate: eventForm.endDate,
-      openingHours: splitList(eventForm.openingHoursText),
+      startDate: dates.startDate,
+      endDate: dates.endDate,
+      openingHours: normalizeStringArray(splitList(eventForm.openingHoursText)),
     }
 
     return submitContentByRole('event', payload, token)
@@ -146,15 +158,25 @@ export const useCreateContentSubmit = (
     )
 
     const payload: AttractionPayload = {
-      name: attractionForm.name,
-      description: attractionForm.description,
+      name: normalizeText(attractionForm.name, {
+        field: 'Navn',
+        required: true,
+        min: 3,
+        max: 255,
+      }),
+      description: normalizeText(attractionForm.description, {
+        field: 'Beskrivelse',
+        required: true,
+        min: 3,
+        max: 1024,
+      }),
       heroImage,
       imageArray,
-      price: Number(attractionForm.price) || 0,
-      link: attractionForm.link,
+      price: normalizeNonNegativeNumber(attractionForm.price, 'Pris'),
+      link: normalizeText(attractionForm.link, { field: 'Link', required: true, max: 2048 }),
       gpsPosition,
-      slugArray: attractionForm.slugArray,
-      openingHours: splitList(attractionForm.openingHoursText),
+      slugArray: normalizeStringArray(attractionForm.slugArray),
+      openingHours: normalizeStringArray(splitList(attractionForm.openingHoursText)),
     }
 
     return submitContentByRole('attraction', payload, token)
@@ -176,16 +198,26 @@ export const useCreateContentSubmit = (
     const heroImage = await uploadImageFile(compressedHeroImage, token)
 
     const payload: CityPayload = {
-      name: cityForm.name,
-      tagLine: cityForm.tagLine.trim(),
-      description: cityForm.description,
+      name: normalizeText(cityForm.name, { field: 'Navn', required: true, min: 3, max: 255 }),
+      tagLine: normalizeText(cityForm.tagLine, {
+        field: 'Byens tagline',
+        required: true,
+        min: 20,
+        max: 100,
+      }),
+      description: normalizeText(cityForm.description, {
+        field: 'Beskrivelse',
+        required: true,
+        min: 3,
+        max: 1024,
+      }),
       heroImage,
-      commune: cityForm.commune,
-      region: cityForm.region,
-      country: cityForm.country,
+      commune: normalizeText(cityForm.commune, { field: 'Kommune', required: true, max: 255 }),
+      region: normalizeText(cityForm.region, { field: 'Region', required: true, max: 255 }),
+      country: normalizeText(cityForm.country, { field: 'Land', required: true, max: 255 }),
       gpsPosition,
-      population: Number(cityForm.population) || 0,
-      visitorCenter: cityForm.visitorCenter,
+      population: normalizeNonNegativeNumber(cityForm.population, 'Indbyggertal', 100_000_000),
+      visitorCenter: normalizeText(cityForm.visitorCenter, { field: 'Besøgscenter', max: 255 }),
     }
 
     return submitContentByRole('city', payload, token)

@@ -1,9 +1,10 @@
 import { AttractionModel } from "../models/attractionModel";
 import { buildDynamicQuery, SearchBody } from "../utils/dynamicQueryBuilder";
+import { sanitizeContentPayload, sanitizeContentUpdatePayload } from "../utils/contentPayload";
 import { getHideUpdate, getRestoreUpdate } from "../utils/resourceUtils";
 
 export async function createAttractionRecord(payload: Record<string, unknown>) {
-  const attraction = new AttractionModel(payload);
+  const attraction = new AttractionModel(sanitizeContentPayload("attraction", payload));
   return attraction.save();
 }
 
@@ -21,8 +22,9 @@ export function findAttractionById(id: string, visibilityFilter: Record<string, 
 }
 
 export function updateAttractionRecord(id: string, payload: Record<string, unknown>) {
-  return AttractionModel.findByIdAndUpdate(id, payload, {
+  return AttractionModel.findByIdAndUpdate(id, sanitizeContentUpdatePayload("attraction", payload), {
     new: true,
+    runValidators: true,
   });
 }
 

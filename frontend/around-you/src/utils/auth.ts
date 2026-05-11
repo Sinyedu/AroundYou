@@ -38,5 +38,5 @@ export function getUserInitials(userName: string): string {
   const clean = userName.trim()
   if (!clean) return 'AY'
 
-  return clean.split(/\s+/).slice(0, 2).join('')
+  return clean.slice(0, 2).toUpperCase()
 }

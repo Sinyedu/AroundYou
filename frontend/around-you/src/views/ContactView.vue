@@ -1,7 +1,14 @@
 <template>
-  <main class="min-h-screen bg-[#eef4f7] px-4 py-8">
-    <section class="mx-auto grid max-w-6xl gap-6">
-      <header class="rounded-lg border border-slate-200 bg-white p-6">
+  <main
+    class="min-h-screen relative bg-cover bg-center bg-no-repeat py-[50px]"
+    style="background-image: url('/danmarkskort_1800x1280.jpg')"
+  >
+    <div class="pointer-events-none absolute inset-0 bg-[#e8c7aa]/55"></div>
+
+    <div class="relative z-10 mx-[50px] bg-white shadow-2xl rounded-xl overflow-hidden">
+      <section class="px-8 py-10">
+        <div class="mx-auto grid gap-6">
+          <header class="rounded-lg border border-slate-200 bg-white p-6">
         <p class="text-xs font-bold uppercase tracking-[0.18em] text-[#de5826]">Kontakt</p>
         <div class="mt-3 grid gap-3 lg:grid-cols-[1fr_auto] lg:items-end">
           <div>
@@ -145,7 +152,9 @@
           </article>
         </section>
       </div>
-    </section>
+        </div>
+      </section>
+    </div>
   </main>
 </template>
 

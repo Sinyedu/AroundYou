@@ -18,6 +18,8 @@ describe('isAllowedImageType', () => {
     ['photo.gif', 'image/gif'],
     ['photo.svg', 'image/svg+xml'],
     ['photo.png', 'image/gif'],
+    ['photo.png', 'image/jpeg'],
+    ['photo.webp', 'image/png'],
   ])('rejects %s with %s', (name, type) => {
     expect(isAllowedImageType(file(name, type))).toBe(false)
   })
