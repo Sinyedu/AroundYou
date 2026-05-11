@@ -4,10 +4,12 @@ import {
   createReview,
   getReviewsByTarget,
   likeReview,
+  reportReview,
   updateReview,
   type ReviewItem,
   type ReviewTargetType,
 } from '@/api/reviews.api'
+import { normalizeRating, normalizeText } from '@/utils/validators'
 
 export type ReviewFormState = {
   title: string
@@ -31,9 +33,8 @@ export type ReportFormState = {
 export function useReviewSection(options: {
   targetId: Ref<string>
   targetType: Ref<ReviewTargetType>
-  userName: Ref<string>
 }) {
-  const { targetId, targetType, userName } = options
+  const { targetId, targetType } = options
 
   const reviews = ref<ReviewItem[]>([])
   const loading = ref(false)
@@ -54,6 +55,7 @@ export function useReviewSection(options: {
   const reportTargetReview = ref<ReviewItem | null>(null)
   const reportForm = ref<ReportFormState>({ reason: '', details: '' })
   const reportError = ref<string | null>(null)
+  const reportSubmitting = ref(false)
   const reportedReviewIds = ref<string[]>([])
 
   const averageRating = computed(() => {
@@ -96,12 +98,33 @@ export function useReviewSection(options: {
     reportError.value = null
   }
 
-  function submitReport() {
-    if (!reportTargetReview.value) return
+  async function submitReport() {
+    if (!reportTargetReview.value || reportSubmitting.value) return
     if (!reportForm.value.reason) {
       reportError.value = 'Vælg en årsag for anmeldelsen.'
       return
     }
+    const review = reportTargetReview.value
+    const reason = [reportForm.value.reason, reportForm.value.details]
+      .map((value) => value.trim())
+      .filter(Boolean)
+      .join(': ')
+
+    try {
+      reportSubmitting.value = true
+      const updated = await reportReview(
+        review._id,
+        normalizeText(reason, { field: 'Årsag', required: true, max: 500 }),
+      )
+      const index = reviews.value.findIndex((entry) => entry._id === review._id)
+      if (index !== -1) reviews.value[index] = updated
+    } catch (err) {
+      reportError.value = err instanceof Error ? err.message : 'Kunne ikke anmelde review.'
+      return
+    } finally {
+      reportSubmitting.value = false
+    }
+
     if (!reportedReviewIds.value.includes(reportTargetReview.value._id)) {
       reportedReviewIds.value.push(reportTargetReview.value._id)
     }
@@ -113,10 +136,20 @@ export function useReviewSection(options: {
     editError.value = null
     try {
       const updated = await updateReview(reviewId, {
-        title: editForm.value.title,
-        description: editForm.value.description,
-        rating: editForm.value.rating,
-        image: editForm.value.image || undefined,
+        title: normalizeText(editForm.value.title, {
+          field: 'Titel',
+          required: true,
+          min: 3,
+          max: 255,
+        }),
+        description: normalizeText(editForm.value.description, {
+          field: 'Beskrivelse',
+          required: true,
+          min: 6,
+          max: 1024,
+        }),
+        rating: normalizeRating(editForm.value.rating),
+        image: normalizeText(editForm.value.image, { field: 'Billede', max: 2048 }) || undefined,
       })
       const index = reviews.value.findIndex((review) => review._id === reviewId)
       if (index !== -1) reviews.value[index] = updated
@@ -148,11 +181,20 @@ export function useReviewSection(options: {
       const created = await createReview({
         targetId: targetId.value,
         targetType: targetType.value,
-        author: userName.value,
-        title: form.value.title,
-        description: form.value.description,
-        rating: form.value.rating,
-        image: form.value.image || undefined,
+        title: normalizeText(form.value.title, {
+          field: 'Titel',
+          required: true,
+          min: 3,
+          max: 255,
+        }),
+        description: normalizeText(form.value.description, {
+          field: 'Beskrivelse',
+          required: true,
+          min: 6,
+          max: 1024,
+        }),
+        rating: normalizeRating(form.value.rating),
+        image: normalizeText(form.value.image, { field: 'Billede', max: 2048 }) || undefined,
       })
       reviews.value.unshift(created)
       form.value = { title: '', description: '', rating: 0, image: '' }
@@ -173,7 +215,7 @@ export function useReviewSection(options: {
     if (!userId || likeLoading.value) return
     likeLoading.value = review._id
     try {
-      const updated = await likeReview(review._id, userId)
+      const updated = await likeReview(review._id)
       const index = reviews.value.findIndex((entry) => entry._id === review._id)
       if (index !== -1) reviews.value[index] = updated
     } finally {
@@ -202,6 +244,7 @@ export function useReviewSection(options: {
     reportTargetReview,
     reportForm,
     reportError,
+    reportSubmitting,
     startEdit,
     cancelEdit,
     isReviewReported,

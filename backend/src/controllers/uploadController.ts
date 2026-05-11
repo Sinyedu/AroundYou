@@ -1,33 +1,53 @@
-import { Request, Response } from "express";
+import { NextFunction, Request, Response } from "express";
 import type { FileFilterCallback } from "multer";
 import multer from "multer";
 import mongoose from "mongoose";
 import { GridFSBucket, ObjectId } from "mongodb";
+
+const MAX_IMAGE_SIZE_BYTES = 5 * 1024 * 1024;
+const allowedMimeTypes = new Set([
+  "image/jpeg",
+  "image/jpg",
+  "image/png",
+  "image/webp",
+]);
+const allowedExtensions = new Set(["png", "jpg", "jpeg", "webp"]);
 
 const getFileExtension = (fileName: string): string => {
   const extension = fileName.split(".").pop();
   return extension ? extension.toLowerCase() : "";
 };
 
+function extensionMatchesMimeType(extension: string, mimeType: string): boolean {
+  if (mimeType === "image/png") return extension === "png";
+  if (mimeType === "image/webp") return extension === "webp";
+  if (mimeType === "image/jpeg" || mimeType === "image/jpg") {
+    return extension === "jpg" || extension === "jpeg";
+  }
+
+  return false;
+}
+
+export function isAllowedUploadImageType(fileName: string, mimeType: string): boolean {
+  const extension = getFileExtension(fileName);
+
+  return (
+    allowedMimeTypes.has(mimeType) &&
+    allowedExtensions.has(extension) &&
+    extensionMatchesMimeType(extension, mimeType)
+  );
+}
+
 const imageUpload = multer({
   storage: multer.memoryStorage(),
-  limits: { fileSize: 5 * 1024 * 1024 },
+  limits: { fileSize: MAX_IMAGE_SIZE_BYTES, files: 1 },
   fileFilter: (
     _req: Request,
     file: Express.Multer.File,
     callback: FileFilterCallback,
   ) => {
-    const allowedMimeTypes = new Set([
-      "image/jpeg",
-      "image/jpg",
-      "image/png",
-      "image/webp",
-    ]);
-    const allowedExtensions = new Set(["png", "jpg", "jpeg", "webp"]);
-
     if (
-      !allowedMimeTypes.has(file.mimetype) ||
-      !allowedExtensions.has(getFileExtension(file.originalname))
+      !isAllowedUploadImageType(file.originalname, file.mimetype)
     ) {
       callback(new Error("Kun PNG-, JPG- og WEBP-billeder er tilladt"));
       return;
@@ -37,7 +57,30 @@ const imageUpload = multer({
   },
 });
 
-export const uploadSingleImage = imageUpload.single("image");
+export function uploadSingleImage(
+  req: Request,
+  res: Response,
+  next: NextFunction,
+): void {
+  imageUpload.single("image")(req, res, (error: unknown) => {
+    if (!error) {
+      next();
+      return;
+    }
+
+    if (error instanceof multer.MulterError && error.code === "LIMIT_FILE_SIZE") {
+      res.status(400).json({ message: "Billedet må højst være 5 MB" });
+      return;
+    }
+
+    const message =
+      error instanceof Error
+        ? error.message
+        : "Billedet kunne ikke uploades";
+
+    res.status(400).json({ message });
+  });
+}
 
 const getImagesBucket = () => {
   if (!mongoose.connection.db) {
@@ -115,6 +158,7 @@ export async function getUploadedImage(
       res.setHeader("Content-Type", metadata.contentType);
     }
 
+    res.setHeader("X-Content-Type-Options", "nosniff");
     bucket.openDownloadStream(imageId).pipe(res);
   } catch (error) {
     console.error("Get uploaded image error:", error);

@@ -20,7 +20,6 @@ export interface ReviewItem {
 export interface CreateReviewPayload {
   targetId: string
   targetType: ReviewTargetType
-  author: string
   title: string
   description: string
   rating: number
@@ -54,7 +53,7 @@ export async function createReview(payload: CreateReviewPayload): Promise<Review
   return res.json() as Promise<ReviewItem>
 }
 
-export async function likeReview(reviewId: string, userId: string): Promise<ReviewItem> {
+export async function likeReview(reviewId: string): Promise<ReviewItem> {
   const token = getToken()
   const res = await fetch(`${API_BASE_URL}/reviews/${encodeURIComponent(reviewId)}/like`, {
     method: 'POST',
@@ -62,7 +61,6 @@ export async function likeReview(reviewId: string, userId: string): Promise<Revi
       'Content-Type': 'application/json',
       ...(token ? { Authorization: `Bearer ${token}` } : {}),
     },
-    body: JSON.stringify({ userId }),
   })
   if (!res.ok) throw new Error('Kunne ikke like review')
   return res.json() as Promise<ReviewItem>
