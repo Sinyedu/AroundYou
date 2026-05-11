@@ -4,11 +4,18 @@
     :to="card.href"
     :class="cardClass"
   >
-    <img
-      :src="card.image"
-      :alt="card.name"
-      class="w-full h-40 object-cover transition-transform duration-300 group-hover:scale-105"
-    />
+    <div class="h-40 w-full bg-[#C1D2DE]/35">
+      <img
+        v-if="card.image && !imageFailed"
+        :src="card.image"
+        :alt="card.name"
+        class="h-full w-full object-cover transition-transform duration-300 group-hover:scale-105"
+        @error="imageFailed = true"
+      />
+      <div v-else class="flex h-full items-center justify-center px-4 text-center">
+        <span class="text-sm font-semibold text-[#094b7b]/70">{{ card.name }}</span>
+      </div>
+    </div>
     <div class="p-3">
       <p class="text-sm font-semibold text-[#094b7b]">{{ card.name }}</p>
       <p class="text-xs text-gray-500 mt-1 leading-relaxed line-clamp-3">{{ card.description }}</p>
@@ -44,7 +51,7 @@
 </template>
 
 <script setup lang="ts">
-import { computed } from 'vue'
+import { computed, ref, watch } from 'vue'
 import { RouterLink } from 'vue-router'
 import type { ExperienceCard } from '@/types/experience-card'
 
@@ -64,4 +71,12 @@ const cardClass = computed(() =>
 
 const displayRating = computed(() => props.card.rating)
 const displayReviewsCount = computed(() => props.card.reviews)
+const imageFailed = ref(false)
+
+watch(
+  () => props.card.image,
+  () => {
+    imageFailed.value = false
+  },
+)
 </script>
