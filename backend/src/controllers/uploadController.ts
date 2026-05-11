@@ -110,6 +110,16 @@ const saveImageToDatabase = async (file: Express.Multer.File) => {
   });
 };
 
+function getApiBaseUrl(req: Request): string {
+  const configuredApiBaseUrl = process.env.API_BASE_URL?.trim();
+
+  if (configuredApiBaseUrl) {
+    return configuredApiBaseUrl.replace(/\/$/, "");
+  }
+
+  return `${req.protocol}://${req.get("host")}/api`;
+}
+
 export async function uploadImage(req: Request, res: Response): Promise<void> {
   const uploadedFile = req.file;
 
@@ -120,7 +130,7 @@ export async function uploadImage(req: Request, res: Response): Promise<void> {
 
   try {
     const imageId = await saveImageToDatabase(uploadedFile);
-    const imageUrl = `${req.protocol}://${req.get("host")}/api/images/${imageId.toString()}`;
+    const imageUrl = `${getApiBaseUrl(req)}/images/${imageId.toString()}`;
 
     res.status(201).json({ imageUrl });
   } catch (error) {

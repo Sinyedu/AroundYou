@@ -48,6 +48,7 @@
 
 <script setup lang="ts">
 import { computed, onBeforeUnmount, ref, watch } from 'vue'
+import { resolveApiAssetUrl } from '@/constants/config'
 
 const props = defineProps<{
 	images: string[]
@@ -63,7 +64,9 @@ const noTransition = ref(false)
 const isAnimating = ref(false)
 let carouselInterval: ReturnType<typeof setInterval> | null = null
 
-const carouselImages = computed(() => props.images.filter((img) => !!img.trim()))
+const carouselImages = computed(() =>
+	props.images.map((img) => resolveApiAssetUrl(img)).filter((img) => !!img.trim()),
+)
 const hasCarousel = computed(() => carouselImages.value.length >= CAROUSEL_VISIBLE_COUNT)
 const canSlideCarousel = computed(() => carouselImages.value.length > CAROUSEL_VISIBLE_COUNT)
 

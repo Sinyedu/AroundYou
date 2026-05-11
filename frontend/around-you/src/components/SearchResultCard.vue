@@ -14,6 +14,16 @@
       />
       <div v-else class="flex h-full items-center justify-center px-4 text-center">
         <span class="text-sm font-semibold text-[#094b7b]/70">{{ result.title }}</span>
+    <div
+      class="h-40 rounded-2xl bg-cover bg-center"
+      :style="{ backgroundImage: `url(${resolvedImage})` }"
+    />
+    <div class="mt-4 space-y-2">
+      <div
+        class="flex items-center justify-between text-xs font-semibold uppercase tracking-wide text-slate-400"
+      >
+        <span>{{ result.type }}</span>
+        <span>{{ result.location }}</span>
       </div>
     </div>
 
@@ -46,6 +56,7 @@
 import { computed, ref } from 'vue'
 import { RouterLink } from 'vue-router'
 import type { SearchResult } from '@/types/search'
+import { resolveApiAssetUrl } from '@/constants/config'
 
 const props = defineProps<{
   result: SearchResult
@@ -62,4 +73,5 @@ const href = computed(() => {
 const visibleTags = computed(() =>
   [props.result.type, props.result.location, ...props.result.categories].filter(Boolean),
 )
+const resolvedImage = computed(() => resolveApiAssetUrl(props.result.image))
 </script>

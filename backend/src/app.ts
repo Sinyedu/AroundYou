@@ -11,6 +11,11 @@ dotenvFlow.config();
 
 const app: Application = express();
 
+const DEFAULT_CORS_ORIGINS = [
+  "http://localhost:5173",
+  "http://127.0.0.1:5173",
+];
+
 function getAllowedCorsOrigins(): string[] {
   const configuredOrigins = [
     process.env.FRONTEND_ORIGIN,
@@ -19,9 +24,7 @@ function getAllowedCorsOrigins(): string[] {
     .map((origin) => origin?.trim())
     .filter((origin): origin is string => Boolean(origin));
 
-  return configuredOrigins.length
-    ? configuredOrigins
-    : ["http://localhost:5173", "http://127.0.0.1:5173"];
+  return configuredOrigins.length ? configuredOrigins : DEFAULT_CORS_ORIGINS;
 }
 
 /**
