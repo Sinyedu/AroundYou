@@ -1,17 +1,32 @@
 <template>
   <section ref="filterRef" class="w-full">
-    <div class="rounded-full bg-[#C1D2DE] px-4 py-2 shadow-sm">
-      <div class="flex flex-wrap items-center gap-3">
+    <!-- Mobile toggle button -->
+    <button
+      type="button"
+      class="flex w-full items-center justify-between rounded-full bg-[#C1D2DE] px-5 py-3 text-sm font-semibold text-slate-700 shadow-sm lg:hidden"
+      @click="isMobileFilterOpen = !isMobileFilterOpen"
+    >
+      <span>Filtre</span>
+      <span class="text-xs">{{ isMobileFilterOpen ? '▲' : '▼' }}</span>
+    </button>
+
+    <div :class="['rounded-[28px] bg-[#C1D2DE] px-4 py-2 shadow-sm mt-2 lg:mt-0', isMobileFilterOpen ? 'block' : 'hidden lg:block']">
+      <div class="flex flex-col gap-3 lg:flex-row lg:flex-wrap lg:items-center lg:gap-3">
         <div class="relative flex min-w-[180px] flex-1 items-center">
-          <div class="flex w-full items-center justify-between rounded-full bg-transparent px-3 py-1.5 text-sm font-semibold text-slate-700 transition hover:bg-slate-100/70">
+          <div
+            class="flex w-full items-center justify-between rounded-full bg-transparent px-3 py-1.5 text-sm font-semibold text-slate-700 transition hover:bg-slate-100/70"
+            @click="toggleLocation"
+          >
             <input
               v-model="draft.location"
               type="text"
               placeholder="Lokation"
               class="w-full bg-transparent text-sm font-semibold text-slate-700 outline-none placeholder:text-slate-700"
+              @click.stop
               @focus="openLocation"
               @input="openLocation"
             />
+            <span class="ml-2 shrink-0 text-xs text-slate-600">{{ isLocationOpen ? '▲' : '▼' }}</span>
           </div>
 
           <div
@@ -32,15 +47,16 @@
           </div>
         </div>
 
-        <div class="hidden h-6 w-px bg-slate-300/70 sm:block" />
+        <div class="hidden h-6 w-px bg-slate-300/70 lg:block" />
 
         <div class="relative flex min-w-[200px] flex-1 items-center">
           <button
             type="button"
-            class="flex items-center gap-3 rounded-full bg-transparent px-3 py-1.5 text-sm font-semibold text-slate-700 transition hover:bg-slate-100/70"
+            class="flex w-full items-center justify-between gap-3 rounded-full bg-transparent px-3 py-1.5 text-sm font-semibold text-slate-700 transition hover:bg-slate-100/70"
             @click="toggleType"
           >
             <span>Event / Attraktion</span>
+            <span class="text-xs text-slate-600">{{ isTypeOpen ? '▲' : '▼' }}</span>
           </button>
 
           <div
@@ -75,7 +91,7 @@
           </div>
         </div>
 
-        <div class="hidden h-6 w-px bg-slate-300/70 sm:block" />
+        <div class="hidden h-6 w-px bg-slate-300/70 lg:block" />
 
         <div class="relative flex min-w-[140px] flex-1 items-center">
           <button
@@ -84,9 +100,12 @@
             @click="toggleDate"
           >
             <span class="min-w-[40px]">Dato</span>
-            <span class="text-sm text-slate-600">
-              {{ displayDate || "Vælg" }}
-            </span>
+            <div class="flex items-center gap-2">
+              <span class="text-sm text-slate-600">
+                {{ displayDate }}
+              </span>
+              <span class="text-xs text-slate-600">{{ isDateOpen ? '▲' : '▼' }}</span>
+            </div>
           </button>
 
           <div
@@ -131,19 +150,24 @@
           </div>
         </div>
 
-        <div class="hidden h-6 w-px bg-slate-300/70 sm:block" />
+        <div class="hidden h-6 w-px bg-slate-300/70 lg:block" />
 
         <div class="relative flex min-w-[200px] flex-1 items-center">
-          <div class="flex w-full items-center justify-between rounded-full bg-transparent px-3 py-1.5 text-sm font-semibold text-slate-700 transition hover:bg-slate-100/70">
+          <div
+            class="flex w-full items-center justify-between rounded-full bg-transparent px-3 py-1.5 text-sm font-semibold text-slate-700 transition hover:bg-slate-100/70"
+            @click="toggleCategories"
+          >
             <input
               v-model="categoryQuery"
               type="text"
               placeholder="Kategorier"
               class="w-full bg-transparent text-sm font-semibold text-slate-700 outline-none placeholder:text-slate-700"
+              @click.stop
               @focus="openCategories"
               @input="openCategories"
               @keydown.enter.prevent="addCategoryFromQuery"
             />
+            <span class="ml-2 shrink-0 text-xs text-slate-600">{{ isCategoriesOpen ? '▲' : '▼' }}</span>
           </div>
 
           <div
@@ -183,6 +207,7 @@
 </template>
 
 <script setup lang="ts">
+import { ref } from 'vue'
 import { useSearchFilter } from "@/composables/useSearchFilter"
 import type { SearchFilters } from "@/types/search"
 
@@ -221,13 +246,17 @@ const {
   removeCategory,
   selectDate,
   selectLocation,
+  toggleCategories,
   toggleCategory,
   toggleDate,
+  toggleLocation,
   toggleType,
   toggleTypeFilter,
   typeDotClass,
   weekdayLabels,
 } = useSearchFilter(props, emit)
+
+const isMobileFilterOpen = ref(false)
 </script>
 
 <style scoped>

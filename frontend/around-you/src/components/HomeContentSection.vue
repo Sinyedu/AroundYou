@@ -1,5 +1,5 @@
 <template>
-  <section class="px-8 py-12">
+  <section class="px-4 py-8 sm:px-8 sm:py-12">
     <h2 :class="titleClassName">{{ title }}</h2>
     <p :class="descriptionClassName">{{ description }}</p>
 
@@ -15,7 +15,7 @@
       {{ emptyText }}
     </p>
 
-    <div v-if="showCards" class="grid grid-cols-4 gap-4">
+    <div v-if="showCards" class="grid grid-cols-2 lg:grid-cols-4 gap-4">
       <AttractionCard v-for="card in cards" :key="card.id" :card="card" />
     </div>
   </section>
@@ -39,7 +39,7 @@ const props = withDefaults(
     descriptionClass?: string
   }>(),
   {
-    titleClass: 'text-3xl font-extrabold text-[#094b7b] text-center mb-2',
+    titleClass: 'text-xl sm:text-3xl font-extrabold text-[#094b7b] text-center mb-2',
     descriptionClass: 'text-sm text-gray-500 text-center max-w-3xl mx-auto mb-8',
   },
 )
