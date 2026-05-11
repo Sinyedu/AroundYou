@@ -14,10 +14,12 @@
       />
       <div v-else class="flex h-full items-center justify-center px-4 text-center">
         <span class="text-sm font-semibold text-[#094b7b]/70">{{ result.title }}</span>
+      </div>
+    </div>
     <div
       class="h-40 rounded-2xl bg-cover bg-center"
       :style="{ backgroundImage: `url(${resolvedImage})` }"
-    />
+    ></div>
     <div class="mt-4 space-y-2">
       <div
         class="flex items-center justify-between text-xs font-semibold uppercase tracking-wide text-slate-400"
