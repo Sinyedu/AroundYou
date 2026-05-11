@@ -1,11 +1,15 @@
 <template>
-  <main class="min-h-screen bg-[#C1D2DE] px-4 py-12">
-    <section class="mx-auto max-w-6xl overflow-hidden rounded-[32px] bg-white shadow-[0_24px_80px_rgba(9,75,123,0.16)]">
-      <div class="border-b border-[#094b7b]/10 bg-[#C1D2DE] px-8 py-8">
-        <p class="text-xs font-semibold uppercase tracking-[0.32em] text-[#de5826]">Around You</p>
-        <h1 class="mt-3 text-4xl font-black tracking-tight text-[#094b7b]">{{ title }}</h1>
-        <p class="mt-2 text-sm text-slate-700">{{ description }}</p>
-      </div>
+  <main
+    class="min-h-screen relative bg-cover bg-center bg-no-repeat py-[50px]"
+    style="background-image: url('/danmarkskort_1800x1280.jpg')"
+  >
+    <div class="pointer-events-none absolute inset-0 bg-[#e8c7aa]/55"></div>
+
+    <div class="relative z-10 mx-[50px] bg-white shadow-2xl rounded-xl overflow-hidden">
+      <section class="bg-[#094b7b] px-8 py-8">
+        <h1 class="text-4xl font-black tracking-tight text-white">Del din oplevelse med andre</h1>
+        <p class="mt-2 text-base text-white">Tilføj nye byer, events eller attraktioner og vær med til at inspirere andre brugere</p>
+      </section>
 
       <div class="px-8 py-10">
         <div class="mb-6 flex flex-wrap items-center gap-3">
@@ -138,18 +142,13 @@
           </button>
         </form>
       </div>
-    </section>
+    </div>
   </main>
 </template>
 
 <script setup lang="ts">
 import CategorySlugPicker from '@/components/CategorySlugPicker.vue'
 import { useCreateContent } from '@/composables/useCreateContent'
-
-const { title, description } = defineProps<{
-  title: string
-  description: string
-}>()
 
 const {
   selectedType,

@@ -1,7 +1,12 @@
 <template>
-  <main class="min-h-screen bg-slate-100">
-    <section class="mx-auto max-w-6xl px-6 py-10">
-      <div class="rounded-3xl bg-white p-6 shadow-xl shadow-slate-200/80">
+  <main
+    class="min-h-screen relative bg-cover bg-center bg-no-repeat py-[50px]"
+    style="background-image: url('/danmarkskort_1800x1280.jpg')"
+  >
+    <div class="pointer-events-none absolute inset-0 bg-[#e8c7aa]/55"></div>
+
+    <div class="relative z-10 mx-[50px] bg-white shadow-2xl rounded-xl overflow-hidden">
+      <section class="px-8 py-10">
         <div class="flex flex-col gap-8">
           <header class="flex flex-wrap items-center justify-between gap-6">
             <div class="space-y-2">
@@ -16,8 +21,8 @@
             :category-options="categoryOptions"
           />
 
-          <div class="grid gap-6 lg:grid-cols-[minmax(0,2fr)_minmax(0,1fr)]">
-            <div>
+          <div class="grid gap-6 lg:grid-cols-[calc(50vw-90px)_minmax(400px,1fr)] lg:justify-between">
+            <div class="max-w-[calc(50vw-90px)]">
               <div
                 v-if="isLoading"
                 class="rounded-2xl bg-white p-6 text-sm font-semibold text-slate-500"
@@ -93,15 +98,15 @@
                   :center-zoom="selectedCityCenter ? 13 : 11"
                   v-model:selected-marker-id="selectedResultId"
                   :markers="mapMarkers"
-                  map-class="h-[520px] w-full rounded-xl"
+                  map-class="h-[620px] w-full rounded-xl"
                   @marker-selected="handleMapMarkerSelected"
                 />
               </div>
             </aside>
           </div>
         </div>
-      </div>
-    </section>
+      </section>
+    </div>
   </main>
 </template>
 <script setup lang="ts">
