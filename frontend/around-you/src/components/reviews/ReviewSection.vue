@@ -59,6 +59,7 @@
       :review="reportTargetReview"
       :model-value="reportForm"
       :error="reportError"
+      :submitting="reportSubmitting"
       @close="closeReportModal"
       @submit="submitReport"
       @update:model-value="reportForm = $event"
@@ -104,6 +105,7 @@ const {
   reportTargetReview,
   reportForm,
   reportError,
+  reportSubmitting,
   startEdit,
   cancelEdit,
   isReviewReported,
@@ -117,7 +119,6 @@ const {
 } = useReviewSection({
   targetId: toRef(props, 'targetId'),
   targetType: toRef(props, 'targetType'),
-  userName,
 })
 
 watch(averageRating, (val) => emit('averageRating', val), { immediate: true })

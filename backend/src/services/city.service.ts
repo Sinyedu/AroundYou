@@ -1,9 +1,10 @@
 import { CityModel } from "../models/cityModel";
 import { buildDynamicQuery, SearchBody } from "../utils/dynamicQueryBuilder";
+import { sanitizeContentPayload, sanitizeContentUpdatePayload } from "../utils/contentPayload";
 import { getHideUpdate, getRestoreUpdate, normalizeSlug } from "../utils/resourceUtils";
 
 export async function createCityRecord(payload: Record<string, unknown>) {
-  const city = new CityModel(payload);
+  const city = new CityModel(sanitizeContentPayload("city", payload));
   return city.save();
 }
 
@@ -33,8 +34,9 @@ export async function findCityByName(
 }
 
 export function updateCityRecord(id: string, payload: Record<string, unknown>) {
-  return CityModel.findByIdAndUpdate(id, payload, {
+  return CityModel.findByIdAndUpdate(id, sanitizeContentUpdatePayload("city", payload), {
     new: true,
+    runValidators: true,
   });
 }
 

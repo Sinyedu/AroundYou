@@ -4,38 +4,7 @@ import { CityModel } from "../models/cityModel";
 import { ContentSuggestionModel } from "../models/contentSuggestionModel";
 import { EventModel } from "../models/eventModel";
 import { ContentSuggestionType } from "../interfaces/contentSuggestion";
-
-const REQUIRED_FIELDS: Record<ContentSuggestionType, string[]> = {
-  attraction: [
-    "name",
-    "description",
-    "heroImage",
-    "price",
-    "link",
-    "gpsPosition",
-  ],
-  event: [
-    "name",
-    "description",
-    "heroImage",
-    "price",
-    "link",
-    "gpsPosition",
-    "startDate",
-    "endDate",
-  ],
-  city: [
-    "name",
-    "tagLine",
-    "description",
-    "heroImage",
-    "commune",
-    "region",
-    "country",
-    "gpsPosition",
-    "population",
-  ],
-};
+import { sanitizeContentPayload } from "../utils/contentPayload";
 
 const SUGGESTION_MODELS = {
   attraction: AttractionModel,
@@ -53,21 +22,6 @@ function isRecord(value: unknown): value is Record<string, unknown> {
   return typeof value === "object" && value !== null && !Array.isArray(value);
 }
 
-function getMissingFields(
-  type: ContentSuggestionType,
-  payload: Record<string, unknown>,
-): string[] {
-  return REQUIRED_FIELDS[type].filter((field) => {
-    const value = payload[field];
-
-    if (typeof value === "string") {
-      return !value.trim();
-    }
-
-    return value === undefined || value === null || value === "";
-  });
-}
-
 export async function createContentSuggestion(
   req: Request,
   res: Response,
@@ -82,11 +36,13 @@ export async function createContentSuggestion(
     return;
   }
 
-  const missingFields = getMissingFields(type, payload);
+  let sanitizedPayload: Record<string, unknown>;
 
-  if (missingFields.length) {
+  try {
+    sanitizedPayload = sanitizeContentPayload(type, payload);
+  } catch (err) {
     res.status(400).json({
-      message: `Missing required fields: ${missingFields.join(", ")}`,
+      message: err instanceof Error ? err.message : "Invalid content suggestion",
     });
     return;
   }
@@ -102,7 +58,7 @@ export async function createContentSuggestion(
   try {
     const suggestion = new ContentSuggestionModel({
       type,
-      payload,
+      payload: sanitizedPayload,
       submittedBy,
       submittedByName,
     });
@@ -120,8 +76,11 @@ export async function getContentSuggestions(
   res: Response,
 ): Promise<void> {
   try {
-    const status =
+    const requestedStatus =
       typeof req.query.status === "string" ? req.query.status : "pending";
+    const status = ["pending", "approved", "rejected"].includes(requestedStatus)
+      ? requestedStatus
+      : "pending";
 
     const result = await ContentSuggestionModel.find({ status }).sort({
       createdAt: -1,
@@ -152,7 +111,9 @@ export async function approveContentSuggestion(
     }
 
     const Model = SUGGESTION_MODELS[suggestion.type];
-    const createdContent = await new Model(suggestion.payload).save();
+    const createdContent = await new Model(
+      sanitizeContentPayload(suggestion.type, suggestion.payload),
+    ).save();
 
     suggestion.status = "approved";
     suggestion.reviewedBy = req.user?.userID;

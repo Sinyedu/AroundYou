@@ -1,11 +1,59 @@
 import { Request, Response } from "express";
+import Joi from "joi";
 import { ReviewModel } from "../models/reviewModel";
 import { buildDynamicQuery } from "../utils/dynamicQueryBuilder";
-import { pickTrimmedStringFields } from "../utils/stringFields";
-import { getHideUpdate, getRestoreUpdate, visibleFilter } from "./controllerUtils";
+import {
+  getHideUpdate,
+  getRestoreUpdate,
+  isValidationError,
+  visibleFilter,
+} from "./controllerUtils";
 
 function canModifyReview(req: Request, author: string): boolean {
   return req.user?.role === "admin" || req.user?.userName === author;
+}
+
+const reviewBodySchema = Joi.object({
+  targetId: Joi.string().trim().min(1).max(255).required(),
+  targetType: Joi.string().valid("city", "event", "attraction").required(),
+  title: Joi.string().trim().min(3).max(255).required(),
+  description: Joi.string().trim().min(6).max(1024).required(),
+  rating: Joi.number().integer().min(1).max(5).required(),
+  image: Joi.string().trim().max(2048).allow("").default(""),
+});
+
+const reviewUpdateSchema = Joi.object({
+  targetId: Joi.any().forbidden(),
+  targetType: Joi.any().forbidden(),
+  title: Joi.string().trim().min(3).max(255),
+  description: Joi.string().trim().min(6).max(1024),
+  rating: Joi.number().integer().min(1).max(5),
+  image: Joi.string().trim().max(2048).allow(""),
+}).min(1);
+
+function validateReviewBody(
+  payload: Record<string, unknown>,
+  isUpdate = false,
+): Record<string, unknown> {
+  const { error, value } = (isUpdate ? reviewUpdateSchema : reviewBodySchema).validate(
+    payload,
+    {
+      abortEarly: false,
+      convert: true,
+      noDefaults: isUpdate,
+      stripUnknown: true,
+    },
+  );
+
+  if (error) {
+    const validationError = new Error(
+      error.details.map((detail) => detail.message).join(", "),
+    );
+    validationError.name = "ValidationError";
+    throw validationError;
+  }
+
+  return value as Record<string, unknown>;
 }
 
 /**
@@ -20,8 +68,10 @@ export async function createReview(req: Request, res: Response): Promise<void> {
       return;
     }
 
+    const reviewBody = validateReviewBody(req.body as Record<string, unknown>);
+
     const review = new ReviewModel({
-      ...req.body,
+      ...reviewBody,
       author,
     });
     const result = await review.save();
@@ -29,6 +79,11 @@ export async function createReview(req: Request, res: Response): Promise<void> {
     res.status(201).json(result);
   } catch (err) {
     console.error("Error creating review:", err);
+    if (isValidationError(err)) {
+      res.status(400).json({ message: err.message });
+      return;
+    }
+
     res.status(500).json({
       message: "Error creating review",
     });
@@ -104,14 +159,7 @@ export async function updateReviewById(
     }
 
     const updates = {
-      ...pickTrimmedStringFields(req.body as Record<string, unknown>, [
-        "title",
-        "description",
-        "image",
-      ]),
-      ...(typeof req.body.rating === "number"
-        ? { rating: req.body.rating }
-        : {}),
+      ...validateReviewBody(req.body as Record<string, unknown>, true),
       ...(typeof req.body.likes === "number" && req.user?.role === "admin"
         ? { likes: req.body.likes }
         : {}),
@@ -128,6 +176,11 @@ export async function updateReviewById(
     });
   } catch (err) {
     console.error("Error updating review:", err);
+    if (isValidationError(err)) {
+      res.status(400).json({ message: err.message });
+      return;
+    }
+
     res.status(500).json({
       message: "Error updating review",
     });
@@ -279,12 +332,7 @@ export async function getReviewsByTarget(req: Request, res: Response): Promise<v
 export async function editReview(req: Request, res: Response): Promise<void> {
   try {
     const { id } = req.params;
-    const { title, description, rating, image } = req.body as {
-      title?: string;
-      description?: string;
-      rating?: number;
-      image?: string;
-    };
+    const updates = validateReviewBody(req.body as Record<string, unknown>, true);
 
     const review = await ReviewModel.findOne({
       _id: id,
@@ -296,21 +344,28 @@ export async function editReview(req: Request, res: Response): Promise<void> {
       return;
     }
 
+    if (!canModifyReview(req, review.author)) {
+      res.status(403).json({ message: "Cannot modify another user's review" });
+      return;
+    }
+
     const updated = await ReviewModel.findByIdAndUpdate(
       id,
       {
-        ...(title !== undefined && { title }),
-        ...(description !== undefined && { description }),
-        ...(rating !== undefined && { rating }),
-        ...(image !== undefined && { image }),
+        ...updates,
         edited: true,
       },
-      { new: true },
+      { new: true, runValidators: true },
     );
 
     res.status(200).json(updated);
   } catch (err) {
     console.error("Error editing review:", err);
+    if (isValidationError(err)) {
+      res.status(400).json({ message: err.message });
+      return;
+    }
+
     res.status(500).json({ message: "Error updating review" });
   }
 }
@@ -321,7 +376,7 @@ export async function editReview(req: Request, res: Response): Promise<void> {
 export async function likeReview(req: Request, res: Response): Promise<void> {
   try {
     const { id } = req.params;
-    const userId = req.body.userId as string;
+    const userId = req.user?.userID;
 
     if (!userId) {
       res.status(400).json({ message: "userId is required" });
@@ -362,6 +417,7 @@ export async function reportReview(req: Request, res: Response): Promise<void> {
     const reportedBy = req.user?.userID;
     const reason =
       typeof req.body.reason === "string" ? req.body.reason.trim() : "";
+    const safeReason = reason.slice(0, 500);
 
     if (!reportedBy) {
       res.status(401).json({ message: "Unauthorized" });
@@ -389,7 +445,7 @@ export async function reportReview(req: Request, res: Response): Promise<void> {
 
     review.reports.push({
       reportedBy,
-      reason,
+      reason: safeReason,
       createdAt: new Date(),
     });
     review.reportCount = review.reports.length;

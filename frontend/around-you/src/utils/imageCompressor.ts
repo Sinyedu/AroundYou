@@ -75,8 +75,24 @@ const getFileExtensionFromName = (fileName: string) => {
   return fileName.split('.').pop()?.toLowerCase() ?? ''
 }
 
+const extensionMatchesMimeType = (extension: string, mimeType: string) => {
+  if (mimeType === 'image/png') return extension === 'png'
+  if (mimeType === 'image/webp') return extension === 'webp'
+  if (mimeType === 'image/jpeg' || mimeType === 'image/jpg') {
+    return extension === 'jpg' || extension === 'jpeg'
+  }
+
+  return false
+}
+
 export const isAllowedImageType = (file: File) => {
-  return ALLOWED_IMAGE_TYPES.has(file.type) && ALLOWED_IMAGE_EXTENSIONS.has(getFileExtensionFromName(file.name))
+  const extension = getFileExtensionFromName(file.name)
+
+  return (
+    ALLOWED_IMAGE_TYPES.has(file.type) &&
+    ALLOWED_IMAGE_EXTENSIONS.has(extension) &&
+    extensionMatchesMimeType(extension, file.type)
+  )
 }
 
 export async function compressImageFile(file: File, options: CompressImageOptions = {}) {
