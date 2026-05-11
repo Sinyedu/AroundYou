@@ -3,7 +3,7 @@
     <div
       class="relative h-[50vh] min-h-[340px] w-full overflow-hidden md:h-[62vh] md:min-h-[480px]"
     >
-      <img :src="heroImage" :alt="title" class="h-full w-full object-cover object-center" />
+      <img :src="resolvedHeroImage" :alt="title" class="h-full w-full object-cover object-center" />
       <div
         class="absolute inset-0 bg-gradient-to-b from-[#094b7b]/20 via-[#094b7b]/10 to-[#094b7b]/20"
       ></div>
@@ -36,11 +36,16 @@
 </template>
 
 <script setup lang="ts">
-defineProps<{
+import { computed } from 'vue'
+import { resolveApiAssetUrl } from '@/constants/config'
+
+const props = defineProps<{
   error: string | null
   heroImage: string
   loading: boolean
   loadingText: string
   title: string
 }>()
+
+const resolvedHeroImage = computed(() => resolveApiAssetUrl(props.heroImage))
 </script>

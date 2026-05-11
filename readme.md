@@ -10,12 +10,24 @@ Create `frontend/around-you/.env.development` if you need to override the defaul
 VITE_API_BASE_URL=
 ```
 
-The backend reads CORS settings from `FRONTEND_ORIGIN` or `CORS_ORIGINS`.
+The backend keeps shared local secrets and admin credentials in `backend/.env`:
+
+```sh
+PORT=
+DBHOST=
+TOKEN_SECRET=
+ADMIN_EMAIL=
+ADMIN_PASSWORD=
+ADMIN_USERNAME=
+ADMIN_FIRST_NAME=
+ADMIN_LAST_NAME=
+```
+
+The backend reads local development URLs from `backend/.env.development`.
 
 Create `backend/.env.development` if you need to override the default:
 
 ```sh
-PORT=
 API_BASE_URL=
 FRONTEND_ORIGIN=
 CORS_ORIGINS=
