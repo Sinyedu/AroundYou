@@ -77,9 +77,11 @@ export const paginateSearchItems = (
 }
 
 export const getSearchResultCardClass = (id: string, selectedResultId: string | null) => {
+  const baseClass = 'rounded-xl [&>*]:h-full'
+
   return selectedResultId === id
-    ? 'ring-4 ring-[#de5826]/70 shadow-[0_0_0_6px_rgba(222,88,38,0.12)]'
-    : 'ring-0'
+    ? `${baseClass} shadow-[0_0_0_2px_rgba(222,88,38,0.16),0_14px_28px_rgba(222,88,38,0.14)]`
+    : `${baseClass} ring-0`
 }
 
 export const toSearchResultCard = (item: SearchResult): ExperienceCard => {

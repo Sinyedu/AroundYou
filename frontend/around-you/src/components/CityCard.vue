@@ -2,7 +2,7 @@
     <component
         :is="card.href ? RouterLink : 'div'"
         :to="card.href"
-        class="group rounded-xl overflow-hidden shadow-sm border border-gray-100 cursor-pointer hover:shadow-md transition-shadow bg-[#C1D2DE]">
+        :class="cardClass">
         <img :src="card.image" :alt="card.name"
             class="w-full h-40 object-cover transition-transform duration-300 group-hover:scale-105" />
         <div class="p-3">
@@ -35,7 +35,17 @@ import type { ExperienceCard } from '@/types/attractions'
 
 const props = defineProps<{
     card: ExperienceCard
+    variant?: 'default' | 'search'
 }>()
+
+const cardClass = computed(() =>
+    [
+        'group cursor-pointer overflow-hidden shadow-sm transition-shadow hover:shadow-md',
+        props.variant === 'search'
+            ? 'h-full rounded-2xl border-2 border-[#C1D2DE] bg-white'
+            : 'rounded-xl border border-gray-100 bg-[#C1D2DE]',
+    ].join(' '),
+)
 
 const displayRating = computed(() => props.card.rating)
 const displayReviewsCount = computed(() => props.card.reviews)
