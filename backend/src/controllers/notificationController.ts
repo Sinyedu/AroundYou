@@ -81,3 +81,24 @@ export async function markAllNotificationsRead(
     res.status(500).json({ message: "Error updating notifications" });
   }
 }
+
+export async function deleteAllNotifications(
+  req: Request,
+  res: Response,
+): Promise<void> {
+  try {
+    const recipientUserId = req.user?.userID;
+
+    if (!recipientUserId) {
+      res.status(401).json({ message: "Unauthorized" });
+      return;
+    }
+
+    await NotificationModel.deleteMany({ recipientUserId });
+
+    res.status(200).json({ message: "Notifications deleted successfully" });
+  } catch (err) {
+    console.error("Error deleting notifications:", err);
+    res.status(500).json({ message: "Error deleting notifications" });
+  }
+}

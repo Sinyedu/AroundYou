@@ -24,3 +24,10 @@ export function markAllNotificationsRead(): Promise<AppNotification[]> {
     token: getToken(),
   })
 }
+
+export function deleteAllNotifications(): Promise<unknown> {
+  return apiRequest('/notifications', {
+    method: 'DELETE',
+    token: getToken(),
+  })
+}

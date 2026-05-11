@@ -9,8 +9,10 @@ import {
   restoreAdminRecord,
   updateAdminRecord,
 } from '@/api/admin.api'
+import { getGeocodedCoordinates } from '@/api/geocoding.api'
 import type {
   AdminCollectionConfig,
+  AdminCollectionKey,
   AdminEditableRecord,
   AdminFieldConfig,
   AdminFieldValue,
@@ -37,6 +39,52 @@ function normalizeValue(value: AdminFieldValue | undefined): AdminFieldValue {
   }
 
   return value
+}
+
+function getStringValue(record: AdminEditableRecord, key: string): string {
+  const value = record[key]
+  return typeof value === 'string' ? value.trim() : ''
+}
+
+function isAddressGeocodedCollection(collection: AdminCollectionKey): boolean {
+  return collection === 'attractions' || collection === 'events'
+}
+
+async function withResolvedGpsPosition(
+  collection: AdminCollectionKey,
+  record: AdminEditableRecord,
+): Promise<AdminEditableRecord> {
+  const payload: AdminEditableRecord = { ...record }
+
+  if (isAddressGeocodedCollection(collection)) {
+    const address = getStringValue(payload, 'address')
+    const city = getStringValue(payload, 'city')
+
+    if (!address || !city) {
+      throw new Error('Indtast både adresse og by.')
+    }
+
+    const location = await getGeocodedCoordinates(address, city)
+    payload.gpsPosition = `${location.latitude},${location.longitude}`
+
+    delete payload.address
+    delete payload.city
+
+    return payload
+  }
+
+  if (collection === 'city') {
+    const name = getStringValue(payload, 'name')
+
+    if (!name) {
+      throw new Error('Indtast bynavn.')
+    }
+
+    const location = await getGeocodedCoordinates(null, name)
+    payload.gpsPosition = `${location.latitude},${location.longitude}`
+  }
+
+  return payload
 }
 
 export function useAdminCollection(config: AdminCollectionConfig) {
@@ -69,7 +117,9 @@ export function useAdminCollection(config: AdminCollectionConfig) {
         fetchAdminSuggestions('pending'),
       ])
       activeRecords.value = collectionRecords
-      suggestions.value = pendingSuggestions.filter((suggestion) => suggestion.type === config.pendingType)
+      suggestions.value = pendingSuggestions.filter(
+        (suggestion) => suggestion.type === config.pendingType,
+      )
     } catch (error) {
       errorMessage.value = error instanceof Error ? error.message : 'Kunne ikke hente admindata.'
     } finally {
@@ -107,7 +157,8 @@ export function useAdminCollection(config: AdminCollectionConfig) {
 
     try {
       if (editingId.value) {
-        const updated = await updateAdminRecord(config.key, editingId.value, form.value)
+        const payload = await withResolvedGpsPosition(config.key, form.value)
+        const updated = await updateAdminRecord(config.key, editingId.value, payload)
         if (updated.isHidden) {
           hiddenRecords.value = hiddenRecords.value.map((record) =>
             record._id === updated._id ? updated : record,
@@ -118,7 +169,8 @@ export function useAdminCollection(config: AdminCollectionConfig) {
           )
         }
       } else {
-        const created = await createAdminRecord(config.key, form.value)
+        const payload = await withResolvedGpsPosition(config.key, form.value)
+        const created = await createAdminRecord(config.key, payload)
         activeRecords.value = [created, ...activeRecords.value]
       }
 
@@ -139,7 +191,10 @@ export function useAdminCollection(config: AdminCollectionConfig) {
     try {
       const hidden = await deleteAdminRecord(config.key, id)
       activeRecords.value = activeRecords.value.filter((record) => record._id !== hidden._id)
-      hiddenRecords.value = [hidden, ...hiddenRecords.value.filter((record) => record._id !== hidden._id)]
+      hiddenRecords.value = [
+        hidden,
+        ...hiddenRecords.value.filter((record) => record._id !== hidden._id),
+      ]
       if (editingId.value === id) {
         resetForm()
       }

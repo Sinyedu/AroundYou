@@ -59,18 +59,25 @@
               class="absolute right-0 top-full mt-3 w-[min(22rem,calc(100vw-2rem))] overflow-hidden rounded-2xl border border-[#094b7b] bg-white shadow-[0_22px_60px_rgba(9,75,123,0.2)]"
               role="menu"
             >
-              <div
-                class="flex items-center justify-between gap-3 border-b border-[#094b7b]/8 px-4 py-3"
-              >
+              <div class="border-b border-[#094b7b]/8 px-4 py-3">
                 <p class="text-sm font-black text-[#094b7b]">Notifikationer</p>
-                <button
-                  v-if="unreadNotificationCount"
-                  type="button"
-                  class="text-xs font-bold text-[#de5826]"
-                  @click="markAllRead"
-                >
-                  Marker alle læst
-                </button>
+                <div v-if="notifications.length" class="mt-2 flex flex-wrap items-center gap-3">
+                  <button
+                    v-if="unreadNotificationCount"
+                    type="button"
+                    class="text-xs font-bold text-[#de5826]"
+                    @click="markAllRead"
+                  >
+                    Marker alle læst
+                  </button>
+                  <button
+                    type="button"
+                    class="text-xs font-bold text-rose-700"
+                    @click="removeAllNotifications"
+                  >
+                    Fjern alle
+                  </button>
+                </div>
               </div>
 
               <p v-if="notificationError" class="px-4 py-3 text-sm font-semibold text-rose-700">
@@ -143,6 +150,7 @@
               </div>
 
               <RouterLink
+                v-if="!isAdmin"
                 :to="{ name: 'user-profile' }"
                 class="block px-5 py-3 text-sm text-slate-700 transition hover:bg-[#C1D2DE] hover:text-[#094b7b]"
                 role="menuitem"
@@ -186,6 +194,7 @@ import { computed, onBeforeUnmount, onMounted, ref, watch } from 'vue'
 import type { ComponentPublicInstance } from 'vue'
 import { RouterLink, useRoute, useRouter } from 'vue-router'
 import {
+  deleteAllNotifications,
   fetchNotifications,
   markAllNotificationsRead,
   markNotificationRead,
@@ -280,6 +289,20 @@ async function markAllRead(): Promise<void> {
   } catch (error) {
     notificationError.value =
       error instanceof Error ? error.message : 'Kunne ikke opdatere notifikationer.'
+  }
+}
+
+async function removeAllNotifications(): Promise<void> {
+  const confirmed = window.confirm('Vil du fjerne alle notifikationer?')
+  if (!confirmed) return
+
+  try {
+    await deleteAllNotifications()
+    notifications.value = []
+    notificationError.value = ''
+  } catch (error) {
+    notificationError.value =
+      error instanceof Error ? error.message : 'Kunne ikke fjerne notifikationer.'
   }
 }
 

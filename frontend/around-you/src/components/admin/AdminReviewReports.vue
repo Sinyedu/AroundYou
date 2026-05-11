@@ -152,13 +152,16 @@ async function resolveReport(id: string): Promise<void> {
 }
 
 async function removeReview(id: string): Promise<void> {
-  const confirmed = window.confirm('Vil du skjule denne rapporterede anmeldelse?')
-  if (!confirmed) return
+  const ruleBroken = window.prompt(
+    'Hvilken regel brød anmeldelsen? Dette sendes til brugeren.',
+    'Upassende indhold',
+  )
+  if (!ruleBroken?.trim()) return
 
   errorMessage.value = ''
 
   try {
-    await deleteReportedReview(id)
+    await deleteReportedReview(id, ruleBroken.trim())
     reports.value = reports.value.filter((review) => review._id !== id)
   } catch (error) {
     errorMessage.value = error instanceof Error ? error.message : 'Kunne ikke skjule anmeldelsen.'

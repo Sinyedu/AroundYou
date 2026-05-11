@@ -46,18 +46,21 @@ async function notifyReviewReporters(
         : "review_report_no_action",
       title: actionTaken ? "Din rapport er behandlet" : "Din rapport er lukket",
       message: actionTaken
-        ? `Tak for din rapport. Anmeldelsen "${review.title}" er blevet fjernet efter gennemgang.`
-        : `Tak for din rapport. Anmeldelsen "${review.title}" er gennemgået, og der blev ikke fundet regelbrud.`,
+        ? `Din rapport af anmeldelsen "${review.title}" var succesfuld. Anmeldelsen er blevet fjernet efter gennemgang.`
+        : `Din rapport af anmeldelsen "${review.title}" blev gennemgået, men der blev ikke fundet brud på reglerne.`,
       reviewId: review._id.toString(),
     })),
   );
 }
 
-async function notifyReviewAuthorReviewRemoved(review: {
-  _id: Types.ObjectId;
-  author: string;
-  title: string;
-}): Promise<void> {
+async function notifyReviewAuthorReviewRemoved(
+  review: {
+    _id: Types.ObjectId;
+    author: string;
+    title: string;
+  },
+  ruleBroken: string,
+): Promise<void> {
   const authorUserId = await getReviewAuthorUserId(review.author);
   if (!authorUserId) return;
 
@@ -65,24 +68,7 @@ async function notifyReviewAuthorReviewRemoved(review: {
     recipientUserId: authorUserId,
     type: "review_removed",
     title: "Din anmeldelse er fjernet",
-    message: `Din anmeldelse "${review.title}" er blevet fjernet efter en moderatorgennemgang.`,
-    reviewId: review._id.toString(),
-  });
-}
-
-async function notifyReviewAuthorReportClosed(review: {
-  _id: Types.ObjectId;
-  author: string;
-  title: string;
-}): Promise<void> {
-  const authorUserId = await getReviewAuthorUserId(review.author);
-  if (!authorUserId) return;
-
-  await NotificationModel.create({
-    recipientUserId: authorUserId,
-    type: "review_report_closed",
-    title: "En rapport om din anmeldelse er lukket",
-    message: `En rapport om din anmeldelse "${review.title}" er blevet gennemgået og lukket uden yderligere handling.`,
+    message: `Din anmeldelse "${review.title}" er blevet fjernet, fordi den brød reglen: ${ruleBroken}.`,
     reviewId: review._id.toString(),
   });
 }
@@ -104,6 +90,10 @@ const reviewUpdateSchema = Joi.object({
   rating: Joi.number().integer().min(1).max(5),
   image: Joi.string().trim().max(2048).allow(""),
 }).min(1);
+
+const reviewRemovalSchema = Joi.object({
+  ruleBroken: Joi.string().trim().min(3).max(500).required(),
+});
 
 function validateReviewBody(
   payload: Record<string, unknown>,
@@ -127,6 +117,24 @@ function validateReviewBody(
   }
 
   return value as Record<string, unknown>;
+}
+
+function validateReviewRemoval(payload: Record<string, unknown>): string {
+  const { error, value } = reviewRemovalSchema.validate(payload, {
+    abortEarly: false,
+    convert: true,
+    stripUnknown: true,
+  });
+
+  if (error) {
+    const validationError = new Error(
+      error.details.map((detail) => detail.message).join(", "),
+    );
+    validationError.name = "ValidationError";
+    throw validationError;
+  }
+
+  return (value as { ruleBroken: string }).ruleBroken;
 }
 
 /**
@@ -283,6 +291,11 @@ export async function deleteReviewById(
       return;
     }
 
+    const ruleBroken =
+      req.user?.role === "admin"
+        ? validateReviewRemoval(req.body as Record<string, unknown>)
+        : "";
+
     const result = await ReviewModel.findByIdAndUpdate(
       req.params.id,
       getHideUpdate(req.user?.userID),
@@ -290,7 +303,7 @@ export async function deleteReviewById(
     );
 
     if (req.user?.role === "admin") {
-      await notifyReviewAuthorReviewRemoved(review);
+      await notifyReviewAuthorReviewRemoved(review, ruleBroken);
       if (review.reports.length > 0) {
         await notifyReviewReporters(review, true);
       }
@@ -301,6 +314,11 @@ export async function deleteReviewById(
       .json({ message: "Review hidden successfully", data: result });
   } catch (err) {
     console.error("Error deleting review:", err);
+    if (isValidationError(err)) {
+      res.status(400).json({ message: err.message });
+      return;
+    }
+
     res.status(500).json({
       message: "Error deleting review",
     });
@@ -586,7 +604,6 @@ export async function resolveReviewReport(
     review.reportResolvedBy = req.user?.userID;
 
     const result = await review.save();
-    await notifyReviewAuthorReportClosed(review);
     await notifyReviewReporters(review, false);
     res.status(200).json(result);
   } catch (err) {

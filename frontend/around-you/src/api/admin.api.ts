@@ -111,11 +111,13 @@ export async function restoreAdminRecord(
   return unwrapMutation(response)
 }
 
-export function deleteReportedReview(id: string): Promise<unknown> {
+export function deleteReportedReview(id: string, ruleBroken: string): Promise<unknown> {
   return clearCacheAfterMutation(
     apiRequest(`/admin/reviews/${encodeURIComponent(id)}`, {
       method: 'DELETE',
       token: getToken(),
+      headers: jsonHeaders(),
+      body: JSON.stringify({ ruleBroken }),
     }),
   )
 }

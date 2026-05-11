@@ -9,7 +9,6 @@ const notificationSchema = new Schema<Notification>({
       "review_removed",
       "review_report_action_taken",
       "review_report_no_action",
-      "review_report_closed",
     ],
     required: true,
   },

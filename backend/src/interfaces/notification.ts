@@ -3,8 +3,7 @@ import { Document } from "mongoose";
 export type NotificationType =
   | "review_removed"
   | "review_report_action_taken"
-  | "review_report_no_action"
-  | "review_report_closed";
+  | "review_report_no_action";
 
 export interface Notification extends Document {
   recipientUserId: string;
