@@ -331,55 +331,6 @@
 
 /**
  * @swagger
- * /attractions/query/{key}/{value}:
- *   get:
- *     tags:
- *       - Attraction Routes
- *     summary: Get ATTRACTIONs by query
- *     description: Retrieves ATTRACTIONs from the database based on a key-value query. Requires authentication.
- *     parameters:
- *       - name: key
- *         in: path
- *         required: true
- *         schema:
- *           type: string
- *       - name: value
- *         in: path
- *         required: true
- *         schema:
- *           type: string
- *     responses:
- *       200:
- *         description: A list of matching ATTRACTIONs (can be empty)
- *       400:
- *         description: Bad request - Invalid input
- *       401:
- *         description: Unauthorized - Invalid or missing token
- *       500:
- *         description: Server error
- */
-
-/**
- * @swagger
- * /attractions/query:
- *   post:
- *     tags:
- *       - Attraction Routes
- *     summary: Get ATTRACTIONs by generic query
- *     description: Retrieves ATTRACTIONs from the database based on a generic query object. Requires authentication.
- *     responses:
- *       200:
- *         description: A list of matching ATTRACTIONs (can be empty)
- *       400:
- *         description: Bad request - Invalid input
- *       401:
- *         description: Unauthorized - Invalid or missing token
- *       500:
- *         description: Server error
- */
-
-/**
- * @swagger
  * /events:
  *   post:
  *     tags:
@@ -495,55 +446,6 @@
  *         description: Unauthorized - Invalid or missing token
  *       404:
  *         description: EVENT not found
- *       500:
- *         description: Server error
- */
-
-/**
- * @swagger
- * /events/query/{key}/{value}:
- *   get:
- *     tags:
- *       - Event Routes
- *     summary: Get EVENTs by query
- *     description: Retrieves EVENTs from the database based on a key-value query. Requires authentication.
- *     parameters:
- *       - name: key
- *         in: path
- *         required: true
- *         schema:
- *           type: string
- *       - name: value
- *         in: path
- *         required: true
- *         schema:
- *           type: string
- *     responses:
- *       200:
- *         description: A list of matching EVENTs (can be empty)
- *       400:
- *         description: Bad request - Invalid input
- *       401:
- *         description: Unauthorized - Invalid or missing token
- *       500:
- *         description: Server error
- */
-
-/**
- * @swagger
- * /events/query:
- *   post:
- *     tags:
- *       - Event Routes
- *     summary: Get EVENTs by generic query
- *     description: Retrieves EVENTs from the database based on a generic query object. Requires authentication.
- *     responses:
- *       200:
- *         description: A list of matching EVENTs (can be empty)
- *       400:
- *         description: Bad request - Invalid input
- *       401:
- *         description: Unauthorized - Invalid or missing token
  *       500:
  *         description: Server error
  */
@@ -667,55 +569,6 @@
 
 /**
  * @swagger
- * /city/query/{key}/{value}:
- *   get:
- *     tags:
- *       - City Routes
- *     summary: Get CITYs by query
- *     description: Retrieves CITYs from the database based on a key-value query. Requires authentication.
- *     parameters:
- *       - name: key
- *         in: path
- *         required: true
- *         schema:
- *           type: string
- *       - name: value
- *         in: path
- *         required: true
- *         schema:
- *           type: string
- *     responses:
- *       200:
- *         description: A list of matching CITYs (can be empty)
- *       400:
- *         description: Bad request - Invalid input
- *       401:
- *         description: Unauthorized - Invalid or missing token
- *       500:
- *         description: Server error
- */
-
-/**
- * @swagger
- * /city/query:
- *   post:
- *     tags:
- *       - City Routes
- *     summary: Get CITYs by generic query
- *     description: Retrieves CITYs from the database based on a generic query object. Requires authentication.
- *     responses:
- *       200:
- *         description: A list of matching CITYs (can be empty)
- *       400:
- *         description: Bad request - Invalid input
- *       401:
- *         description: Unauthorized - Invalid or missing token
- *       500:
- *         description: Server error
- */
-
-/**
- * @swagger
  * /reviews:
  *   post:
  *     tags:
@@ -747,34 +600,11 @@
  *   get:
  *     tags:
  *       - Review Routes
- *     summary: Get all REVIEWS
- *     description: Retrieves all REVIEWS from the database.
+ *     summary: Get all REVIEWs
+ *     description: Retrieves all REVIEWs from the database.
  *     responses:
  *       200:
- *         description: A list of all REVIEWS
- *       500:
- *         description: Server error
- */
-
-/**
- * @swagger
- * /reviews/{id}:
- *   get:
- *     tags:
- *       - Review Routes
- *     summary: Get a REVIEW by ID
- *     description: Retrieves a REVIEW from the database by its ID.
- *     parameters:
- *       - name: id
- *         in: path
- *         required: true
- *         schema:
- *           type: string
- *     responses:
- *       200:
- *         description: REVIEW found
- *       404:
- *         description: REVIEW not found
+ *         description: A list of all REVIEWs
  *       500:
  *         description: Server error
  */
@@ -827,55 +657,6 @@
  *         description: Unauthorized - Invalid or missing token
  *       404:
  *         description: REVIEW not found
- *       500:
- *         description: Server error
- */
-
-/**
- * @swagger
- * /reviews/query/{key}/{value}:
- *   get:
- *     tags:
- *       - Review Routes
- *     summary: Get REVIEWs by query
- *     description: Retrieves REVIEWs from the database based on a key-value query. Requires authentication.
- *     parameters:
- *       - name: key
- *         in: path
- *         required: true
- *         schema:
- *           type: string
- *       - name: value
- *         in: path
- *         required: true
- *         schema:
- *           type: string
- *     responses:
- *       200:
- *         description: A list of matching REVIEWs (can be empty)
- *       400:
- *         description: Bad request - Invalid input
- *       401:
- *         description: Unauthorized - Invalid or missing token
- *       500:
- *         description: Server error
- */
-
-/**
- * @swagger
- * /reviews/query:
- *   post:
- *     tags:
- *       - Review Routes
- *     summary: Get REVIEWs by generic query
- *     description: Retrieves REVIEWs from the database based on a generic query object. Requires authentication.
- *     responses:
- *       200:
- *         description: A list of matching REVIEWs (can be empty)
- *       400:
- *         description: Bad request - Invalid input
- *       401:
- *         description: Unauthorized - Invalid or missing token
  *       500:
  *         description: Server error
  */

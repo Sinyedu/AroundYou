@@ -4,8 +4,6 @@ import {
   deleteAttractionById,
   getAllAttractions,
   getAttractionById,
-  getAttractionsByQuery,
-  getAttractionsByQueryGeneric,
   updateAttractionById,
 } from "../controllers/attractionController";
 import { contentWriteRateLimiter } from "../middleware/rateLimit";
@@ -36,18 +34,6 @@ router.delete(
   contentWriteRateLimiter,
   requirePermission("attraction:delete"),
   deleteAttractionById,
-);
-router.get(
-  "/attractions/query/:key/:value",
-  verifyToken,
-  requirePermission("attraction:read"),
-  getAttractionsByQuery,
-);
-router.post(
-  "/attractions/query",
-  verifyToken,
-  requirePermission("attraction:read"),
-  getAttractionsByQueryGeneric,
 );
 
 export default router;

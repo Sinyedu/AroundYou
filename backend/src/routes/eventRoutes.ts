@@ -3,9 +3,7 @@ import {
   createEvent,
   deleteEventById,
   getAllEvents,
-  getEventByGenericQuery,
   getEventById,
-  getEventByQuery,
   updateEventById,
 } from "../controllers/eventController";
 import { contentWriteRateLimiter } from "../middleware/rateLimit";
@@ -36,18 +34,6 @@ router.delete(
   contentWriteRateLimiter,
   requirePermission("event:delete"),
   deleteEventById,
-);
-router.get(
-  "/events/query/:key/:value",
-  verifyToken,
-  requirePermission("event:read"),
-  getEventByQuery,
-);
-router.post(
-  "/events/query",
-  verifyToken,
-  requirePermission("event:read"),
-  getEventByGenericQuery,
 );
 
 export default router;
