@@ -53,10 +53,33 @@
             <input v-model="eventForm.endDate" type="date" class="rounded-xl border border-slate-200 px-4 py-3" />
             <div class="rounded-xl border border-slate-200 px-4 py-3">
               <label class="mb-2 block text-sm font-semibold text-slate-700">Additional image files</label>
-              <input type="file" multiple accept="image/png,image/jpeg,image/jpg,image/webp" capture="environment"
+              <input id="event-additional-images" type="file" multiple accept="image/png,image/jpeg,image/jpg,image/webp" capture="environment"
                 @change="(event) => onImageArraySelected('event', event)"
-                class="block w-full text-sm text-slate-700 file:mr-3 file:rounded-lg file:border-0 file:bg-[#094b7b] file:px-3 file:py-2 file:font-semibold file:text-white" />
+                class="sr-only" />
+              <label
+                for="event-additional-images"
+                class="inline-flex cursor-pointer rounded-lg bg-[#094b7b] px-3 py-2 text-sm font-semibold text-white transition hover:bg-[#0b5d98]"
+              >
+                Choose files
+              </label>
               <p class="mt-2 text-xs text-slate-600">{{ eventImageArrayFiles.length }} image(s) selected</p>
+              <div v-if="eventImageArrayFiles.length" class="mt-3 flex flex-wrap gap-2">
+                <span
+                  v-for="(file, index) in eventImageArrayFiles"
+                  :key="`${file.name}-${file.lastModified}`"
+                  class="inline-flex max-w-full items-center gap-2 rounded-full border border-[#C1D2DE] bg-[#C1D2DE]/35 px-3 py-1 text-xs font-semibold text-[#094b7b]"
+                >
+                  <span class="truncate">{{ file.name }}</span>
+                  <button
+                    type="button"
+                    class="flex h-5 w-5 shrink-0 items-center justify-center rounded-full text-sm leading-none transition hover:bg-white/70"
+                    :aria-label="`Remove ${file.name}`"
+                    @click="removeImageArrayFile('event', index)"
+                  >
+                    x
+                  </button>
+                </span>
+              </div>
             </div>
             <CategorySlugPicker v-model="eventForm.slugArray" :options="categoryOptions" label="Categories"
               placeholder="Search or create category" />
@@ -91,10 +114,33 @@
               placeholder="City" />
             <div class="rounded-xl border border-slate-200 px-4 py-3">
               <label class="mb-2 block text-sm font-semibold text-slate-700">Additional image files</label>
-              <input type="file" multiple accept="image/png,image/jpeg,image/jpg,image/webp" capture="environment"
+              <input id="attraction-additional-images" type="file" multiple accept="image/png,image/jpeg,image/jpg,image/webp" capture="environment"
                 @change="(event) => onImageArraySelected('attraction', event)"
-                class="block w-full text-sm text-slate-700 file:mr-3 file:rounded-lg file:border-0 file:bg-[#094b7b] file:px-3 file:py-2 file:font-semibold file:text-white" />
+                class="sr-only" />
+              <label
+                for="attraction-additional-images"
+                class="inline-flex cursor-pointer rounded-lg bg-[#094b7b] px-3 py-2 text-sm font-semibold text-white transition hover:bg-[#0b5d98]"
+              >
+                Choose files
+              </label>
               <p class="mt-2 text-xs text-slate-600">{{ attractionImageArrayFiles.length }} image(s) selected</p>
+              <div v-if="attractionImageArrayFiles.length" class="mt-3 flex flex-wrap gap-2">
+                <span
+                  v-for="(file, index) in attractionImageArrayFiles"
+                  :key="`${file.name}-${file.lastModified}`"
+                  class="inline-flex max-w-full items-center gap-2 rounded-full border border-[#C1D2DE] bg-[#C1D2DE]/35 px-3 py-1 text-xs font-semibold text-[#094b7b]"
+                >
+                  <span class="truncate">{{ file.name }}</span>
+                  <button
+                    type="button"
+                    class="flex h-5 w-5 shrink-0 items-center justify-center rounded-full text-sm leading-none transition hover:bg-white/70"
+                    :aria-label="`Remove ${file.name}`"
+                    @click="removeImageArrayFile('attraction', index)"
+                  >
+                    x
+                  </button>
+                </span>
+              </div>
             </div>
             <CategorySlugPicker v-model="attractionForm.slugArray" :options="categoryOptions" label="Categories"
               placeholder="Search or create category" />
@@ -166,6 +212,7 @@ const {
   cityForm,
   onHeroImageSelected,
   onImageArraySelected,
+  removeImageArrayFile,
   submitSelected,
   typeButtonClass,
 } = useCreateContent()
