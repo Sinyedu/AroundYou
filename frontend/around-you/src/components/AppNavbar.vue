@@ -9,12 +9,23 @@
         to="/"
         class="inline-flex shrink-0 items-center transition hover:opacity-85"
         aria-label="AroundYou home"
+        @click="closeMobileMenu"
       >
         <img :src="aroundYouLogo" alt="AroundYou" class="h-10 w-auto sm:h-12" />
       </RouterLink>
 
+      <button
+        type="button"
+        class="inline-flex h-11 w-11 items-center justify-center text-[#094b7b] transition hover:text-[#0b5d98] md:hidden"
+        aria-label="Åbn navigation"
+        :aria-expanded="isMobileMenuOpen"
+        @click="toggleMobileMenu"
+      >
+        <span class="text-xl leading-none">{{ isMobileMenuOpen ? '×' : '☰' }}</span>
+      </button>
+
       <div
-        class="flex basis-full flex-wrap items-center justify-start gap-x-4 gap-y-3 md:ml-20 md:basis-auto md:flex-1 md:justify-end md:gap-x-8"
+        class="hidden basis-full flex-wrap items-center justify-start gap-x-4 gap-y-3 md:ml-20 md:basis-auto md:flex md:flex-1 md:justify-end md:gap-x-8"
       >
         <RouterLink :to="{ name: 'home' }" :class="getNavLinkClass('home')">Hjem</RouterLink>
         <RouterLink :to="{ name: 'search' }" :class="getNavLinkClass('search')">Udforsk</RouterLink>
@@ -185,6 +196,85 @@
           </RouterLink>
         </template>
       </div>
+
+      <div
+        v-if="isMobileMenuOpen"
+        class="basis-full rounded-2xl border border-[#094b7b]/10 bg-white p-4 shadow-sm md:hidden"
+      >
+        <div class="flex flex-col gap-2">
+          <RouterLink :to="{ name: 'home' }" :class="getNavLinkClass('home')" @click="closeMobileMenu"
+            >Hjem</RouterLink
+          >
+          <RouterLink
+            :to="{ name: 'search' }"
+            :class="getNavLinkClass('search')"
+            @click="closeMobileMenu"
+            >Udforsk</RouterLink
+          >
+          <RouterLink
+            :to="{ name: 'create' }"
+            :class="getNavLinkClass('create')"
+            @click="closeMobileMenu"
+            >Tilføj</RouterLink
+          >
+          <RouterLink
+            :to="{ name: 'contact' }"
+            :class="getNavLinkClass('contact')"
+            @click="closeMobileMenu"
+            >Kontakt</RouterLink
+          >
+
+          <template v-if="isAuthenticated">
+            <span
+              class="rounded-full bg-[#C1D2DE] px-4 py-2 text-sm font-medium text-[#094b7b]"
+            >
+              Velkommen {{ displayUserName }}
+            </span>
+
+            <RouterLink
+              v-if="showAdminLink"
+              :to="{ name: 'admin' }"
+              :class="getNavLinkClass('admin')"
+              @click="closeMobileMenu"
+            >
+              Admin
+            </RouterLink>
+
+            <RouterLink
+              :to="{ name: 'user-profile' }"
+              class="rounded-full px-4 py-2 text-sm font-semibold text-[#094b7b] transition hover:bg-[#C1D2DE]"
+              @click="closeMobileMenu"
+            >
+              Profil
+            </RouterLink>
+
+            <button
+              type="button"
+              class="rounded-full px-4 py-2 text-left text-sm font-semibold text-[#094b7b] transition hover:bg-[#C1D2DE]"
+              @click="handleMobileLogout"
+            >
+              Log ud
+            </button>
+          </template>
+
+          <template v-else>
+            <RouterLink
+              to="/auth/login"
+              class="rounded-full px-4 py-2 text-sm font-semibold text-[#094b7b] transition hover:bg-[#C1D2DE]"
+              @click="closeMobileMenu"
+            >
+              Login
+            </RouterLink>
+            <RouterLink
+              to="/auth/register"
+              class="rounded-full bg-[#094b7b] px-4 py-2 text-sm font-semibold text-white shadow-[0_12px_25px_rgba(9,75,123,0.18)] transition hover:bg-[#0b5d98]"
+              @click="closeMobileMenu"
+            >
+              Opret konto
+            </RouterLink>
+          </template>
+        </div>
+      </div>
     </nav>
   </header>
 </template>
@@ -211,6 +301,7 @@ const isNotificationMenuOpen = ref(false)
 const notifications = ref<AppNotification[]>([])
 const notificationsLoading = ref(false)
 const notificationError = ref('')
+const isMobileMenuOpen = ref(false)
 
 const { avatarInitials, checkSession, isAdmin, isAuthenticated, logout, userAvatar, userName } =
   useAuth()
@@ -314,6 +405,8 @@ function formatNotificationDate(value: string): string {
     minute: '2-digit',
   })
 }
+const closeMobileMenu = () => (isMobileMenuOpen.value = false)
+const toggleMobileMenu = () => (isMobileMenuOpen.value = !isMobileMenuOpen.value)
 
 const handleLogout = async () => {
   closeAvatarMenu()
@@ -323,8 +416,14 @@ const handleLogout = async () => {
   await router.push('/')
 }
 
+const handleMobileLogout = async () => {
+  closeMobileMenu()
+  logout()
+  await router.push('/')
+}
+
 const handleDocumentClick = (event: MouseEvent) => {
-  if (!isAvatarMenuOpen.value && !isNotificationMenuOpen.value) return
+  if (!isAvatarMenuOpen.value && !isMobileMenuOpen.value) return
 
   const navElement = navRef.value instanceof HTMLElement ? navRef.value : navRef.value?.$el
 

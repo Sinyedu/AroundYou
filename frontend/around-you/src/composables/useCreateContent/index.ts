@@ -22,6 +22,7 @@ export const useCreateContent = () => {
     attractionImageArrayFiles,
     onHeroImageSelected: _onHeroImageSelected,
     onImageArraySelected: _onImageArraySelected,
+    removeImageArrayFile,
     compressImageFiles,
   } = useCreateContentImages()
 
@@ -74,6 +75,7 @@ export const useCreateContent = () => {
     cityForm,
     onHeroImageSelected,
     onImageArraySelected,
+    removeImageArrayFile,
     submitSelected,
     typeButtonClass,
   }

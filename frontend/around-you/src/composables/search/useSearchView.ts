@@ -60,7 +60,8 @@ export const useSearchView = () => {
   const selectedCityCenter = computed(() =>
     getSelectedCityCenter(filters.value.location, cityCoordinates.value),
   )
-  const mapMarkers = computed(() => toSearchMapMarkers(paginatedResults.value))
+  const visibleResults = computed(() => resultItems.value)
+  const mapMarkers = computed(() => toSearchMapMarkers(visibleResults.value))
 
   const goToPage = (page: number) => {
     currentPage.value = clampPage(page, totalPages.value)
@@ -141,6 +142,7 @@ export const useSearchView = () => {
     mapMarkers,
     pageNumbers,
     paginatedResults,
+    visibleResults,
     resultCardClass,
     resultDescription,
     resultsGrid,

@@ -1,12 +1,12 @@
 <template>
   <main
-    class="min-h-screen relative bg-cover bg-center bg-no-repeat py-[50px]"
+    class="min-h-screen relative bg-cover bg-center bg-no-repeat py-4 sm:py-[50px]"
     style="background-image: url('/danmarkskort_1800x1280.jpg')"
   >
     <div class="pointer-events-none absolute inset-0 bg-[#e8c7aa]/55"></div>
 
-    <div class="relative z-10 mx-[50px] bg-white shadow-2xl rounded-xl overflow-hidden">
-      <section class="px-8 py-10">
+    <div class="relative z-10 mx-4 sm:mx-[50px] bg-white shadow-2xl rounded-xl overflow-hidden">
+      <section class="px-4 py-8 sm:px-8 sm:py-10">
         <div class="flex flex-col gap-8">
           <header class="flex flex-wrap items-center justify-between gap-6">
             <div class="space-y-2">
@@ -21,8 +21,8 @@
             :category-options="categoryOptions"
           />
 
-          <div class="grid gap-6 lg:grid-cols-[calc(50vw-90px)_minmax(400px,1fr)] lg:justify-between">
-            <div class="max-w-[calc(50vw-90px)]">
+          <div class="grid gap-6 lg:grid-cols-[calc(50vw-90px)_minmax(400px,1fr)] lg:items-start lg:justify-between">
+            <div class="lg:max-h-[656px] lg:max-w-[calc(50vw-90px)] lg:overflow-y-auto lg:pr-2">
               <div
                 v-if="isLoading"
                 class="rounded-2xl bg-white p-6 text-sm font-semibold text-slate-500"
@@ -38,54 +38,13 @@
               </div>
 
               <div v-else class="space-y-5">
-                <div ref="resultsGrid" class="grid gap-4 sm:grid-cols-2 xl:grid-cols-2">
-                  <template v-for="item in paginatedResults" :key="item.id">
+                <div ref="resultsGrid" class="grid gap-4 grid-cols-2 xl:grid-cols-2">
+                  <template v-for="item in visibleResults" :key="item.id">
                     <div :data-result-id="item.id" :class="resultCardClass(item.id)">
-                      <CityCard v-if="item.type === 'city'" :card="toSearchResultCard(item)" />
-
-                      <AttractionCard v-else :card="toSearchResultCard(item)" />
+                      <SearchResultCard :result="item" />
                     </div>
                   </template>
                 </div>
-
-                <nav
-                  v-if="totalPages > 1"
-                  class="flex flex-wrap items-center justify-center gap-2"
-                  aria-label="Resultatsider"
-                >
-                  <button
-                    type="button"
-                    class="rounded-lg border border-slate-200 px-3 py-2 text-sm font-semibold text-slate-600 transition hover:bg-slate-100 disabled:cursor-not-allowed disabled:opacity-40"
-                    :disabled="currentPage === 1"
-                    @click="goToPage(currentPage - 1)"
-                  >
-                    Forrige
-                  </button>
-
-                  <button
-                    v-for="page in pageNumbers"
-                    :key="page"
-                    type="button"
-                    class="h-10 min-w-10 rounded-lg border px-3 text-sm font-semibold transition"
-                    :class="
-                      page === currentPage
-                        ? 'border-[#1E5A88] bg-[#1E5A88] text-white'
-                        : 'border-slate-200 text-slate-600 hover:bg-slate-100'
-                    "
-                    @click="goToPage(page)"
-                  >
-                    {{ page }}
-                  </button>
-
-                  <button
-                    type="button"
-                    class="rounded-lg border border-slate-200 px-3 py-2 text-sm font-semibold text-slate-600 transition hover:bg-slate-100 disabled:cursor-not-allowed disabled:opacity-40"
-                    :disabled="currentPage === totalPages"
-                    @click="goToPage(currentPage + 1)"
-                  >
-                    Næste
-                  </button>
-                </nav>
               </div>
             </div>
 
@@ -110,30 +69,24 @@
   </main>
 </template>
 <script setup lang="ts">
-import AttractionCard from '@/components/AttractionCard.vue'
-import CityCard from '@/components/CityCard.vue'
 import LocationMap from '@/components/LocationMap.vue'
 import SearchFilter from '@/components/SearchFilter.vue'
+import SearchResultCard from '@/components/SearchResultCard.vue'
 import { useSearchView } from '@/composables/search/useSearchView'
 
 const {
   categoryOptions,
-  currentPage,
   errorMessage,
   filters,
-  goToPage,
   handleMapMarkerSelected,
   isLoading,
   locationOptions,
   mapMarkers,
-  pageNumbers,
-  paginatedResults,
   resultCardClass,
   resultDescription,
   resultsGrid,
   selectedCityCenter,
   selectedResultId,
-  toSearchResultCard,
-  totalPages,
+  visibleResults,
 } = useSearchView()
 </script>
