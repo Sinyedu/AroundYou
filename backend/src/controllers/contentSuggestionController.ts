@@ -12,10 +12,18 @@ const SUGGESTION_MODELS = {
   city: CityModel,
 };
 
+type ContentSuggestionStatus = "pending" | "approved" | "rejected";
+
 function isContentSuggestionType(
   value: unknown,
 ): value is ContentSuggestionType {
   return value === "attraction" || value === "event" || value === "city";
+}
+
+function isContentSuggestionStatus(
+  value: unknown,
+): value is ContentSuggestionStatus {
+  return value === "pending" || value === "approved" || value === "rejected";
 }
 
 function isRecord(value: unknown): value is Record<string, unknown> {
@@ -42,7 +50,8 @@ export async function createContentSuggestion(
     sanitizedPayload = sanitizeContentPayload(type, payload);
   } catch (err) {
     res.status(400).json({
-      message: err instanceof Error ? err.message : "Invalid content suggestion",
+      message:
+        err instanceof Error ? err.message : "Invalid content suggestion",
     });
     return;
   }
@@ -76,9 +85,11 @@ export async function getContentSuggestions(
   res: Response,
 ): Promise<void> {
   try {
-    const requestedStatus =
-      typeof req.query.status === "string" ? req.query.status : "pending";
-    const status = ["pending", "approved", "rejected"].includes(requestedStatus)
+    const requestedStatus = req.query.status;
+
+    const status: ContentSuggestionStatus = isContentSuggestionStatus(
+      requestedStatus,
+    )
       ? requestedStatus
       : "pending";
 
@@ -111,6 +122,7 @@ export async function approveContentSuggestion(
     }
 
     const Model = SUGGESTION_MODELS[suggestion.type];
+
     const createdContent = await new Model(
       sanitizeContentPayload(suggestion.type, suggestion.payload),
     ).save();
@@ -118,9 +130,13 @@ export async function approveContentSuggestion(
     suggestion.status = "approved";
     suggestion.reviewedBy = req.user?.userID;
     suggestion.reviewedAt = new Date();
+
     await suggestion.save();
 
-    res.status(200).json({ suggestion, content: createdContent });
+    res.status(200).json({
+      suggestion,
+      content: createdContent,
+    });
   } catch (err) {
     console.error("Error approving content suggestion:", err);
     res.status(500).json({ message: "Error approving content suggestion" });
@@ -147,8 +163,10 @@ export async function rejectContentSuggestion(
     suggestion.status = "rejected";
     suggestion.reviewedBy = req.user?.userID;
     suggestion.reviewedAt = new Date();
+
     suggestion.rejectionReason =
       typeof req.body.reason === "string" ? req.body.reason.trim() : "";
+
     await suggestion.save();
 
     res.status(200).json(suggestion);
