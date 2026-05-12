@@ -102,84 +102,18 @@
 </template>
 
 <script setup lang="ts">
-import { onMounted, ref, watch } from 'vue'
-import {
-  deleteReportedReview,
-  fetchReportedReviews,
-  resolveReviewReport,
-  restoreReportedReview,
-} from '@/api/admin.api'
 import AdminSegmentedTabs from '@/components/admin/AdminSegmentedTabs.vue'
-import type { AdminVisibility, ReportedReview } from '@/types/admin'
+import { useAdminReviewReports } from '@/composables/admin/useAdminReviewReports'
 
-const reports = ref<ReportedReview[]>([])
-const isLoading = ref(false)
-const errorMessage = ref('')
-const activeReportTab = ref<Extract<AdminVisibility, 'active' | 'hidden'>>('active')
-const reportTabs: { key: Extract<AdminVisibility, 'active' | 'hidden'>; label: string }[] = [
-  { key: 'active', label: 'Aktive rapporter' },
-  { key: 'hidden', label: 'Skjulte' },
-]
-
-async function loadReports(): Promise<void> {
-  isLoading.value = true
-  errorMessage.value = ''
-
-  try {
-    reports.value = await fetchReportedReviews(activeReportTab.value)
-  } catch (error) {
-    errorMessage.value =
-      error instanceof Error ? error.message : 'Kunne ikke hente anmeldelsesrapporter.'
-  } finally {
-    isLoading.value = false
-  }
-}
-
-watch(activeReportTab, () => {
-  void loadReports()
-})
-
-async function resolveReport(id: string): Promise<void> {
-  errorMessage.value = ''
-
-  try {
-    await resolveReviewReport(id)
-    reports.value = reports.value.filter((review) => review._id !== id)
-  } catch (error) {
-    errorMessage.value =
-      error instanceof Error ? error.message : 'Kunne ikke markere rapporten som løst.'
-  }
-}
-
-async function removeReview(id: string): Promise<void> {
-  const ruleBroken = window.prompt(
-    'Hvilken regel brød anmeldelsen? Dette sendes til brugeren.',
-    'Upassende indhold',
-  )
-  if (!ruleBroken?.trim()) return
-
-  errorMessage.value = ''
-
-  try {
-    await deleteReportedReview(id, ruleBroken.trim())
-    reports.value = reports.value.filter((review) => review._id !== id)
-  } catch (error) {
-    errorMessage.value = error instanceof Error ? error.message : 'Kunne ikke skjule anmeldelsen.'
-  }
-}
-
-async function restoreReview(id: string): Promise<void> {
-  errorMessage.value = ''
-
-  try {
-    await restoreReportedReview(id)
-    reports.value = reports.value.filter((review) => review._id !== id)
-  } catch (error) {
-    errorMessage.value = error instanceof Error ? error.message : 'Kunne ikke gendanne anmeldelsen.'
-  }
-}
-
-onMounted(() => {
-  void loadReports()
-})
+const {
+  activeReportTab,
+  errorMessage,
+  isLoading,
+  loadReports,
+  removeReview,
+  reportTabs,
+  reports,
+  resolveReport,
+  restoreReview,
+} = useAdminReviewReports()
 </script>

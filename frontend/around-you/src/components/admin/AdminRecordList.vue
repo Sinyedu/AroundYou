@@ -45,7 +45,10 @@
             <p class="mt-1 line-clamp-2 text-sm text-slate-600">{{ record.description }}</p>
           </div>
           <div class="flex gap-2">
-            <button class="rounded-md border border-slate-300 px-3 py-2 text-sm font-bold" @click="$emit('edit', record)">
+            <button
+              class="rounded-md border border-slate-300 px-3 py-2 text-sm font-bold"
+              @click="$emit('edit', record)"
+            >
               Rediger
             </button>
             <button
@@ -70,11 +73,9 @@
 </template>
 
 <script setup lang="ts">
-import { computed, ref, watch } from 'vue'
 import AdminSegmentedTabs from '@/components/admin/AdminSegmentedTabs.vue'
+import { useAdminRecordList } from '@/composables/admin/useAdminRecordList'
 import type { AdminRecord } from '@/types/admin'
-
-type RecordTabKey = 'active' | 'hidden'
 
 const props = defineProps<{
   activeRecords: AdminRecord[]
@@ -89,19 +90,7 @@ const emit = defineEmits<{
   loadHidden: []
 }>()
 
-const activeTab = ref<RecordTabKey>('active')
-const recordTabs: { key: RecordTabKey; label: string }[] = [
-  { key: 'active', label: 'Aktive' },
-  { key: 'hidden', label: 'Skjulte' },
-]
-
-const displayedRecords = computed(() =>
-  activeTab.value === 'hidden' ? props.hiddenRecords : props.activeRecords,
+const { activeTab, displayedRecords, recordTabs } = useAdminRecordList(props, () =>
+  emit('loadHidden'),
 )
-
-watch(activeTab, (tab) => {
-  if (tab === 'hidden') {
-    emit('loadHidden')
-  }
-})
 </script>

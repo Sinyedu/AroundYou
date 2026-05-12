@@ -143,11 +143,10 @@
 </template>
 
 <script setup lang="ts">
-import { computed, ref } from 'vue'
-import { uploadImageFile } from '@/api/contentApi'
+import { toRefs } from 'vue'
+import { useAdminRecordForm } from '@/composables/admin/useAdminRecordForm'
 import { resolveApiAssetUrl } from '@/constants/config'
-import type { AdminCollectionConfig, AdminEditableRecord, AdminFieldType } from '@/types/admin'
-import { compressImageFile, isAllowedImageType } from '@/utils/imageCompressor'
+import type { AdminCollectionConfig, AdminEditableRecord } from '@/types/admin'
 
 const props = defineProps<{
   config: AdminCollectionConfig
@@ -162,142 +161,24 @@ defineEmits<{
 }>()
 
 const form = defineModel<AdminEditableRecord>({ required: true })
-const uploadError = ref('')
-const uploadingFields = ref<string[]>([])
+const { errorMessage } = toRefs(props)
 
-const isUploading = computed(() => uploadingFields.value.length > 0)
-const displayErrorMessage = computed(() => uploadError.value || props.errorMessage)
-
-function stringField(key: string): string {
-  const value = form.value[key]
-  return typeof value === 'string' ? value : ''
-}
-
-function arrayField(key: string): string[] {
-  const value = form.value[key]
-  return Array.isArray(value) ? value : []
-}
-
-function numberField(key: string): number {
-  const value = form.value[key]
-  return typeof value === 'number' ? value : 0
-}
-
-function booleanField(key: string): boolean {
-  const value = form.value[key]
-  return typeof value === 'boolean' ? value : false
-}
-
-function tagsField(key: string): string {
-  return arrayField(key).join(', ')
-}
-
-function dateField(key: string): string {
-  const value = stringField(key)
-  return value.includes('T') ? value.slice(0, 16) : value
-}
-
-function setStringField(key: string, value: string): void {
-  form.value[key] = value
-}
-
-function setNumberField(key: string, value: string): void {
-  form.value[key] = Number(value)
-}
-
-function setBooleanField(key: string, value: boolean): void {
-  form.value[key] = value
-}
-
-function setTextLikeField(key: string, type: AdminFieldType, value: string): void {
-  form.value[key] =
-    type === 'tags'
-      ? value
-          .split(',')
-          .map((entry) => entry.trim())
-          .filter(Boolean)
-      : value
-}
-
-function isFieldUploading(key: string): boolean {
-  return uploadingFields.value.includes(key)
-}
-
-function startUploading(key: string): void {
-  if (!uploadingFields.value.includes(key)) {
-    uploadingFields.value = [...uploadingFields.value, key]
-  }
-}
-
-function stopUploading(key: string): void {
-  uploadingFields.value = uploadingFields.value.filter((fieldKey) => fieldKey !== key)
-}
-
-function getSelectedFiles(event: Event): { files: File[]; target: HTMLInputElement | null } {
-  const target = event.target as HTMLInputElement | null
-  return {
-    target,
-    files: target?.files ? Array.from(target.files) : [],
-  }
-}
-
-function validateImageFiles(files: File[]): void {
-  const invalidFile = files.find((file) => !isAllowedImageType(file))
-
-  if (invalidFile) {
-    throw new Error('Kun PNG-, JPG- og WEBP-billeder er tilladt.')
-  }
-}
-
-async function uploadFiles(files: File[]): Promise<string[]> {
-  validateImageFiles(files)
-  const token = localStorage.getItem('token')
-  const compressedFiles = await Promise.all(files.map((file) => compressImageFile(file)))
-  return Promise.all(compressedFiles.map((file) => uploadImageFile(file, token)))
-}
-
-async function uploadSingleImage(key: string, event: Event): Promise<void> {
-  const { files, target } = getSelectedFiles(event)
-  if (!files.length) return
-
-  uploadError.value = ''
-  startUploading(key)
-
-  try {
-    const file = files[0]
-    if (!file) return
-
-    const [imageUrl] = await uploadFiles([file])
-    if (!imageUrl) return
-
-    setStringField(key, imageUrl)
-  } catch (error) {
-    uploadError.value = error instanceof Error ? error.message : 'Billedet kunne ikke uploades.'
-  } finally {
-    stopUploading(key)
-    if (target) target.value = ''
-  }
-}
-
-async function uploadImageList(key: string, event: Event): Promise<void> {
-  const { files, target } = getSelectedFiles(event)
-  if (!files.length) return
-
-  uploadError.value = ''
-  startUploading(key)
-
-  try {
-    const imageUrls = await uploadFiles(files)
-    form.value[key] = [...arrayField(key), ...imageUrls]
-  } catch (error) {
-    uploadError.value = error instanceof Error ? error.message : 'Billederne kunne ikke uploades.'
-  } finally {
-    stopUploading(key)
-    if (target) target.value = ''
-  }
-}
-
-function removeImageFromList(key: string, index: number): void {
-  form.value[key] = arrayField(key).filter((_, imageIndex) => imageIndex !== index)
-}
+const {
+  arrayField,
+  booleanField,
+  dateField,
+  displayErrorMessage,
+  isFieldUploading,
+  isUploading,
+  numberField,
+  removeImageFromList,
+  setBooleanField,
+  setNumberField,
+  setStringField,
+  setTextLikeField,
+  stringField,
+  tagsField,
+  uploadImageList,
+  uploadSingleImage,
+} = useAdminRecordForm(form, errorMessage)
 </script>

@@ -9,89 +9,19 @@ import {
   restoreAdminRecord,
   updateAdminRecord,
 } from '@/api/admin.api'
-import { getGeocodedCoordinates } from '@/api/geocoding.api'
-import type {
-  AdminCollectionConfig,
-  AdminCollectionKey,
-  AdminEditableRecord,
-  AdminFieldConfig,
-  AdminFieldValue,
-  AdminRecord,
-} from '@/types/admin'
+import type { AdminCollectionConfig, AdminEditableRecord, AdminRecord } from '@/types/admin'
 import type { ContentSuggestion } from '@/types/content-suggestion'
-
-function cloneRecord(record: AdminEditableRecord): AdminEditableRecord {
-  return Object.fromEntries(
-    Object.entries(record).map(([key, value]) => [key, Array.isArray(value) ? [...value] : value]),
-  ) as AdminEditableRecord
-}
-
-function toEditableRecord(
-  record: AdminEditableRecord,
-  fields: AdminFieldConfig[],
-): AdminEditableRecord {
-  return Object.fromEntries(fields.map((field) => [field.key, normalizeValue(record[field.key])]))
-}
-
-function normalizeValue(value: AdminFieldValue | undefined): AdminFieldValue {
-  if (value === undefined) {
-    return ''
-  }
-
-  return value
-}
-
-function getStringValue(record: AdminEditableRecord, key: string): string {
-  const value = record[key]
-  return typeof value === 'string' ? value.trim() : ''
-}
-
-function isAddressGeocodedCollection(collection: AdminCollectionKey): boolean {
-  return collection === 'attractions' || collection === 'events'
-}
-
-async function withResolvedGpsPosition(
-  collection: AdminCollectionKey,
-  record: AdminEditableRecord,
-): Promise<AdminEditableRecord> {
-  const payload: AdminEditableRecord = { ...record }
-
-  if (isAddressGeocodedCollection(collection)) {
-    const address = getStringValue(payload, 'address')
-    const city = getStringValue(payload, 'city')
-
-    if (!address || !city) {
-      throw new Error('Indtast både adresse og by.')
-    }
-
-    const location = await getGeocodedCoordinates(address, city)
-    payload.gpsPosition = `${location.latitude},${location.longitude}`
-
-    delete payload.address
-    delete payload.city
-
-    return payload
-  }
-
-  if (collection === 'city') {
-    const name = getStringValue(payload, 'name')
-
-    if (!name) {
-      throw new Error('Indtast bynavn.')
-    }
-
-    const location = await getGeocodedCoordinates(null, name)
-    payload.gpsPosition = `${location.latitude},${location.longitude}`
-  }
-
-  return payload
-}
+import {
+  cloneAdminRecord,
+  toEditableAdminRecord,
+  withResolvedGpsPosition,
+} from './adminCollection.helpers'
 
 export function useAdminCollection(config: AdminCollectionConfig) {
   const activeRecords = ref<AdminRecord[]>([])
   const hiddenRecords = ref<AdminRecord[]>([])
   const suggestions = ref<ContentSuggestion[]>([])
-  const form = ref<AdminEditableRecord>(cloneRecord(config.emptyRecord))
+  const form = ref<AdminEditableRecord>(cloneAdminRecord(config.emptyRecord))
   const editingId = ref<string | null>(null)
   const isLoading = ref(false)
   const isHiddenLoading = ref(false)
@@ -143,12 +73,12 @@ export function useAdminCollection(config: AdminCollectionConfig) {
 
   function resetForm(): void {
     editingId.value = null
-    form.value = cloneRecord(config.emptyRecord)
+    form.value = cloneAdminRecord(config.emptyRecord)
   }
 
   function editRecord(record: AdminRecord): void {
     editingId.value = record._id
-    form.value = toEditableRecord(record, config.fields)
+    form.value = toEditableAdminRecord(record, config.fields)
   }
 
   async function saveRecord(): Promise<void> {

@@ -19,9 +19,7 @@
           :key="tab.key"
           class="rounded-md px-4 py-2 text-sm font-black transition"
           :class="
-            activeTab === tab.key
-              ? 'bg-[#094b7b] text-white'
-              : 'text-slate-600 hover:bg-slate-100'
+            activeTab === tab.key ? 'bg-[#094b7b] text-white' : 'text-slate-600 hover:bg-slate-100'
           "
           @click="activeTab = tab.key"
         >
@@ -41,27 +39,10 @@
 </template>
 
 <script setup lang="ts">
-import { computed, ref } from 'vue'
 import AdminCollectionManager from '@/components/admin/AdminCollectionManager.vue'
 import AdminContactTickets from '@/components/admin/AdminContactTickets.vue'
 import AdminReviewReports from '@/components/admin/AdminReviewReports.vue'
-import { adminCollections } from '@/admin/adminCollections'
-import type { AdminCollectionKey } from '@/types/admin'
+import { useAdminView } from '@/composables/admin/useAdminView'
 
-type AdminTabKey = AdminCollectionKey | 'reviews' | 'contact'
-
-const tabs: { key: AdminTabKey; label: string }[] = [
-  ...adminCollections.map((collection) => ({
-    key: collection.key,
-    label: collection.label,
-  })),
-  { key: 'contact', label: 'Henvendelser' },
-  { key: 'reviews', label: 'Anmeldelsesrapporter' },
-]
-
-const activeTab = ref<AdminTabKey>('city')
-
-const activeCollection = computed(() =>
-  adminCollections.find((collection) => collection.key === activeTab.value),
-)
+const { activeCollection, activeTab, tabs } = useAdminView()
 </script>

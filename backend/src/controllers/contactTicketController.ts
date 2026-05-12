@@ -7,6 +7,13 @@ import {
   ContactTicketCategory,
   ContactTicketStatus,
 } from "../interfaces/contactTicket";
+import {
+  completeTicket,
+  markTicketSeen,
+  rejectTicket,
+  reopenTicket,
+  startTicketWork,
+} from "../services/contactTicket.service";
 
 function isTicketCategory(value: unknown): value is ContactTicketCategory {
   return (
@@ -19,8 +26,31 @@ function getTrimmedString(value: unknown): string {
   return typeof value === "string" ? value.trim() : "";
 }
 
+function getRouteParam(value: string | string[] | undefined): string {
+  return Array.isArray(value) ? (value[0] ?? "") : (value ?? "");
+}
+
+function getRejectionReason(value: unknown): string {
+  const reason = getTrimmedString(value);
+
+  if (reason.length < 3 || reason.length > 1000) {
+    const error = new Error(
+      "Afvisningsårsagen skal være mellem 3 og 1000 tegn.",
+    );
+    error.name = "ValidationError";
+    throw error;
+  }
+
+  return reason;
+}
+
 function getStatusFilter(value: unknown): ContactTicketStatus | "all" {
-  if (value === "completed" || value === "all") {
+  if (
+    value === "in_progress" ||
+    value === "completed" ||
+    value === "rejected" ||
+    value === "all"
+  ) {
     return value;
   }
 
@@ -128,14 +158,9 @@ export async function completeContactTicket(
   res: Response,
 ): Promise<void> {
   try {
-    const ticket = await ContactTicketModel.findByIdAndUpdate(
-      req.params.id,
-      {
-        status: "completed",
-        completedAt: new Date(),
-        completedBy: req.user?.userID,
-      },
-      { new: true, runValidators: true },
+    const ticket = await completeTicket(
+      getRouteParam(req.params.id),
+      req.user?.userID,
     );
 
     if (!ticket) {
@@ -150,18 +175,62 @@ export async function completeContactTicket(
   }
 }
 
+export async function markContactTicketSeen(
+  req: Request,
+  res: Response,
+): Promise<void> {
+  try {
+    const ticket = await markTicketSeen(
+      getRouteParam(req.params.id),
+      req.user?.userID,
+    );
+
+    if (!ticket) {
+      res.status(404).json({ message: "Henvendelsen blev ikke fundet." });
+      return;
+    }
+
+    res.status(200).json(ticket);
+  } catch (err) {
+    console.error("Error marking contact ticket seen:", err);
+    res
+      .status(500)
+      .json({ message: "Kunne ikke markere henvendelsen som set." });
+  }
+}
+
+export async function startContactTicketWork(
+  req: Request,
+  res: Response,
+): Promise<void> {
+  try {
+    const ticket = await startTicketWork(
+      getRouteParam(req.params.id),
+      req.user?.userID,
+    );
+
+    if (!ticket) {
+      res.status(404).json({ message: "Henvendelsen blev ikke fundet." });
+      return;
+    }
+
+    res.status(200).json(ticket);
+  } catch (err) {
+    console.error("Error starting contact ticket work:", err);
+    res
+      .status(500)
+      .json({ message: "Kunne ikke starte arbejdet på henvendelsen." });
+  }
+}
+
 export async function reopenContactTicket(
   req: Request,
   res: Response,
 ): Promise<void> {
   try {
-    const ticket = await ContactTicketModel.findByIdAndUpdate(
-      req.params.id,
-      {
-        status: "open",
-        $unset: { completedAt: "", completedBy: "" },
-      },
-      { new: true, runValidators: true },
+    const ticket = await reopenTicket(
+      getRouteParam(req.params.id),
+      req.user?.userID,
     );
 
     if (!ticket) {
@@ -173,5 +242,34 @@ export async function reopenContactTicket(
   } catch (err) {
     console.error("Error reopening contact ticket:", err);
     res.status(500).json({ message: "Kunne ikke genåbne henvendelsen." });
+  }
+}
+
+export async function rejectContactTicket(
+  req: Request,
+  res: Response,
+): Promise<void> {
+  try {
+    const ticket = await rejectTicket(
+      getRouteParam(req.params.id),
+      getRejectionReason(req.body.reason),
+      req.user?.userID,
+    );
+
+    if (!ticket) {
+      res.status(404).json({ message: "Henvendelsen blev ikke fundet." });
+      return;
+    }
+
+    res.status(200).json(ticket);
+  } catch (err) {
+    console.error("Error rejecting contact ticket:", err);
+
+    if (err instanceof Error && err.name === "ValidationError") {
+      res.status(400).json({ message: err.message });
+      return;
+    }
+
+    res.status(500).json({ message: "Kunne ikke afvise henvendelsen." });
   }
 }

@@ -6,12 +6,12 @@
     aria-labelledby="ticket-modal-title"
     @click.self="$emit('close')"
   >
-    <article class="max-h-[90vh] w-full max-w-3xl overflow-y-auto rounded-lg bg-white p-5 shadow-2xl">
+    <article
+      class="max-h-[90vh] w-full max-w-3xl overflow-y-auto rounded-lg bg-white p-5 shadow-2xl"
+    >
       <div class="flex flex-wrap items-start justify-between gap-3">
         <div>
-          <p class="text-xs font-bold uppercase tracking-[0.18em] text-[#de5826]">
-            Henvendelse
-          </p>
+          <p class="text-xs font-bold uppercase tracking-[0.18em] text-[#de5826]">Henvendelse</p>
           <div class="mt-2 flex flex-wrap items-center gap-2">
             <h3 id="ticket-modal-title" class="text-2xl font-black text-[#094b7b]">
               {{ ticket.subject }}
@@ -21,13 +21,9 @@
             </span>
             <span
               class="rounded-full px-2 py-1 text-xs font-black"
-              :class="
-                ticket.status === 'completed'
-                  ? 'bg-emerald-100 text-emerald-800'
-                  : 'bg-slate-100 text-slate-700'
-              "
+              :class="getContactTicketStatusBadgeClass(ticket.status)"
             >
-              {{ ticket.status === 'completed' ? 'Afsluttet' : 'Åben' }}
+              {{ getContactTicketStatusLabel(ticket.status) }}
             </span>
           </div>
         </div>
@@ -42,11 +38,21 @@
       <div class="mt-5 grid gap-3 rounded-lg bg-slate-50 p-4 text-sm text-slate-700 sm:grid-cols-2">
         <p><span class="font-black text-slate-900">Bruger:</span> {{ ticket.submittedByName }}</p>
         <p><span class="font-black text-slate-900">Email:</span> {{ ticket.submittedByEmail }}</p>
-        <p><span class="font-black text-slate-900">Oprettet:</span> {{ formatDate(ticket.createdAt) }}</p>
-        <p><span class="font-black text-slate-900">Opdateret:</span> {{ formatDate(ticket.updatedAt) }}</p>
+        <p>
+          <span class="font-black text-slate-900">Oprettet:</span>
+          {{ formatDate(ticket.createdAt) }}
+        </p>
+        <p>
+          <span class="font-black text-slate-900">Opdateret:</span>
+          {{ formatDate(ticket.updatedAt) }}
+        </p>
         <p v-if="ticket.completedAt">
           <span class="font-black text-slate-900">Afsluttet:</span>
           {{ formatDate(ticket.completedAt) }}
+        </p>
+        <p v-if="ticket.rejectedAt">
+          <span class="font-black text-slate-900">Afvist:</span>
+          {{ formatDate(ticket.rejectedAt) }}
         </p>
       </div>
 
@@ -54,6 +60,16 @@
         <p class="text-xs font-bold uppercase tracking-[0.18em] text-slate-500">Beskrivelse</p>
         <p class="mt-3 whitespace-pre-line text-sm leading-6 text-slate-800">
           {{ ticket.message }}
+        </p>
+      </div>
+
+      <div
+        v-if="ticket.rejectionReason"
+        class="mt-5 rounded-lg border border-rose-200 bg-rose-50 p-4"
+      >
+        <p class="text-xs font-bold uppercase tracking-[0.18em] text-rose-700">Afvisningsårsag</p>
+        <p class="mt-3 whitespace-pre-line text-sm leading-6 text-rose-800">
+          {{ ticket.rejectionReason }}
         </p>
       </div>
 
@@ -66,10 +82,24 @@
         </a>
         <button
           v-if="ticket.status === 'open'"
+          class="rounded-md bg-sky-700 px-3 py-2 text-sm font-black text-white"
+          @click="$emit('startWork', ticket._id)"
+        >
+          Behandl sag
+        </button>
+        <button
+          v-if="ticket.status !== 'completed' && ticket.status !== 'rejected'"
           class="rounded-md bg-emerald-600 px-3 py-2 text-sm font-black text-white"
           @click="$emit('complete', ticket._id)"
         >
           Afslut sag
+        </button>
+        <button
+          v-if="ticket.status !== 'completed' && ticket.status !== 'rejected'"
+          class="rounded-md bg-rose-600 px-3 py-2 text-sm font-black text-white"
+          @click="$emit('reject', ticket._id)"
+        >
+          Afvis sag
         </button>
         <button
           v-else
@@ -85,6 +115,11 @@
 
 <script setup lang="ts">
 import { computed } from 'vue'
+import {
+  formatAdminContactTicketDate,
+  getContactTicketStatusBadgeClass,
+  getContactTicketStatusLabel,
+} from '@/composables/admin/adminContactTickets.helpers'
 import { getContactTicketCategoryMeta, type ContactTicket } from '@/types/contact-ticket'
 
 const props = defineProps<{
@@ -94,17 +129,13 @@ const props = defineProps<{
 defineEmits<{
   close: []
   complete: [id: string]
+  reject: [id: string]
   reopen: [id: string]
+  startWork: [id: string]
 }>()
 
 const category = computed(() => getContactTicketCategoryMeta(props.ticket.category))
-
-function formatDate(value: string): string {
-  return new Date(value).toLocaleString('da-DK', {
-    dateStyle: 'medium',
-    timeStyle: 'short',
-  })
-}
+const formatDate = formatAdminContactTicketDate
 
 function encodeMailSubject(subject: string): string {
   return encodeURIComponent(`Vedrørende din henvendelse: ${subject}`)
