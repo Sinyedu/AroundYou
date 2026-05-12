@@ -27,11 +27,11 @@
           </button>
         </div>
 
-        <p v-if="message" class="mb-4 rounded-xl bg-[#C1D2DE] px-4 py-3 text-sm font-semibold text-[#094b7b]">
+        <p v-if="message" ref="messageElement" :class="messageClass">
           {{ message }}
         </p>
 
-        <form class="grid gap-4 sm:grid-cols-2" @submit.prevent="submitSelected">
+        <form class="grid gap-4 sm:grid-cols-2" @submit.prevent="handleSubmit">
           <template v-if="selectedType === 'event'">
             <input v-model="eventForm.name" class="rounded-xl border border-slate-200 px-4 py-3" placeholder="Name" />
             <div class="rounded-xl border border-slate-200 px-4 py-3">
@@ -195,12 +195,14 @@
 <script setup lang="ts">
 import CategorySlugPicker from '@/components/CategorySlugPicker.vue'
 import { useCreateContent } from '@/composables/useCreateContent'
+import { computed, nextTick, ref } from 'vue'
 
 const {
   selectedType,
   isSubmitting,
   isUploadingImage,
   message,
+  messageType,
   eventHeroImageFile,
   attractionHeroImageFile,
   cityHeroImageFile,
@@ -216,4 +218,26 @@ const {
   submitSelected,
   typeButtonClass,
 } = useCreateContent()
+
+const messageClass = computed(() => [
+  'mb-4 rounded-xl px-4 py-3 text-sm font-semibold',
+  messageType.value === 'success'
+    ? 'bg-emerald-50 text-emerald-800 ring-1 ring-emerald-200'
+    : messageType.value === 'error'
+      ? 'bg-rose-50 text-rose-800 ring-1 ring-rose-200'
+      : 'bg-[#C1D2DE] text-[#094b7b]',
+])
+
+const messageElement = ref<HTMLElement | null>(null)
+
+const handleSubmit = async () => {
+  await submitSelected()
+
+  if (messageType.value !== 'error') {
+    return
+  }
+
+  await nextTick()
+  messageElement.value?.scrollIntoView({ behavior: 'smooth', block: 'center' })
+}
 </script>
