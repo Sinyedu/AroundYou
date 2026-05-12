@@ -66,7 +66,14 @@ export const useCreateContentImages = () => {
       attractionImageArrayFiles.value = files
     }
 
+    target.value = ''
     setMessage('')
+  }
+
+  const removeImageArrayFile = (contentType: 'event' | 'attraction', index: number) => {
+    const fileList = contentType === 'event' ? eventImageArrayFiles : attractionImageArrayFiles
+
+    fileList.value = fileList.value.filter((_, fileIndex) => fileIndex !== index)
   }
 
   const compressImageFiles = (files: File[]) => {
@@ -81,6 +88,7 @@ export const useCreateContentImages = () => {
     attractionImageArrayFiles,
     onHeroImageSelected,
     onImageArraySelected,
+    removeImageArrayFile,
     compressImageFiles,
   }
 }
