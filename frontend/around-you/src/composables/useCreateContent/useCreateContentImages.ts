@@ -66,7 +66,9 @@ export const useCreateContentImages = () => {
       attractionImageArrayFiles.value = files
     }
 
-    target.value = ''
+    if (target) {
+      target.value = ''
+    }
     setMessage('')
   }
 
