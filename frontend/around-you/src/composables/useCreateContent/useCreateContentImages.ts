@@ -3,6 +3,20 @@ import { compressImageFile, isAllowedImageType } from '@/utils/imageCompressor'
 import type { ContentType } from '@/types/content'
 import type { CreateContentMessageStateSetter } from '@/types/content/useCreateContent'
 
+const isSameFile = (firstFile: File, secondFile: File) =>
+  firstFile.name === secondFile.name &&
+  firstFile.size === secondFile.size &&
+  firstFile.lastModified === secondFile.lastModified
+
+const appendUniqueFiles = (existingFiles: File[], newFiles: File[]) => {
+  return [
+    ...existingFiles,
+    ...newFiles.filter(
+      (newFile) => !existingFiles.some((existingFile) => isSameFile(existingFile, newFile)),
+    ),
+  ]
+}
+
 export const useCreateContentImages = () => {
   const eventHeroImageFile = ref<File | null>(null)
   const attractionHeroImageFile = ref<File | null>(null)
@@ -61,9 +75,9 @@ export const useCreateContentImages = () => {
     }
 
     if (contentType === 'event') {
-      eventImageArrayFiles.value = files
+      eventImageArrayFiles.value = appendUniqueFiles(eventImageArrayFiles.value, files)
     } else {
-      attractionImageArrayFiles.value = files
+      attractionImageArrayFiles.value = appendUniqueFiles(attractionImageArrayFiles.value, files)
     }
 
     if (target) {
