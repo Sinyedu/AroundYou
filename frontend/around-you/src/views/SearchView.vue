@@ -21,8 +21,8 @@
             :category-options="categoryOptions"
           />
 
-          <div class="grid gap-6 lg:grid-cols-[calc(50vw-90px)_minmax(400px,1fr)] lg:justify-between">
-            <div class="lg:max-w-[calc(50vw-90px)]">
+          <div class="grid gap-6 lg:grid-cols-[calc(50vw-90px)_minmax(400px,1fr)] lg:items-start lg:justify-between">
+            <div class="lg:max-h-[656px] lg:max-w-[calc(50vw-90px)] lg:overflow-y-auto lg:pr-2">
               <div
                 v-if="isLoading"
                 class="rounded-2xl bg-white p-6 text-sm font-semibold text-slate-500"
@@ -39,51 +39,12 @@
 
               <div v-else class="space-y-5">
                 <div ref="resultsGrid" class="grid gap-4 grid-cols-2 xl:grid-cols-2">
-                  <template v-for="item in paginatedResults" :key="item.id">
+                  <template v-for="item in visibleResults" :key="item.id">
                     <div :data-result-id="item.id" :class="resultCardClass(item.id)">
                       <SearchResultCard :result="item" />
                     </div>
                   </template>
                 </div>
-
-                <nav
-                  v-if="totalPages > 1"
-                  class="flex flex-wrap items-center justify-center gap-2"
-                  aria-label="Resultatsider"
-                >
-                  <button
-                    type="button"
-                    class="rounded-lg border border-slate-200 px-3 py-2 text-sm font-semibold text-slate-600 transition hover:bg-slate-100 disabled:cursor-not-allowed disabled:opacity-40"
-                    :disabled="currentPage === 1"
-                    @click="goToPage(currentPage - 1)"
-                  >
-                    Forrige
-                  </button>
-
-                  <button
-                    v-for="page in pageNumbers"
-                    :key="page"
-                    type="button"
-                    class="h-10 min-w-10 rounded-lg border px-3 text-sm font-semibold transition"
-                    :class="
-                      page === currentPage
-                        ? 'border-[#1E5A88] bg-[#1E5A88] text-white'
-                        : 'border-slate-200 text-slate-600 hover:bg-slate-100'
-                    "
-                    @click="goToPage(page)"
-                  >
-                    {{ page }}
-                  </button>
-
-                  <button
-                    type="button"
-                    class="rounded-lg border border-slate-200 px-3 py-2 text-sm font-semibold text-slate-600 transition hover:bg-slate-100 disabled:cursor-not-allowed disabled:opacity-40"
-                    :disabled="currentPage === totalPages"
-                    @click="goToPage(currentPage + 1)"
-                  >
-                    Næste
-                  </button>
-                </nav>
               </div>
             </div>
 
@@ -115,21 +76,17 @@ import { useSearchView } from '@/composables/search/useSearchView'
 
 const {
   categoryOptions,
-  currentPage,
   errorMessage,
   filters,
-  goToPage,
   handleMapMarkerSelected,
   isLoading,
   locationOptions,
   mapMarkers,
-  pageNumbers,
-  paginatedResults,
   resultCardClass,
   resultDescription,
   resultsGrid,
   selectedCityCenter,
   selectedResultId,
-  totalPages,
+  visibleResults,
 } = useSearchView()
 </script>
