@@ -9,41 +9,19 @@ import {
   restoreAdminRecord,
   updateAdminRecord,
 } from '@/api/admin.api'
-import type {
-  AdminCollectionConfig,
-  AdminEditableRecord,
-  AdminFieldConfig,
-  AdminFieldValue,
-  AdminRecord,
-} from '@/types/admin'
+import type { AdminCollectionConfig, AdminEditableRecord, AdminRecord } from '@/types/admin'
 import type { ContentSuggestion } from '@/types/content-suggestion'
-
-function cloneRecord(record: AdminEditableRecord): AdminEditableRecord {
-  return Object.fromEntries(
-    Object.entries(record).map(([key, value]) => [key, Array.isArray(value) ? [...value] : value]),
-  ) as AdminEditableRecord
-}
-
-function toEditableRecord(
-  record: AdminEditableRecord,
-  fields: AdminFieldConfig[],
-): AdminEditableRecord {
-  return Object.fromEntries(fields.map((field) => [field.key, normalizeValue(record[field.key])]))
-}
-
-function normalizeValue(value: AdminFieldValue | undefined): AdminFieldValue {
-  if (value === undefined) {
-    return ''
-  }
-
-  return value
-}
+import {
+  cloneAdminRecord,
+  toEditableAdminRecord,
+  withResolvedGpsPosition,
+} from './adminCollection.helpers'
 
 export function useAdminCollection(config: AdminCollectionConfig) {
   const activeRecords = ref<AdminRecord[]>([])
   const hiddenRecords = ref<AdminRecord[]>([])
   const suggestions = ref<ContentSuggestion[]>([])
-  const form = ref<AdminEditableRecord>(cloneRecord(config.emptyRecord))
+  const form = ref<AdminEditableRecord>(cloneAdminRecord(config.emptyRecord))
   const editingId = ref<string | null>(null)
   const isLoading = ref(false)
   const isHiddenLoading = ref(false)
@@ -69,7 +47,9 @@ export function useAdminCollection(config: AdminCollectionConfig) {
         fetchAdminSuggestions('pending'),
       ])
       activeRecords.value = collectionRecords
-      suggestions.value = pendingSuggestions.filter((suggestion) => suggestion.type === config.pendingType)
+      suggestions.value = pendingSuggestions.filter(
+        (suggestion) => suggestion.type === config.pendingType,
+      )
     } catch (error) {
       errorMessage.value = error instanceof Error ? error.message : 'Kunne ikke hente admindata.'
     } finally {
@@ -93,12 +73,12 @@ export function useAdminCollection(config: AdminCollectionConfig) {
 
   function resetForm(): void {
     editingId.value = null
-    form.value = cloneRecord(config.emptyRecord)
+    form.value = cloneAdminRecord(config.emptyRecord)
   }
 
   function editRecord(record: AdminRecord): void {
     editingId.value = record._id
-    form.value = toEditableRecord(record, config.fields)
+    form.value = toEditableAdminRecord(record, config.fields)
   }
 
   async function saveRecord(): Promise<void> {
@@ -107,7 +87,8 @@ export function useAdminCollection(config: AdminCollectionConfig) {
 
     try {
       if (editingId.value) {
-        const updated = await updateAdminRecord(config.key, editingId.value, form.value)
+        const payload = await withResolvedGpsPosition(config.key, form.value)
+        const updated = await updateAdminRecord(config.key, editingId.value, payload)
         if (updated.isHidden) {
           hiddenRecords.value = hiddenRecords.value.map((record) =>
             record._id === updated._id ? updated : record,
@@ -118,7 +99,8 @@ export function useAdminCollection(config: AdminCollectionConfig) {
           )
         }
       } else {
-        const created = await createAdminRecord(config.key, form.value)
+        const payload = await withResolvedGpsPosition(config.key, form.value)
+        const created = await createAdminRecord(config.key, payload)
         activeRecords.value = [created, ...activeRecords.value]
       }
 
@@ -139,7 +121,10 @@ export function useAdminCollection(config: AdminCollectionConfig) {
     try {
       const hidden = await deleteAdminRecord(config.key, id)
       activeRecords.value = activeRecords.value.filter((record) => record._id !== hidden._id)
-      hiddenRecords.value = [hidden, ...hiddenRecords.value.filter((record) => record._id !== hidden._id)]
+      hiddenRecords.value = [
+        hidden,
+        ...hiddenRecords.value.filter((record) => record._id !== hidden._id),
+      ]
       if (editingId.value === id) {
         resetForm()
       }

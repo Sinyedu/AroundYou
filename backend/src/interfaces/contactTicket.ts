@@ -7,7 +7,11 @@ export type ContactTicketCategory =
   | "content"
   | "other";
 
-export type ContactTicketStatus = "open" | "completed";
+export type ContactTicketStatus =
+  | "open"
+  | "in_progress"
+  | "completed"
+  | "rejected";
 
 export interface ContactTicket extends Document {
   category: ContactTicketCategory;
@@ -17,8 +21,15 @@ export interface ContactTicket extends Document {
   submittedBy: string;
   submittedByName: string;
   submittedByEmail: string;
+  seenBy?: string;
+  seenAt?: Date;
+  inProgressBy?: string;
+  inProgressAt?: Date;
   completedBy?: string;
   completedAt?: Date;
+  rejectedBy?: string;
+  rejectedAt?: Date;
+  rejectionReason?: string;
   createdAt: Date;
   updatedAt: Date;
 }

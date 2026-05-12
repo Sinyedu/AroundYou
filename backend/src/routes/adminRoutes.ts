@@ -9,7 +9,10 @@ import {
 import {
   completeContactTicket,
   getAdminContactTickets,
+  markContactTicketSeen,
+  rejectContactTicket,
   reopenContactTicket,
+  startContactTicketWork,
 } from "../controllers/contactTicketController";
 import {
   approveContentSuggestion,
@@ -68,13 +71,39 @@ router.post(
   rejectContentSuggestion,
 );
 
-router.get("/admin/contact/tickets", verifyToken, requireAdmin, getAdminContactTickets);
+router.get(
+  "/admin/contact/tickets",
+  verifyToken,
+  requireAdmin,
+  getAdminContactTickets,
+);
+router.patch(
+  "/admin/contact/tickets/:id/seen",
+  verifyToken,
+  requireAdmin,
+  adminMutationRateLimiter,
+  markContactTicketSeen,
+);
+router.patch(
+  "/admin/contact/tickets/:id/start",
+  verifyToken,
+  requireAdmin,
+  adminMutationRateLimiter,
+  startContactTicketWork,
+);
 router.patch(
   "/admin/contact/tickets/:id/complete",
   verifyToken,
   requireAdmin,
   adminMutationRateLimiter,
   completeContactTicket,
+);
+router.patch(
+  "/admin/contact/tickets/:id/reject",
+  verifyToken,
+  requireAdmin,
+  adminMutationRateLimiter,
+  rejectContactTicket,
 );
 router.patch(
   "/admin/contact/tickets/:id/reopen",
@@ -85,7 +114,13 @@ router.patch(
 );
 
 router.get("/admin/city", verifyToken, requireAdmin, getAllCities);
-router.post("/admin/city", verifyToken, requireAdmin, adminMutationRateLimiter, createCity);
+router.post(
+  "/admin/city",
+  verifyToken,
+  requireAdmin,
+  adminMutationRateLimiter,
+  createCity,
+);
 router.put(
   "/admin/city/:id",
   verifyToken,
@@ -139,7 +174,13 @@ router.patch(
 );
 
 router.get("/admin/events", verifyToken, requireAdmin, getAllEvents);
-router.post("/admin/events", verifyToken, requireAdmin, adminMutationRateLimiter, createEvent);
+router.post(
+  "/admin/events",
+  verifyToken,
+  requireAdmin,
+  adminMutationRateLimiter,
+  createEvent,
+);
 router.put(
   "/admin/events/:id",
   verifyToken,
@@ -162,7 +203,12 @@ router.delete(
   deleteEventById,
 );
 
-router.get("/admin/reviews/reports", verifyToken, requireAdmin, getReportedReviews);
+router.get(
+  "/admin/reviews/reports",
+  verifyToken,
+  requireAdmin,
+  getReportedReviews,
+);
 router.put(
   "/admin/reviews/:id",
   verifyToken,

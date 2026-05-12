@@ -7,7 +7,10 @@
           {{ suggestions.length }} afventer godkendelse eller afvisning.
         </p>
       </div>
-      <button class="rounded-md border border-slate-300 px-3 py-2 text-sm font-bold" @click="$emit('refresh')">
+      <button
+        class="rounded-md border border-slate-300 px-3 py-2 text-sm font-bold"
+        @click="$emit('refresh')"
+      >
         Opdater
       </button>
     </div>
@@ -15,7 +18,10 @@
     <div v-if="isLoading" class="mt-4 rounded-md bg-slate-50 p-4 font-semibold text-slate-600">
       Henter...
     </div>
-    <div v-else-if="!suggestions.length" class="mt-4 rounded-md bg-slate-50 p-4 font-semibold text-slate-600">
+    <div
+      v-else-if="!suggestions.length"
+      class="mt-4 rounded-md bg-slate-50 p-4 font-semibold text-slate-600"
+    >
       Der er ingen afventende forslag i denne samling.
     </div>
     <div v-else class="mt-4 grid gap-3">
@@ -67,7 +73,7 @@
 </template>
 
 <script setup lang="ts">
-import type { AdminFieldValue } from '@/types/admin'
+import { formatAdminSuggestionValue } from '@/composables/admin/adminSuggestionQueue.helpers'
 import type { ContentSuggestion } from '@/types/content-suggestion'
 
 defineProps<{
@@ -82,9 +88,5 @@ defineEmits<{
   reject: [id: string]
 }>()
 
-function formatValue(value: AdminFieldValue): string {
-  if (Array.isArray(value)) return value.join(', ')
-  if (typeof value === 'boolean') return value ? 'Ja' : 'Nej'
-  return String(value)
-}
+const formatValue = formatAdminSuggestionValue
 </script>

@@ -7,6 +7,7 @@ import contactTicketRoutes from "./contactTicketRoutes";
 import contentSuggestionRoutes from "./contentSuggestionRoutes";
 import eventRoutes from "./eventRoutes";
 import geocodingRoutes from "./geocodingRoutes";
+import notificationRoutes from "./notificationRoutes";
 import reviewRoutes from "./reviewRoutes";
 import uploadRoutes from "./uploadRoutes";
 
@@ -20,6 +21,7 @@ router.use(uploadRoutes);
 router.use(geocodingRoutes);
 router.use(contentSuggestionRoutes);
 router.use(contactTicketRoutes);
+router.use(notificationRoutes);
 router.use(adminRoutes);
 router.use(authRoutes);
 router.use(attractionRoutes);

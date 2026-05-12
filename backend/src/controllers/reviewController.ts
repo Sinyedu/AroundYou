@@ -1,6 +1,9 @@
 import { Request, Response } from "express";
 import Joi from "joi";
+import { Types } from "mongoose";
+import { NotificationModel } from "../models/notificationModel";
 import { ReviewModel } from "../models/reviewModel";
+import { UserModel } from "../models/userModel";
 import { buildDynamicQuery } from "../utils/dynamicQueryBuilder";
 import {
   getHideUpdate,
@@ -11,6 +14,63 @@ import {
 
 function canModifyReview(req: Request, author: string): boolean {
   return req.user?.role === "admin" || req.user?.userName === author;
+}
+
+async function getReviewAuthorUserId(author: string): Promise<string | null> {
+  const user = await UserModel.findOne({ userName: author }).select("_id");
+  return user?._id.toString() ?? null;
+}
+
+function uniqueUserIds(userIds: Array<string | null | undefined>): string[] {
+  return [...new Set(userIds.filter((userId): userId is string => !!userId))];
+}
+
+async function notifyReviewReporters(
+  review: {
+    _id: Types.ObjectId;
+    title: string;
+    reports: { reportedBy: string }[];
+  },
+  actionTaken: boolean,
+): Promise<void> {
+  const recipients = uniqueUserIds(
+    review.reports.map((report) => report.reportedBy),
+  );
+  if (recipients.length === 0) return;
+
+  await NotificationModel.insertMany(
+    recipients.map((recipientUserId) => ({
+      recipientUserId,
+      type: actionTaken
+        ? "review_report_action_taken"
+        : "review_report_no_action",
+      title: actionTaken ? "Din rapport er behandlet" : "Din rapport er lukket",
+      message: actionTaken
+        ? `Din rapport af anmeldelsen "${review.title}" var succesfuld. Anmeldelsen er blevet fjernet efter gennemgang.`
+        : `Din rapport af anmeldelsen "${review.title}" blev gennemgået, men der blev ikke fundet brud på reglerne.`,
+      reviewId: review._id.toString(),
+    })),
+  );
+}
+
+async function notifyReviewAuthorReviewRemoved(
+  review: {
+    _id: Types.ObjectId;
+    author: string;
+    title: string;
+  },
+  ruleBroken: string,
+): Promise<void> {
+  const authorUserId = await getReviewAuthorUserId(review.author);
+  if (!authorUserId) return;
+
+  await NotificationModel.create({
+    recipientUserId: authorUserId,
+    type: "review_removed",
+    title: "Din anmeldelse er fjernet",
+    message: `Din anmeldelse "${review.title}" er blevet fjernet, fordi den brød reglen: ${ruleBroken}.`,
+    reviewId: review._id.toString(),
+  });
 }
 
 const reviewBodySchema = Joi.object({
@@ -31,19 +91,22 @@ const reviewUpdateSchema = Joi.object({
   image: Joi.string().trim().max(2048).allow(""),
 }).min(1);
 
+const reviewRemovalSchema = Joi.object({
+  ruleBroken: Joi.string().trim().min(3).max(500).required(),
+});
+
 function validateReviewBody(
   payload: Record<string, unknown>,
   isUpdate = false,
 ): Record<string, unknown> {
-  const { error, value } = (isUpdate ? reviewUpdateSchema : reviewBodySchema).validate(
-    payload,
-    {
-      abortEarly: false,
-      convert: true,
-      noDefaults: isUpdate,
-      stripUnknown: true,
-    },
-  );
+  const { error, value } = (
+    isUpdate ? reviewUpdateSchema : reviewBodySchema
+  ).validate(payload, {
+    abortEarly: false,
+    convert: true,
+    noDefaults: isUpdate,
+    stripUnknown: true,
+  });
 
   if (error) {
     const validationError = new Error(
@@ -54,6 +117,24 @@ function validateReviewBody(
   }
 
   return value as Record<string, unknown>;
+}
+
+function validateReviewRemoval(payload: Record<string, unknown>): string {
+  const { error, value } = reviewRemovalSchema.validate(payload, {
+    abortEarly: false,
+    convert: true,
+    stripUnknown: true,
+  });
+
+  if (error) {
+    const validationError = new Error(
+      error.details.map((detail) => detail.message).join(", "),
+    );
+    validationError.name = "ValidationError";
+    throw validationError;
+  }
+
+  return (value as { ruleBroken: string }).ruleBroken;
 }
 
 /**
@@ -210,15 +291,34 @@ export async function deleteReviewById(
       return;
     }
 
+    const ruleBroken =
+      req.user?.role === "admin"
+        ? validateReviewRemoval(req.body as Record<string, unknown>)
+        : "";
+
     const result = await ReviewModel.findByIdAndUpdate(
       req.params.id,
       getHideUpdate(req.user?.userID),
       { new: true },
     );
 
-    res.status(200).json({ message: "Review hidden successfully", data: result });
+    if (req.user?.role === "admin") {
+      await notifyReviewAuthorReviewRemoved(review, ruleBroken);
+      if (review.reports.length > 0) {
+        await notifyReviewReporters(review, true);
+      }
+    }
+
+    res
+      .status(200)
+      .json({ message: "Review hidden successfully", data: result });
   } catch (err) {
     console.error("Error deleting review:", err);
+    if (isValidationError(err)) {
+      res.status(400).json({ message: err.message });
+      return;
+    }
+
     res.status(500).json({
       message: "Error deleting review",
     });
@@ -312,7 +412,10 @@ export async function getReviewByGenericQuery(
 /**
  * GET REVIEWS BY TARGET (city / event / attraction)
  */
-export async function getReviewsByTarget(req: Request, res: Response): Promise<void> {
+export async function getReviewsByTarget(
+  req: Request,
+  res: Response,
+): Promise<void> {
   try {
     const { targetId } = req.params;
     const result = await ReviewModel.find({
@@ -332,7 +435,10 @@ export async function getReviewsByTarget(req: Request, res: Response): Promise<v
 export async function editReview(req: Request, res: Response): Promise<void> {
   try {
     const { id } = req.params;
-    const updates = validateReviewBody(req.body as Record<string, unknown>, true);
+    const updates = validateReviewBody(
+      req.body as Record<string, unknown>,
+      true,
+    );
 
     const review = await ReviewModel.findOne({
       _id: id,
@@ -498,6 +604,7 @@ export async function resolveReviewReport(
     review.reportResolvedBy = req.user?.userID;
 
     const result = await review.save();
+    await notifyReviewReporters(review, false);
     res.status(200).json(result);
   } catch (err) {
     console.error("Error resolving review report:", err);

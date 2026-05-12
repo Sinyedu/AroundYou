@@ -1,5 +1,5 @@
 export type ContactTicketCategory = 'bug' | 'report' | 'account' | 'content' | 'other'
-export type ContactTicketStatus = 'open' | 'completed'
+export type ContactTicketStatus = 'open' | 'in_progress' | 'completed' | 'rejected'
 export type ContactTicketStatusFilter = ContactTicketStatus | 'all'
 export type ContactTicketCategoryFilter = ContactTicketCategory | 'all'
 
@@ -12,8 +12,15 @@ export type ContactTicket = {
   submittedBy: string
   submittedByName: string
   submittedByEmail: string
+  seenBy?: string
+  seenAt?: string
+  inProgressBy?: string
+  inProgressAt?: string
   completedBy?: string
   completedAt?: string
+  rejectedBy?: string
+  rejectedAt?: string
+  rejectionReason?: string
   createdAt: string
   updatedAt: string
 }
