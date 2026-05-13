@@ -2,7 +2,7 @@ import { ref } from 'vue'
 import { USER_API_URL } from '@/constants/config'
 
 export function useUser() {
-  const token = ref<string | null>(localStorage.getItem('authToken') || null)
+  const token = ref<string | null>(null)
 
   async function login(email: string, password: string) {
     try {
@@ -18,9 +18,6 @@ export function useUser() {
 
       const data = await response.json()
       token.value = data.token
-      if (token.value) {
-        localStorage.setItem('authToken', token.value)
-      }
       return data
     } catch (error) {
       console.error('Login failed:', error)
@@ -49,7 +46,6 @@ export function useUser() {
 
   function logout() {
     token.value = null
-    localStorage.removeItem('authToken')
   }
 
   function isAuthenticated() {

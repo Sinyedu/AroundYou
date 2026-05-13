@@ -1,5 +1,6 @@
 import { computed, ref, type Ref } from 'vue'
 
+import { getAuthToken } from '@/api/authSession'
 import { uploadImageFile } from '@/api/contentApi'
 import type { AdminEditableRecord, AdminFieldType } from '@/types/admin'
 import { compressImageFile } from '@/utils/imageCompressor'
@@ -78,7 +79,7 @@ export function useAdminRecordForm(form: Ref<AdminEditableRecord>, errorMessage:
 
   async function uploadFiles(files: File[]): Promise<string[]> {
     validateAdminImageFiles(files)
-    const token = localStorage.getItem('token')
+    const token = getAuthToken()
     const compressedFiles = await Promise.all(files.map((file) => compressImageFile(file)))
     return Promise.all(compressedFiles.map((file) => uploadImageFile(file, token)))
   }

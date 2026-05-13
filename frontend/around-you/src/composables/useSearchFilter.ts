@@ -1,5 +1,13 @@
 import { computed, onBeforeUnmount, onMounted, reactive, ref, watch } from 'vue'
 import type { SearchFilterType, SearchFilters } from '@/types/search'
+import {
+  areFiltersEqual,
+  formatDisplayDate,
+  getCalendarDays,
+  isSelectedCalendarDay,
+  toDateInputValue,
+  weekdayLabels,
+} from '@/composables/search-filter/searchFilter.helpers'
 
 type SearchFilterProps = {
   modelValue: SearchFilters
@@ -8,23 +16,6 @@ type SearchFilterProps = {
 }
 
 type SearchFilterEmit = (event: 'update:modelValue', value: SearchFilters) => void
-
-const areStringArraysEqual = (first: string[], second: string[]) => {
-  if (first.length !== second.length) {
-    return false
-  }
-
-  return first.every((item, index) => item === second[index])
-}
-
-const areFiltersEqual = (first: SearchFilters, second: SearchFilters) => {
-  return (
-    first.location === second.location &&
-    first.date === second.date &&
-    areStringArraysEqual(first.types, second.types) &&
-    areStringArraysEqual(first.categories, second.categories)
-  )
-}
 
 export function useSearchFilter(props: SearchFilterProps, emit: SearchFilterEmit) {
   const isLocationOpen = ref(false)
@@ -48,6 +39,7 @@ export function useSearchFilter(props: SearchFilterProps, emit: SearchFilterEmit
 
   let isSyncingFromParent = false
 
+  // The draft mirrors v-model for editable dropdown state, so parent updates must not echo back.
   watch(
     () => props.modelValue,
     (value) => {
@@ -213,6 +205,10 @@ export function useSearchFilter(props: SearchFilterProps, emit: SearchFilterEmit
     draft.types = [...draft.types, type]
   }
 
+  const clearTypeFilters = () => {
+    draft.types = []
+  }
+
   const typeDotClass = (value: SearchFilterType) => {
     const isActive = draft.types.includes(value)
 
@@ -231,51 +227,16 @@ export function useSearchFilter(props: SearchFilterProps, emit: SearchFilterEmit
     })
   })
 
-  const weekdayLabels = ['M', 'T', 'O', 'T', 'F', 'L', 'S']
-
   const calendarDays = computed(() => {
-    const year = currentYear.value
-    const month = currentMonth.value
-    const firstDay = new Date(year, month, 1).getDay()
-    const offset = (firstDay + 6) % 7
-    const daysInMonth = new Date(year, month + 1, 0).getDate()
-
-    return Array.from({ length: 42 }, (_, index) => {
-      const dayNumber = index - offset + 1
-      return dayNumber > 0 && dayNumber <= daysInMonth ? dayNumber : null
-    })
+    return getCalendarDays(currentYear.value, currentMonth.value)
   })
 
   const displayDate = computed(() => {
-    if (!draft.date) {
-      return ''
-    }
-
-    const date = new Date(draft.date)
-
-    if (Number.isNaN(date.getTime())) {
-      return draft.date
-    }
-
-    return date.toLocaleDateString('da-DK', {
-      day: '2-digit',
-      month: 'short',
-      year: 'numeric',
-    })
+    return formatDisplayDate(draft.date)
   })
 
   const isSelectedDay = (day: number) => {
-    if (!draft.date) {
-      return false
-    }
-
-    const selected = new Date(draft.date)
-
-    return (
-      selected.getFullYear() === currentYear.value &&
-      selected.getMonth() === currentMonth.value &&
-      selected.getDate() === day
-    )
+    return isSelectedCalendarDay(draft.date, currentYear.value, currentMonth.value, day)
   }
 
   const dayButtonClass = (day: number | null) => {
@@ -296,12 +257,7 @@ export function useSearchFilter(props: SearchFilterProps, emit: SearchFilterEmit
       return
     }
 
-    const selected = new Date(currentYear.value, currentMonth.value, day)
-    const year = selected.getFullYear()
-    const month = String(selected.getMonth() + 1).padStart(2, '0')
-    const date = String(selected.getDate()).padStart(2, '0')
-
-    draft.date = `${year}-${month}-${date}`
+    draft.date = toDateInputValue(currentYear.value, currentMonth.value, day)
     isDateOpen.value = false
   }
 
@@ -329,6 +285,7 @@ export function useSearchFilter(props: SearchFilterProps, emit: SearchFilterEmit
     addCategoryFromQuery,
     calendarDays,
     categoryQuery,
+    clearTypeFilters,
     dayButtonClass,
     displayDate,
     draft,

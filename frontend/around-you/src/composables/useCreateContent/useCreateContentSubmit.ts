@@ -1,4 +1,5 @@
 import { ref } from 'vue'
+import { getAuthToken } from '@/api/authSession'
 import { createAttraction, createCity, createEvent, uploadImageFile } from '@/api/contentApi'
 import { createContentSuggestion } from '@/api/contentSuggestions.api'
 import { useAuthService } from '@/api/authService'
@@ -27,8 +28,6 @@ const splitList = (value: string) =>
     .split(',')
     .map((item) => item.trim())
     .filter(Boolean)
-
-const getAuthToken = () => localStorage.getItem('token')
 
 type ContentSubmissionDestination = 'created' | 'suggested'
 

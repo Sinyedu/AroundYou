@@ -1,6 +1,7 @@
 import { computed, onMounted, onUnmounted, ref } from 'vue'
 import { useRouter } from 'vue-router'
 
+import { getAuthToken } from '@/api/authSession'
 import { uploadImageFile } from '@/api/contentApi'
 import { restrictUserProfile } from '@/api/user'
 import { useAuth } from '@/composables/useAuth'
@@ -85,7 +86,7 @@ export const useUserProfileView = () => {
       return true
     }
 
-    const token = localStorage.getItem('token')
+    const token = getAuthToken()
 
     if (!token) {
       avatarError.value = MISSING_AVATAR_AUTH_MESSAGE
@@ -144,7 +145,7 @@ export const useUserProfileView = () => {
   }
 
   const confirmDeleteAccount = async () => {
-    const token = localStorage.getItem('token')
+    const token = getAuthToken()
 
     if (!token) {
       deleteAccountError.value = MISSING_DELETE_AUTH_MESSAGE

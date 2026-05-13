@@ -31,6 +31,7 @@ export const uploadImageFile = async (file: File, token: string | null) => {
 
   const response = await fetch(`${API_BASE_URL}/upload/image`, {
     method: 'POST',
+    credentials: 'include',
     headers: authHeaders(token, false),
     body: formData,
   })
@@ -54,6 +55,7 @@ export const uploadImageFile = async (file: File, token: string | null) => {
 const postJson = async <T>(url: string, body: T, token: string | null) => {
   const response = await fetch(url, {
     method: 'POST',
+    credentials: 'include',
     headers: authHeaders(token),
     body: JSON.stringify(body),
   })
