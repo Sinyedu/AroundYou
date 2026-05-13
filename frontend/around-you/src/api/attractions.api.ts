@@ -8,6 +8,7 @@ import type { NatureExperienceCard } from '@/types/nature-experience-card'
 import type { NatureExperienceSource } from '@/types/nature-experience-source'
 import type { NearbyLocationContent } from '@/types/nearby-location-content'
 import { apiGetCached } from '@/api/http'
+import { resolveApiAssetUrl } from '@/constants/config'
 import { distanceKm, parseGpsPosition } from '@/utils/geo'
 
 export const DEFAULT_NEARBY_LOCATION_DESCRIPTION =
@@ -171,7 +172,7 @@ export async function getNearbyLocationContent(
       id: attraction._id,
       name: attraction.name,
       description: attraction.description,
-      image: attraction.heroImage,
+      image: resolveApiAssetUrl(attraction.heroImage),
       rating: attraction.rating ?? 0,
       reviews: 0,
       tags: attraction.slugArray.slice(0, 3),
@@ -199,7 +200,7 @@ export async function getLargestCities(limit = 4): Promise<LargestCityCard[]> {
       id: city._id,
       name: city.name,
       description: city.description,
-      image: city.heroImage,
+      image: resolveApiAssetUrl(city.heroImage),
       rating: city.rating ?? 0,
       reviews: 0,
       tags: [city.region, city.commune, 'Storby'].filter(Boolean).slice(0, 3),
@@ -229,7 +230,7 @@ async function getExperiencesBySlug(slug: string, limit = 4): Promise<NatureExpe
       id: entry._id,
       name: entry.name,
       description: entry.description,
-      image: entry.heroImage,
+      image: resolveApiAssetUrl(entry.heroImage),
       rating: entry.rating ?? 0,
       reviews: 0,
       tags: entry.slugArray,
