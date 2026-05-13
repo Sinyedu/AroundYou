@@ -37,11 +37,25 @@ export function setupDocs(app: Application) {
         User: {
           type: "object",
           properties: {
+            userID: { type: "string" },
             firstName: { type: "string" },
             lastName: { type: "string" },
             userName: { type: "string" },
+            userAvatar: { type: "string" },
             email: { type: "string" },
             password: { type: "string" },
+            role: { type: "string", enum: ["user", "admin"] },
+            permissions: {
+              type: "array",
+              items: { type: "string" },
+            },
+            country: { type: "string" },
+            city: { type: "string" },
+            street: { type: "string" },
+            streetNumber: { type: "string" },
+            postalCode: { type: "string" },
+            isRestricted: { type: "boolean" },
+            createdAt: { type: "string", format: "date-time" },
           },
         },
         Attraction: {
@@ -93,9 +107,13 @@ export function setupDocs(app: Application) {
         Review: {
           type: "object",
           properties: {
+            reviewID: { type: "string" },
+            author: { type: "string" },
             title: { type: "string" },
             description: { type: "string" },
             rating: { type: "number" },
+            likes: { type: "number" },
+            image: { type: "string" },
             createdAt: { type: "string", format: "date-time" },
           },
         },
