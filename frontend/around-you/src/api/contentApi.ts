@@ -5,8 +5,7 @@ import type {
   UploadedImageResponse,
 } from '@/types/content'
 import { clearApiCache } from '@/api/http'
-
-const API_BASE_URL = 'http://localhost:4000/api'
+import { API_BASE_URL } from '@/constants/config'
 
 const authHeaders = (token: string | null, includeJsonContentType = true) => {
   return {

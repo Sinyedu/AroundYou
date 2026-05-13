@@ -4,7 +4,15 @@ import type { ReviewItem } from '@/api/reviews.api'
 export type AdminFieldValue = string | number | boolean | string[]
 export type AdminEditableRecord = Record<string, AdminFieldValue>
 export type AdminCollectionKey = 'city' | 'attractions' | 'events'
-export type AdminFieldType = 'text' | 'textarea' | 'number' | 'checkbox' | 'tags' | 'date'
+export type AdminFieldType =
+  | 'text'
+  | 'textarea'
+  | 'number'
+  | 'checkbox'
+  | 'tags'
+  | 'date'
+  | 'image'
+  | 'image-list'
 export type AdminVisibility = 'active' | 'hidden' | 'all'
 
 export type AdminRecord = AdminEditableRecord & {

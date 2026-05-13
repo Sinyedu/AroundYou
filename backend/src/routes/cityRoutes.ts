@@ -3,10 +3,8 @@ import {
   createCity,
   deleteCityById,
   getAllCities,
-  getCityByGenericQuery,
   getCityById,
   getCityByName,
-  getCityByQuery,
   updateCityById,
 } from "../controllers/cityController";
 import { contentWriteRateLimiter } from "../middleware/rateLimit";
@@ -38,18 +36,6 @@ router.delete(
   contentWriteRateLimiter,
   requirePermission("city:delete"),
   deleteCityById,
-);
-router.get(
-  "/city/query/:key/:value",
-  verifyToken,
-  requirePermission("city:read"),
-  getCityByQuery,
-);
-router.post(
-  "/city/query",
-  verifyToken,
-  requirePermission("city:read"),
-  getCityByGenericQuery,
 );
 
 export default router;

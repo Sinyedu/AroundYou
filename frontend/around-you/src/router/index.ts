@@ -41,7 +41,7 @@ const router = createRouter({
       path: '/user/user-profile',
       name: 'user-profile',
       component: () => import('../views/UserProfileView.vue'),
-      meta: { requiresAuth: true },
+      meta: { requiresAuth: true, disallowAdmin: true },
     },
 
     {
@@ -94,6 +94,10 @@ router.beforeEach(async (to) => {
 
   if (to.meta.requiresAdmin && !auth.isAdmin.value) {
     return { name: 'home' }
+  }
+
+  if (to.meta.disallowAdmin && auth.isAdmin.value) {
+    return { name: 'admin' }
   }
 
   return true

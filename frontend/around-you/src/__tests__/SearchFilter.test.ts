@@ -54,7 +54,10 @@ describe('SearchFilter', () => {
   it('toggles type and category filters without duplicating custom categories', async () => {
     const wrapper = mountFilter()
 
-    await wrapper.findAll('button').find((button) => button.text() === 'Event / Attraktion')?.trigger('click')
+    await wrapper
+      .findAll('button')
+      .find((button) => button.text().includes('Event / Attraktion'))
+      ?.trigger('click')
     await wrapper.findAll('button').find((button) => button.text() === 'Event')?.trigger('click')
 
     expect(lastEmittedModelValue(wrapper)).toMatchObject({

@@ -4,9 +4,7 @@ import {
   deleteReviewById,
   editReview,
   getAllReviews,
-  getReviewByGenericQuery,
   getReviewById,
-  getReviewByQuery,
   getReviewsByTarget,
   likeReview,
   reportReview,
@@ -44,18 +42,6 @@ router.delete(
   reviewRateLimiter,
   requirePermission("review:delete"),
   deleteReviewById,
-);
-router.get(
-  "/reviews/query/:key/:value",
-  verifyToken,
-  requirePermission("review:read"),
-  getReviewByQuery,
-);
-router.post(
-  "/reviews/query",
-  verifyToken,
-  requirePermission("review:read"),
-  getReviewByGenericQuery,
 );
 
 export default router;

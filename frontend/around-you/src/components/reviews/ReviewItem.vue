@@ -112,7 +112,7 @@
 
       <img
         v-if="review.image"
-        :src="review.image"
+        :src="resolvedReviewImage"
         :alt="review.title"
         class="mb-4 max-h-64 w-full rounded-xl object-cover"
       />
@@ -133,7 +133,9 @@
 </template>
 
 <script setup lang="ts">
+import { computed } from 'vue'
 import type { ReviewItem } from '@/api/reviews.api'
+import { resolveApiAssetUrl } from '@/constants/config'
 
 export type EditReviewFormModel = {
   title: string
@@ -163,6 +165,8 @@ const emit = defineEmits<{
   (e: 'toggle-like'): void
   (e: 'update:editForm', value: EditReviewFormModel): void
 }>()
+
+const resolvedReviewImage = computed(() => resolveApiAssetUrl(props.review.image))
 
 function updateField<K extends keyof EditReviewFormModel>(key: K, value: EditReviewFormModel[K]) {
   emit('update:editForm', {

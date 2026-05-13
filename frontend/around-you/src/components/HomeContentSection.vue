@@ -1,5 +1,5 @@
 <template>
-  <section class="px-8 py-12">
+  <section class="px-4 py-8 sm:px-8 sm:py-12">
     <h2 :class="titleClassName">{{ title }}</h2>
     <p :class="descriptionClassName">{{ description }}</p>
 
@@ -16,15 +16,15 @@
     </p>
 
     <div v-if="showCards" class="grid grid-cols-4 gap-4">
-      <AttractionCard v-for="card in cards" :key="card.id" :card="card" />
+      <CardComponent v-for="card in cards" :key="card.id" :card="card" />
     </div>
   </section>
 </template>
 
 <script setup lang="ts">
 import { computed } from 'vue'
-import AttractionCard from '@/components/AttractionCard.vue'
-import type { ExperienceCard } from '@/types/experience-card'
+import CardComponent from '@/components/CardComponent.vue'
+import type { ExperienceCard as ExperienceCardData } from '@/types/experience-card'
 
 const props = withDefaults(
   defineProps<{
@@ -32,14 +32,14 @@ const props = withDefaults(
     description: string
     loadingText: string
     emptyText: string
-    cards: ExperienceCard[]
+    cards: ExperienceCardData[]
     loading: boolean
     error: string | null
     titleClass?: string
     descriptionClass?: string
   }>(),
   {
-    titleClass: 'text-3xl font-extrabold text-[#094b7b] text-center mb-2',
+    titleClass: 'text-xl sm:text-3xl font-extrabold text-[#094b7b] text-center mb-2',
     descriptionClass: 'text-sm text-gray-500 text-center max-w-3xl mx-auto mb-8',
   },
 )

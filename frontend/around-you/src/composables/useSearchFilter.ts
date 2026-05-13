@@ -127,6 +127,18 @@ export function useSearchFilter(props: SearchFilterProps, emit: SearchFilterEmit
     isDateOpen.value = next
   }
 
+  const toggleLocation = () => {
+    const next = !isLocationOpen.value
+    closeAll()
+    isLocationOpen.value = next
+  }
+
+  const toggleCategories = () => {
+    const next = !isCategoriesOpen.value
+    closeAll()
+    isCategoriesOpen.value = next
+  }
+
   const openLocation = () => {
     closeAll()
     isLocationOpen.value = true
@@ -335,8 +347,10 @@ export function useSearchFilter(props: SearchFilterProps, emit: SearchFilterEmit
     removeCategory,
     selectDate,
     selectLocation,
+    toggleCategories,
     toggleCategory,
     toggleDate,
+    toggleLocation,
     toggleType,
     toggleTypeFilter,
     typeDotClass,

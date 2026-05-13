@@ -7,6 +7,7 @@ export const useCreateContent = () => {
   const {
     selectedType,
     message,
+    messageType,
     categoryOptions,
     eventForm,
     attractionForm,
@@ -22,6 +23,7 @@ export const useCreateContent = () => {
     attractionImageArrayFiles,
     onHeroImageSelected: _onHeroImageSelected,
     onImageArraySelected: _onImageArraySelected,
+    removeImageArrayFile,
     compressImageFiles,
   } = useCreateContentImages()
 
@@ -42,8 +44,9 @@ export const useCreateContent = () => {
     compressImageFiles,
   )
 
-  const setMessage = (msg: string) => {
+  const setMessage = (msg: string, type: 'success' | 'error' | 'info' = 'info') => {
     message.value = msg
+    messageType.value = type
   }
 
   const onHeroImageSelected = (contentType: ContentType, event: Event) => {
@@ -63,6 +66,7 @@ export const useCreateContent = () => {
     isSubmitting,
     isUploadingImage,
     message,
+    messageType,
     eventHeroImageFile,
     attractionHeroImageFile,
     cityHeroImageFile,
@@ -74,6 +78,7 @@ export const useCreateContent = () => {
     cityForm,
     onHeroImageSelected,
     onImageArraySelected,
+    removeImageArrayFile,
     submitSelected,
     typeButtonClass,
   }

@@ -1,4 +1,5 @@
-import type { ExperienceCard } from '@/types/experience-card'
+import { resolveApiAssetUrl } from '@/constants/config'
+import type { CardComponentItem } from '@/components/cardComponent.helpers'
 import type { Coordinates as MapCoordinates } from '@/types/coordinates'
 import type { Coordinates, SearchFilters, SearchResult } from '@/types/search'
 
@@ -77,17 +78,19 @@ export const paginateSearchItems = (
 }
 
 export const getSearchResultCardClass = (id: string, selectedResultId: string | null) => {
+  const baseClass = 'rounded-xl [&>*]:h-full'
+
   return selectedResultId === id
-    ? 'ring-4 ring-[#de5826]/70 shadow-[0_0_0_6px_rgba(222,88,38,0.12)]'
-    : 'ring-0'
+    ? `${baseClass} shadow-[0_0_0_2px_rgba(222,88,38,0.16),0_14px_28px_rgba(222,88,38,0.14)]`
+    : `${baseClass} ring-0`
 }
 
-export const toSearchResultCard = (item: SearchResult): ExperienceCard => {
+export const toSearchResultCard = (item: SearchResult): CardComponentItem => {
   return {
     id: item.id,
     name: item.title,
     description: item.description,
-    image: item.image,
+    image: resolveApiAssetUrl(item.image),
     rating: item.rating,
     reviews: item.reviews,
     tags: [item.type, item.location, ...item.categories].filter(Boolean),
